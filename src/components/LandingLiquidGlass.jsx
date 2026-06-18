@@ -5,18 +5,12 @@ import {
   useSpring,
 } from 'framer-motion';
 
-/* ════════════════════════════════════════════════════════════════════════════
-   0. INJECTED STYLES
-   ════════════════════════════════════════════════════════════════════════════ */
 const STYLE_TAG = `
   @keyframes chrome-sweep {
     0%, 100% { background-position: 0% center; }
     50%      { background-position: 200% center; }
   }
-  @keyframes scroll-bounce {
-    0%, 100% { opacity: 0.35; transform: translateY(0); }
-    50%      { opacity: 0.8;  transform: translateY(6px); }
-  }
+
 `;
 
 function injectStyles() {
@@ -28,9 +22,6 @@ function injectStyles() {
   document.head.appendChild(s);
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   1. DESIGN TOKENS
-   ════════════════════════════════════════════════════════════════════════════ */
 const C = {
   bg: '#09090b',
   card: 'rgba(255,255,255,0.025)',
@@ -55,11 +46,8 @@ const CHROME = {
   animation: 'chrome-sweep 6s ease-in-out infinite',
 };
 
-const EASE = [0.22, 1, 0.36, 1];
+const APPLE_EASE = [0.25, 0.1, 0.25, 1];
 
-/* ════════════════════════════════════════════════════════════════════════════
-   2. SVG ICONS
-   ════════════════════════════════════════════════════════════════════════════ */
 const Ico = {
   shield: (c = C.text2) => (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -145,9 +133,6 @@ const Ico = {
   ),
 };
 
-/* ════════════════════════════════════════════════════════════════════════════
-   3. GRID CANVAS — static, drawn once
-   ════════════════════════════════════════════════════════════════════════════ */
 function GridCanvas() {
   const ref = useRef(null);
   useEffect(() => {
@@ -182,9 +167,6 @@ function GridCanvas() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   4. SPOTLIGHT — cursor-following radial gradient
-   ════════════════════════════════════════════════════════════════════════════ */
 function Spotlight() {
   const rawX = useMotionValue(-800);
   const rawY = useMotionValue(-800);
@@ -207,9 +189,6 @@ function Spotlight() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   5. WAVEFORM — animated audio bars
-   ════════════════════════════════════════════════════════════════════════════ */
 function Waveform() {
   const bars = Array.from({ length: 52 }, (_, i) =>
     6 + Math.abs(Math.sin(i * 0.52 + 1.3) * 40) + Math.abs(Math.sin(i * 0.21) * 18)
@@ -221,7 +200,7 @@ function Waveform() {
           key={i}
           initial={{ scaleY: 0.3 }}
           animate={{ scaleY: [0.3, 1, 0.5, 0.85, 0.3] }}
-          transition={{ duration: 2.4 + (i % 5) * 0.3, repeat: Infinity, ease: 'easeInOut', delay: i * 0.04 }}
+          transition={{ duration: 2.4 + (i % 5) * 0.3, repeat: Infinity, ease: "easeInOut", delay: i * 0.04 }}
           style={{ width: 2, height: h, borderRadius: 1, background: `rgba(59,130,246,${0.45 + (i % 3) * 0.15})`, transformOrigin: 'center', flexShrink: 0 }}
         />
       ))}
@@ -229,9 +208,37 @@ function Waveform() {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   6. MOCKUP UI — application preview
-   ════════════════════════════════════════════════════════════════════════════ */
+const mockupContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+    }
+  }
+};
+
+const sidebarVariants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: APPLE_EASE } }
+};
+
+const sidebarItemVariants = {
+  hidden: { opacity: 0, x: -15 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: APPLE_EASE } }
+};
+
+const panelItemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: APPLE_EASE } }
+};
+
+const transcriptVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: APPLE_EASE } }
+};
+
 function MockupUI() {
   const sideItems = [
     { label: 'Casos Activos', active: true },
@@ -246,41 +253,97 @@ function MockupUI() {
     { t: '00:00:31', s: 'Agente', txt: 'Confirme la fecha y lugar de los hechos.' },
     { t: '00:00:48', s: 'Testigo', txt: 'El dieciseis de marzo, en la calle Constitucion 204.' },
   ];
+
   return (
-    <div style={{ width: '100%', height: '100%', display: 'flex', background: '#0a0a0a', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
-      {/* Sidebar */}
-      <div style={{ width: 185, flexShrink: 0, background: '#060606', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '20px 0', gap: 2 }}>
-        <div style={{ padding: '0 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 10 }}>
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-100px' }}
+      variants={mockupContainerVariants}
+      style={{ width: '100%', height: '100%', display: 'flex', background: '#0a0a0a', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}
+    >
+      
+      <motion.div
+        variants={sidebarVariants}
+        style={{ width: 185, flexShrink: 0, background: '#060606', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '20px 0', gap: 2 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.1 }}
+          style={{ padding: '0 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 10 }}
+        >
           <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>Vanta</div>
           <div style={{ fontSize: 9, color: C.text3, marginTop: 3, letterSpacing: '0.06em' }}>v3.0.0 — offline</div>
-        </div>
-        {sideItems.map((item) => (
-          <div key={item.label} style={{
-            padding: '7px 16px', fontSize: 10.5, fontWeight: item.active ? 600 : 400,
-            color: item.active ? 'rgba(255,255,255,0.92)' : C.text3,
-            background: item.active ? 'rgba(255,255,255,0.06)' : 'transparent',
-            borderLeft: item.active ? '2px solid rgba(255,255,255,0.75)' : '2px solid transparent',
-            letterSpacing: '0.04em', cursor: 'default',
-          }}>{item.label}</div>
-        ))}
-      </div>
-      {/* Main panel */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20, gap: 12, overflow: 'hidden' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        </motion.div>
+
+        
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } }
+          }}
+        >
+          {sideItems.map((item, i) => (
+            <motion.div
+              key={item.label}
+              variants={sidebarItemVariants}
+              style={{
+                padding: '7px 16px', fontSize: 10.5, fontWeight: item.active ? 600 : 400,
+                color: item.active ? 'rgba(255,255,255,0.92)' : C.text3,
+                background: item.active ? 'rgba(255,255,255,0.06)' : 'transparent',
+                borderLeft: item.active ? '2px solid rgba(255,255,255,0.75)' : '2px solid transparent',
+                letterSpacing: '0.04em', cursor: 'default',
+              }}
+            >{item.label}</motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
+
+      
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.08, delayChildren: 0.1 }
+          }
+        }}
+        style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20, gap: 12, overflow: 'hidden' }}
+      >
+        <motion.div
+          variants={panelItemVariants}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+        >
           <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.88)', letterSpacing: '-0.01em' }}>Caso #2024-0471</div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.8)' }} />
             <span style={{ fontSize: 9, color: C.text3, letterSpacing: '0.08em' }}>MODO OFFLINE</span>
           </div>
-        </div>
-        <div style={{ border: '1px dashed rgba(255,255,255,0.12)', borderRadius: 8, padding: '14px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'rgba(255,255,255,0.015)', flexShrink: 0 }}>
+        </motion.div>
+
+        <motion.div
+          variants={panelItemVariants}
+          style={{ border: '1px dashed rgba(255,255,255,0.12)', borderRadius: 8, padding: '14px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'rgba(255,255,255,0.015)', flexShrink: 0 }}
+        >
           <div style={{ width: 26, height: 26, border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 2v8M3 6l4-4 4 4" stroke="rgba(212,212,216,0.6)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /><path d="M1 11h12" stroke="rgba(212,212,216,0.35)" strokeWidth="1.2" strokeLinecap="round" /></svg>
           </div>
           <div style={{ fontSize: 9.5, color: C.text3, letterSpacing: '0.05em', textAlign: 'center' }}>Arrastre archivos de evidencia aqui</div>
           <div style={{ fontSize: 8.5, color: 'rgba(63,63,70,0.9)', letterSpacing: '0.04em' }}>MP3, MP4, WAV, MOV — hasta 8 GB</div>
-        </div>
-        <div style={{ borderRadius: 8, border: '1px solid rgba(59,130,246,0.1)', background: 'rgba(59,130,246,0.025)', padding: '10px 14px', flexShrink: 0 }}>
+        </motion.div>
+
+        <motion.div
+          variants={panelItemVariants}
+          style={{ borderRadius: 8, border: '1px solid rgba(59,130,246,0.1)', background: 'rgba(59,130,246,0.025)', padding: '10px 14px', flexShrink: 0 }}
+        >
           <div style={{ fontSize: 8.5, color: C.text3, letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 8 }}>Forma de onda — interrogatorio_0041.wav</div>
           <Waveform />
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
@@ -288,24 +351,39 @@ function MockupUI() {
             <span style={{ fontSize: 8, color: C.accent }}>REPRODUCIENDO</span>
             <span style={{ fontSize: 8, color: 'rgba(63,63,70,0.9)' }}>01:24:38</span>
           </div>
-        </div>
-        <div style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        </motion.div>
+
+        
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+               transition: { staggerChildren: 0.06, delayChildren: 0.15 }
+            }
+          }}
+          style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 4 }}
+        >
           {transcript.map((line, i) => (
-            <div key={i} style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}>
+            <motion.div
+              key={i}
+              variants={transcriptVariants}
+              style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}
+            >
               <span style={{ fontSize: 8, color: 'rgba(63,63,70,0.9)', flexShrink: 0, width: 46 }}>{line.t}</span>
               <span style={{ fontSize: 8, fontWeight: 700, color: line.s === 'Agente' ? 'rgba(212,212,216,0.65)' : C.accent, flexShrink: 0, width: 46, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{line.s}</span>
               <span style={{ fontSize: 8.5, color: 'rgba(161,161,170,0.7)', lineHeight: 1.5 }}>{line.txt}</span>
-            </div>
+            </motion.div>
           ))}
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   7. ANIMATED NUMBER — counts up on scroll into view
-   ════════════════════════════════════════════════════════════════════════════ */
 function AnimatedNumber({ value, suffix = '' }) {
   const [display, setDisplay] = useState(0);
   const ref = useRef(null);
@@ -334,16 +412,13 @@ function AnimatedNumber({ value, suffix = '' }) {
   return <span ref={ref}>{display}{suffix}</span>;
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   8. SECTION — scroll-triggered fade-in wrapper
-   ════════════════════════════════════════════════════════════════════════════ */
 function Section({ children, style, delay = 0 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.65, ease: EASE, delay }}
+      transition={{ duration: 0.8, ease: APPLE_EASE, delay }}
       style={style}
     >
       {children}
@@ -351,16 +426,13 @@ function Section({ children, style, delay = 0 }) {
   );
 }
 
-/* ════════════════════════════════════════════════════════════════════════════
-   9. DATA
-   ════════════════════════════════════════════════════════════════════════════ */
 const FEATURES = [
-  { icon: 'shield',  title: '100% Offline',           body: 'Ninguna evidencia abandona la maquina. Sin nube, sin telemetria, sin servidores de terceros.', accent: false },
-  { icon: 'brain',   title: 'Transcripcion con IA',   body: 'Motor Whisper embebido de alta precision. CPU/GPU local sin dependencias externas.', accent: true },
-  { icon: 'link',    title: 'Cadena de Custodia',     body: 'Hashing SHA-256 automatico de cada archivo. Registro forense inmutable e inalterable.', accent: false },
-  { icon: 'file',    title: 'Formatos de Evidencia',  body: 'MP3, MP4, WAV, MOV, FLAC y formatos de intercambio judicial estandar.', accent: false },
-  { icon: 'doc',     title: 'Informes Exportables',   body: 'PDF y DOCX con sello de tiempo y firma digital, listos para presentacion judicial.', accent: false },
-  { icon: 'lock',    title: 'Cifrado AES-256',        body: 'Proyectos cifrados en reposo. Acceso protegido por contrasena maestra.', accent: true },
+  { icon: 'shield', title: '100% Offline', body: 'Ninguna evidencia abandona la maquina. Sin nube, sin telemetria, sin servidores de terceros.', accent: false },
+  { icon: 'brain', title: 'Transcripcion con IA', body: 'Motor Whisper embebido de alta precision. CPU/GPU local sin dependencias externas.', accent: true },
+  { icon: 'link', title: 'Cadena de Custodia', body: 'Hashing SHA-256 automatico de cada archivo. Registro forense inmutable e inalterable.', accent: false },
+  { icon: 'file', title: 'Formatos de Evidencia', body: 'MP3, MP4, WAV, MOV, FLAC y formatos de intercambio judicial estandar.', accent: false },
+  { icon: 'doc', title: 'Informes Exportables', body: 'PDF y DOCX con sello de tiempo y firma digital, listos para presentacion judicial.', accent: false },
+  { icon: 'lock', title: 'Cifrado AES-256', body: 'Proyectos cifrados en reposo. Acceso protegido por contrasena maestra.', accent: true },
 ];
 
 const STEPS = [
@@ -371,22 +443,40 @@ const STEPS = [
 
 const STATS = [
   { value: 100, suffix: '%', label: 'Offline', sub: 'Sin conexion a internet' },
-  { value: 256, suffix: '',  label: 'AES',     sub: 'Cifrado en reposo' },
-  { value: 2,   suffix: 's', label: 'Transcripcion', sub: 'Promedio por minuto de audio' },
-  { value: 0,   suffix: '',  label: 'Datos salen', sub: 'Zero telemetria' },
+  { value: 256, suffix: '', label: 'AES', sub: 'Cifrado en reposo' },
+  { value: 2, suffix: 's', label: 'Transcripcion', sub: 'Promedio por minuto de audio' },
+  { value: 0, suffix: '', label: 'Datos salen', sub: 'Zero telemetria' },
 ];
 
 const FORMATS = [
-  { ext: 'MP3', type: 'Audio',  icon: 'music' },
-  { ext: 'WAV', type: 'Audio',  icon: 'music' },
+  { ext: 'MP3', type: 'Audio', icon: 'music' },
+  { ext: 'WAV', type: 'Audio', icon: 'music' },
   { ext: 'FLAC', type: 'Audio', icon: 'music' },
-  { ext: 'MP4', type: 'Video',  icon: 'film' },
-  { ext: 'MOV', type: 'Video',  icon: 'film' },
+  { ext: 'MP4', type: 'Video', icon: 'film' },
+  { ext: 'MOV', type: 'Video', icon: 'film' },
 ];
 
-/* ════════════════════════════════════════════════════════════════════════════
-   10. MAIN COMPONENT
-   ════════════════════════════════════════════════════════════════════════════ */
+const heroContainerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
+    }
+  }
+};
+
+const heroItemVariants = {
+  hidden: { opacity: 0, y: 30, filter: "blur(12px)" },
+  visible: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 1, ease: APPLE_EASE }
+  }
+};
+
 function LandingLiquidGlass() {
   injectStyles();
   const [scrolled, setScrolled] = useState(false);
@@ -397,20 +487,26 @@ function LandingLiquidGlass() {
   }, []);
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: "'Inter',sans-serif", overflowX: 'hidden' }}>
+    <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: "'Inter',sans-serif", overflowX: 'clip' }}>
       <GridCanvas />
       <Spotlight />
 
-      {/* ────────── HEADER ────────── */}
-      <motion.header style={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 52px', height: 64,
-        backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-        background: scrolled ? 'rgba(9,9,11,0.82)' : 'transparent',
-        transition: 'background 0.5s ease, border-color 0.5s ease',
-      }}>
+      
+      <motion.header
+        initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.7, ease: APPLE_EASE }}
+        style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 52px', height: 64,
+          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
+          background: scrolled ? 'rgba(9,9,11,0.82)' : 'transparent',
+          transition: 'background 0.5s ease, border-color 0.5s ease',
+        }}
+      >
         <span style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '0.18em', textTransform: 'uppercase', ...CHROME }}>Vanta</span>
         <nav style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
           {['Caracteristicas', 'Documentacion', 'Privacidad'].map((item) => (
@@ -432,25 +528,33 @@ function LandingLiquidGlass() {
         </nav>
       </motion.header>
 
-      {/* ────────── HERO ────────── */}
+      
       <section style={{ position: 'relative', zIndex: 10, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 24px 60px' }}>
+
+        
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE }}
+          variants={heroContainerVariants}
+          initial="hidden"
+          animate="visible"
           style={{ textAlign: 'center', maxWidth: 860 }}
         >
-          <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: '5px 18px', marginBottom: 30, background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)' }}>
-            <span style={{ fontSize: '0.66rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, fontWeight: 600 }}>v3.0 — Ahora disponible</span>
-          </div>
-          <h1 style={{
-            fontWeight: 800, fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)', lineHeight: 1.05,
-            letterSpacing: '-0.04em', margin: '0 auto 20px', ...CHROME,
-          }}>Tu proximo analisis forense comienza aqui.</h1>
-          <p style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)', color: C.text2, maxWidth: 480, margin: '0 auto 38px', lineHeight: 1.8 }}>
-            Analisis forense de datos local. 100% offline. Disenado para privacidad absoluta.
-          </p>
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+          
+          <motion.div variants={heroItemVariants}>
+            <h1 style={{
+              fontWeight: 800, fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)', lineHeight: 1.05,
+              letterSpacing: '-0.04em', margin: '0 auto 20px', ...CHROME,
+            }}>Tu proximo analisis forense comienza aqui.</h1>
+          </motion.div>
+
+          
+          <motion.div variants={heroItemVariants}>
+            <p style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)', color: C.text2, maxWidth: 480, margin: '0 auto 38px', lineHeight: 1.8 }}>
+              Analisis forense de datos local. 100% offline. Disenado para privacidad absoluta.
+            </p>
+          </motion.div>
+
+          
+          <motion.div variants={heroItemVariants} style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
             <button style={{
               padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
               borderRadius: 8, border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.92)',
@@ -469,29 +573,29 @@ function LandingLiquidGlass() {
               onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'rgba(212,212,216,0.9)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
               onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = C.text2; e.currentTarget.style.transform = 'translateY(0)'; }}
             >Ver Documentacion</button>
-          </div>
-          <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+          </motion.div>
+
+          
+          <motion.div variants={heroItemVariants} style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
             {['Offline', 'IA Local', 'Cifrado AES-256'].map((f) => (
               <span key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: C.text3, letterSpacing: '0.04em' }}>
                 {Ico.check(C.accent)} {f}
               </span>
             ))}
-          </div>
+          </motion.div>
+
         </motion.div>
 
-        {/* Scroll indicator */}
-        <div style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-          <span style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: C.text3 }}>Scroll</span>
-          <div style={{ width: 1, height: 24, background: 'linear-gradient(180deg, rgba(113,113,122,0.35) 0%, transparent 100%)', animation: 'scroll-bounce 2s ease-in-out infinite' }} />
-        </div>
+        
+
       </section>
 
-      {/* ────────── MOCKUP ────────── */}
+      
       <motion.section
-        initial={{ opacity: 0, y: 60 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: 60, filter: "blur(12px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.7, ease: EASE }}
+        transition={{ duration: 0.9, ease: APPLE_EASE }}
         style={{ position: 'relative', zIndex: 10, padding: '20px 24px 120px' }}
       >
         <div style={{ maxWidth: 960, margin: '0 auto', borderRadius: 14, boxShadow: '0 40px 100px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.07)', overflow: 'hidden' }}>
@@ -501,9 +605,7 @@ function LandingLiquidGlass() {
         </div>
       </motion.section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         FEATURES BENTO GRID
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '140px 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto' }}>
           <Section style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -515,9 +617,9 @@ function LandingLiquidGlass() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
             {FEATURES.map((f, i) => (
               <motion.div key={f.title}
-                initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 36, filter: "blur(8px)" }} whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.55, ease: EASE, delay: i * 0.07 }}
+                transition={{ duration: 0.7, ease: APPLE_EASE, delay: i * 0.07 }}
                 whileHover={{ borderColor: f.accent ? 'rgba(59,130,246,0.35)' : C.borderHover, background: f.accent ? 'rgba(59,130,246,0.04)' : C.cardHover }}
                 style={{
                   borderRadius: 12, padding: '28px 24px',
@@ -536,9 +638,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         COMO FUNCIONA — 3 steps
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto' }}>
           <Section style={{ textAlign: 'center', marginBottom: 72 }}>
@@ -547,7 +647,10 @@ function LandingLiquidGlass() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, position: 'relative' }}>
             {STEPS.map((step, i) => (
               <Section key={step.num} delay={i * 0.1}>
-                <div style={{ borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, padding: '40px 28px', height: '100%', position: 'relative' }}>
+                <div style={{ borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, padding: '40px 28px', height: '100%', position: 'relative', transition: 'transform 0.3s', cursor: 'default' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                >
                   <div style={{ fontSize: 48, fontWeight: 800, color: 'rgba(255,255,255,0.04)', position: 'absolute', top: 20, right: 24, letterSpacing: '-0.04em', lineHeight: 1 }}>{step.num}</div>
                   <div style={{ color: C.accent, marginBottom: 20 }}>{step.icon === 'upload' && Ico.upload(C.accent)}{step.icon === 'search' && Ico.search(C.accent)}{step.icon === 'download' && Ico.download(C.accent)}</div>
                   <div style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 10, letterSpacing: '-0.02em' }}>{step.title}</div>
@@ -559,9 +662,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         STATS — social proof
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20 }}>
@@ -580,9 +681,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         PRIVACIDAD — split layout
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 56, alignItems: 'center' }}>
           <Section>
@@ -593,29 +692,43 @@ function LandingLiquidGlass() {
             <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text2, maxWidth: 420 }}>En un mundo donde los datos sensibles viajan por servidores de terceros, Vanta toma la postura opuesta: cada byte permanece en su maquina. Sin conexiones, sin actualizaciones automaticas, sin excepciones.</p>
           </Section>
           <Section delay={0.12}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              variants={{
+                hidden: { opacity: 0 },
+                visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } }
+              }}
+              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
+            >
               {[
                 { t: 'Sin conexion a internet', d: 'La aplicacion nunca establishce comunicacion con servidores externos.' },
                 { t: 'Cifrado en reposo', d: 'AES-256 en todos los proyectos. Solo usted tiene la clave.' },
                 { t: 'Sin telemetria', d: 'Zero datos de uso, diagnosticos o analytics.' },
                 { t: 'Auditoria completa', d: 'Cada accion registrada con hash inmutable para revision forense.' },
               ].map((item, i) => (
-                <div key={i} style={{ padding: '18px 20px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.card, display: 'flex', gap: 14, alignItems: 'flex-start' }}>
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, ease: APPLE_EASE }}
+                  style={{ padding: '18px 20px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.card, display: 'flex', gap: 14, alignItems: 'flex-start' }}
+                >
                   <div style={{ marginTop: 2, flexShrink: 0 }}>{Ico.check(C.accent)}</div>
                   <div>
                     <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 3 }}>{item.t}</div>
                     <div style={{ fontSize: 13, lineHeight: 1.6, color: C.text3 }}>{item.d}</div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </Section>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         FORMATOS
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <Section>
@@ -626,8 +739,8 @@ function LandingLiquidGlass() {
             <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
               {FORMATS.map((f, i) => (
                 <motion.div key={f.ext}
-                  initial={{ opacity: 0, scale: 0.92 }} whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }} transition={{ duration: 0.4, delay: i * 0.06, ease: EASE }}
+                  initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }} whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+                  viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.06, ease: APPLE_EASE }}
                   style={{ padding: '22px 28px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.card, minWidth: 105, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
                 >
                   <div style={{ color: C.text3 }}>{Ico[f.icon](C.text3)}</div>
@@ -640,9 +753,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         PROFESIONALES
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto' }}>
           <Section style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -655,25 +766,51 @@ function LandingLiquidGlass() {
               { tag: 'Investigadores privados', title: 'Herramienta profesional sin suscripcion.', desc: 'Compra unica, sin costos recurrentes. Procese entrevistas y audio de campo de forma segura.', accent: '#22c55e' },
             ].map((card, i) => (
               <Section key={card.tag} delay={i * 0.08}>
-                <div style={{ padding: '36px 28px', borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, height: '100%', transition: 'border-color 0.3s' }}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, ease: APPLE_EASE }}
+                  style={{ padding: '36px 28px', borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, height: '100%', transition: 'border-color 0.3s' }}
                   onMouseEnter={(e) => { e.currentTarget.style.borderColor = card.accent + '33'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
                 >
-                  <div style={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.12em', color: card.accent, marginBottom: 16, textTransform: 'uppercase' }}>{card.tag}</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 10, letterSpacing: '-0.02em', lineHeight: 1.3 }}>{card.title}</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.75, color: C.text2 }}>{card.desc}</div>
-                </div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.05 }}
+                    style={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.12em', color: card.accent, marginBottom: 16, textTransform: 'uppercase' }}
+                  >{card.tag}</motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.1 }}
+                    style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 10, letterSpacing: '-0.02em', lineHeight: 1.3 }}
+                  >{card.title}</motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.15 }}
+                    style={{ fontSize: 14, lineHeight: 1.75, color: C.text2 }}
+                  >{card.desc}</motion.div>
+                </motion.div>
               </Section>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         CTA FINAL
-         ════════════════════════════════════════════════════════════════════ */}
+      
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <Section>
+        <motion.section
+          initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: '-80px' }}
+          transition={{ duration: 0.8, ease: APPLE_EASE }}
+        >
           <div style={{
             maxWidth: 720, margin: '0 auto', textAlign: 'center', padding: '80px 40px',
             borderRadius: 16, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.015)',
@@ -691,13 +828,17 @@ function LandingLiquidGlass() {
             >Descargar Vanta</button>
             <div style={{ marginTop: 16, fontSize: '0.7rem', color: C.text3, letterSpacing: '0.06em' }}>Sin tarjeta de credito. Compra unica.</div>
           </div>
-        </Section>
+        </motion.section>
       </section>
 
-      {/* ════════════════════════════════════════════════════════════════════
-         FOOTER
-         ════════════════════════════════════════════════════════════════════ */}
-      <footer style={{ borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 10 }}>
+      
+      <motion.footer
+        initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
+        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.8, ease: APPLE_EASE }}
+        style={{ borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 10 }}
+      >
         <div style={{ maxWidth: 1060, margin: '0 auto', padding: '60px 52px 40px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 48 }}>
             <div>
@@ -737,7 +878,7 @@ function LandingLiquidGlass() {
             <span style={{ fontSize: '0.7rem', color: C.text3, letterSpacing: '0.06em' }}>Hecho con discrecion.</span>
           </div>
         </div>
-      </footer>
+      </motion.footer>
     </div>
   );
 }
