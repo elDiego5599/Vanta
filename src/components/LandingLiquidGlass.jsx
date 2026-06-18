@@ -1,8 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import {
   motion,
-  useScroll,
-  useTransform,
   useMotionValue,
   useSpring,
 } from 'framer-motion';
@@ -391,27 +389,12 @@ const FORMATS = [
    ════════════════════════════════════════════════════════════════════════════ */
 function LandingLiquidGlass() {
   injectStyles();
-  const { scrollY } = useScroll();
-  const [vh, setVh] = useState(() => (typeof window !== 'undefined' ? window.innerHeight : 960));
-  useEffect(() => {
-    const onResize = () => setVh(window.innerHeight);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
-
-  /* ── scroll ranges ── */
-  const CONTAINER_H = vh * 3.5;
-  const S = vh * 2.5;
-
-  const heroOp  = useTransform(scrollY, [0, S * 0.22], [1, 0]);
-  const heroY   = useTransform(scrollY, [0, S * 0.22], [0, -80]);
-  const hintOp  = useTransform(scrollY, [0, S * 0.05], [1, 0]);
-  const mOp     = useTransform(scrollY, [S * 0.06, S * 0.18, S * 0.82, S], [0, 1, 1, 0]);
-  const mY      = useTransform(scrollY, [S * 0.06, S * 0.3], [180, 0]);
-  const mScale  = useTransform(scrollY, [S * 0.06, S * 0.3], [0.94, 1]);
-
   const [scrolled, setScrolled] = useState(false);
-  useEffect(() => scrollY.on('change', (v) => setScrolled(v > 40)), [scrollY]);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   return (
     <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: "'Inter',sans-serif", overflowX: 'hidden' }}>
@@ -449,69 +432,74 @@ function LandingLiquidGlass() {
         </nav>
       </motion.header>
 
-      {/* ────────── SCROLL CONTAINER (hero + mockup) ────────── */}
-      <div style={{ height: CONTAINER_H, position: 'relative' }}>
-        <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', zIndex: 10 }}>
+      {/* ────────── HERO ────────── */}
+      <section style={{ position: 'relative', zIndex: 10, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 24px 60px' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE }}
+          style={{ textAlign: 'center', maxWidth: 860 }}
+        >
+          <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: '5px 18px', marginBottom: 30, background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)' }}>
+            <span style={{ fontSize: '0.66rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, fontWeight: 600 }}>v3.0 — Ahora disponible</span>
+          </div>
+          <h1 style={{
+            fontWeight: 800, fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)', lineHeight: 1.05,
+            letterSpacing: '-0.04em', margin: '0 auto 20px', ...CHROME,
+          }}>Tu proximo analisis forense comienza aqui.</h1>
+          <p style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)', color: C.text2, maxWidth: 480, margin: '0 auto 38px', lineHeight: 1.8 }}>
+            Analisis forense de datos local. 100% offline. Disenado para privacidad absoluta.
+          </p>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
+            <button style={{
+              padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
+              borderRadius: 8, border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.92)',
+              background: 'linear-gradient(135deg,rgba(255,255,255,0.09) 0%,rgba(255,255,255,0.03) 100%)', backdropFilter: 'blur(12px)',
+              transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.15s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.65)'; e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >Descargar para Windows / macOS</button>
+            <button style={{
+              padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
+              borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', color: C.text2,
+              background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)',
+              transition: 'border-color 0.25s, color 0.25s, transform 0.15s',
+            }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'rgba(212,212,216,0.9)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = C.text2; e.currentTarget.style.transform = 'translateY(0)'; }}
+            >Ver Documentacion</button>
+          </div>
+          <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
+            {['Offline', 'IA Local', 'Cifrado AES-256'].map((f) => (
+              <span key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: C.text3, letterSpacing: '0.04em' }}>
+                {Ico.check(C.accent)} {f}
+              </span>
+            ))}
+          </div>
+        </motion.div>
 
-          {/* ── HERO ── */}
-          <motion.div style={{ textAlign: 'center', padding: '0 24px', marginBottom: 44, position: 'relative', zIndex: 2, opacity: heroOp, y: heroY }}>
-            <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 100, padding: '5px 18px', marginBottom: 30, background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)' }}>
-              <span style={{ fontSize: '0.66rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, fontWeight: 600 }}>v3.0 — Ahora disponible</span>
-            </div>
-            <h1 style={{
-              fontWeight: 800, fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)', lineHeight: 1.05,
-              letterSpacing: '-0.04em', maxWidth: 860, margin: '0 auto 20px', ...CHROME,
-            }}>Tu proximo analisis forense comienza aqui.</h1>
-            <p style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)', color: C.text2, maxWidth: 480, margin: '0 auto 38px', lineHeight: 1.8 }}>
-              Analisis forense de datos local. 100% offline. Disenado para privacidad absoluta.
-            </p>
-            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
-              <button style={{
-                padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
-                borderRadius: 8, border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.92)',
-                background: 'linear-gradient(135deg,rgba(255,255,255,0.09) 0%,rgba(255,255,255,0.03) 100%)', backdropFilter: 'blur(12px)',
-                transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.15s',
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.65)'; e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-              >Descargar para Windows / macOS</button>
-              <button style={{
-                padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
-                borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', color: C.text2,
-                background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)',
-                transition: 'border-color 0.25s, color 0.25s, transform 0.15s',
-              }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'rgba(212,212,216,0.9)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = C.text2; e.currentTarget.style.transform = 'translateY(0)'; }}
-              >Ver Documentacion</button>
-            </div>
-            <div style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
-              {['Offline', 'IA Local', 'Cifrado AES-256'].map((f) => (
-                <span key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: C.text3, letterSpacing: '0.04em' }}>
-                  {Ico.check(C.accent)} {f}
-                </span>
-              ))}
-            </div>
-          </motion.div>
+        {/* Scroll indicator */}
+        <div style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: C.text3 }}>Scroll</span>
+          <div style={{ width: 1, height: 24, background: 'linear-gradient(180deg, rgba(113,113,122,0.35) 0%, transparent 100%)', animation: 'scroll-bounce 2s ease-in-out infinite' }} />
+        </div>
+      </section>
 
-          {/* Scroll indicator */}
-          <motion.div style={{ position: 'absolute', bottom: 36, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, zIndex: 3, opacity: hintOp }}>
-            <span style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: C.text3 }}>Scroll</span>
-            <div style={{ width: 1, height: 24, background: 'linear-gradient(180deg, rgba(113,113,122,0.35) 0%, transparent 100%)', animation: 'scroll-bounce 2s ease-in-out infinite' }} />
-          </motion.div>
-
-          {/* ── MOCKUP ── */}
-          <div style={{ position: 'relative', zIndex: 2, width: '100%', display: 'flex', justifyContent: 'center' }}>
-            <motion.div style={{
-              width: 'min(960px, 94vw)', height: 'min(580px, 58vw)',
-              scale: mScale, y: mY, opacity: mOp,
-              borderRadius: 14, boxShadow: '0 40px 100px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.07)',
-            }}>
-              <MockupUI />
-            </motion.div>
+      {/* ────────── MOCKUP ────────── */}
+      <motion.section
+        initial={{ opacity: 0, y: 60 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.7, ease: EASE }}
+        style={{ position: 'relative', zIndex: 10, padding: '20px 24px 120px' }}
+      >
+        <div style={{ maxWidth: 960, margin: '0 auto', borderRadius: 14, boxShadow: '0 40px 100px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+          <div style={{ width: '100%', aspectRatio: '16/10' }}>
+            <MockupUI />
           </div>
         </div>
-      </div>
+      </motion.section>
 
       {/* ════════════════════════════════════════════════════════════════════
          FEATURES BENTO GRID

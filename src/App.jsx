@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import AppContext from './lib/AppContext';
+import LoginScreen from './components/LoginScreen';
 import ModuloIngesta from './components/ModuloIngesta';
 import ModuloTranscripcion from './components/ModuloTranscripcion';
 import ModuloBusqueda from './components/ModuloBusqueda';
@@ -7,7 +9,6 @@ const TABS = [
   { id: 'ingesta', label: 'Evidencias', icon: 'upload' },
   { id: 'transcripcion', label: 'Transcripcion', icon: 'waveform' },
   { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' },
-  { id: 'config', label: 'Configuracion', icon: 'settings' },
 ];
 
 function SidebarIcon({ type, active }) {
@@ -31,90 +32,136 @@ function SidebarIcon({ type, active }) {
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
     ),
-    settings: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
   };
   return icons[type] || null;
 }
 
 function App() {
+  const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('ingesta');
+  const [evidenceQueue, setEvidenceQueue] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
+
+  const selectFileForTranscription = (file) => {
+    setSelectedFile(file);
+    setActiveTab('transcripcion');
+  };
+
+  const addEvidence = (file) => {
+    const id = `ev-${Date.now()}`;
+    const item = {
+      id,
+      file,
+      nombre: file.name,
+      estado: 'listo',
+      progreso: 0,
+      tamano: formatSize(file.size),
+    };
+    setEvidenceQueue((prev) => [item, ...prev]);
+  };
+
+  const updateEvidence = (id, updates) => {
+    setEvidenceQueue((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
+    );
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setActiveTab('ingesta');
+    setSelectedFile(null);
+  };
+
+  if (!user) {
+    return <LoginScreen onLogin={setUser} />;
+  }
 
   const renderModule = () => {
     switch (activeTab) {
       case 'ingesta': return <ModuloIngesta />;
       case 'transcripcion': return <ModuloTranscripcion />;
       case 'busqueda': return <ModuloBusqueda />;
-      case 'config': return (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="text-[#71717a] text-sm mb-2">Configuracion</div>
-            <div className="text-[#52525b] text-xs">Proximamente</div>
-          </div>
-        </div>
-      );
       default: return <ModuloIngesta />;
     }
   };
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-white font-inter overflow-hidden">
-      {/* Sidebar */}
-      <aside className="w-[220px] flex-shrink-0 bg-[#060606] border-r border-white/5 flex flex-col">
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-white/5">
-          <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-white/85">
-            VANTA
+    <AppContext.Provider value={{
+      evidenceQueue, addEvidence, updateEvidence,
+      selectedFile, selectFileForTranscription,
+      user,
+    }}>
+      <div className="flex h-screen bg-[#09090b] text-white font-inter overflow-hidden">
+        {/* Sidebar */}
+        <aside className="w-[220px] flex-shrink-0 bg-[#060606] border-r border-white/5 flex flex-col">
+          {/* Logo */}
+          <div className="px-5 py-5 border-b border-white/5">
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-white/85">
+              VANTA
+            </div>
+            <div className="text-[9px] text-[#71717a] mt-1 tracking-wide">
+              v0.1.0 — offline
+            </div>
           </div>
-          <div className="text-[9px] text-[#71717a] mt-1 tracking-wide">
-            v3.0.0 — offline
-          </div>
-        </div>
 
-        {/* Nav */}
-        <nav className="flex-1 py-3 px-2">
-          {TABS.map((tab) => {
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`
-                  w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left
-                  transition-all duration-200 mb-0.5
-                  ${active
-                    ? 'bg-white/[0.06] text-white/90 border-l-2 border-white/70'
-                    : 'text-[#71717a] hover:text-white/70 hover:bg-white/[0.03] border-l-2 border-transparent'
-                  }
-                `}
-              >
-                <SidebarIcon type={tab.icon} active={active} />
-                <span className="text-[12px] tracking-wide">
-                  {tab.label}
+          {/* Nav */}
+          <nav className="flex-1 py-3 px-2">
+            {TABS.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+                    w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left
+                    transition-all duration-200 mb-0.5
+                    ${active
+                      ? 'bg-white/[0.06] text-white/90 border-l-2 border-white/70'
+                      : 'text-[#71717a] hover:text-white/70 hover:bg-white/[0.03] border-l-2 border-transparent'
+                    }
+                  `}
+                >
+                  <SidebarIcon type={tab.icon} active={active} />
+                  <span className="text-[12px] tracking-wide">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* User + Logout */}
+          <div className="px-4 py-3 border-t border-white/5">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-white/10 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-blue-400">
+                  {user.usuario.charAt(0).toUpperCase()}
                 </span>
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Footer */}
-        <div className="px-5 py-4 border-t border-white/5">
-          <div className="text-[9px] text-[#52525b] tracking-wider">
-            VANTA FORENSICS
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[11px] text-white/70 truncate">{user.usuario}</div>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="w-full py-1.5 text-[10px] text-[#71717a] hover:text-white/60 border border-white/5 hover:border-white/10 rounded-md transition-colors"
+            >
+              Cerrar Sesion
+            </button>
           </div>
-        </div>
-      </aside>
+        </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-hidden bg-[#09090b]">
-        {renderModule()}
-      </main>
-    </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-hidden bg-[#09090b]">
+          {renderModule()}
+        </main>
+      </div>
+    </AppContext.Provider>
   );
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
 export default App;
