@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
+
 import {
   motion,
   useMotionValue,
@@ -10,7 +11,9 @@ const STYLE_TAG = `
     0%, 100% { background-position: 0% center; }
     50%      { background-position: 200% center; }
   }
-
+  @keyframes blink {
+    50% { opacity: 0; }
+  }
 `;
 
 function injectStyles() {
@@ -262,7 +265,7 @@ function MockupUI() {
       variants={mockupContainerVariants}
       style={{ width: '100%', height: '100%', display: 'flex', background: '#0a0a0a', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}
     >
-      
+
       <motion.div
         variants={sidebarVariants}
         style={{ width: 185, flexShrink: 0, background: '#060606', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '20px 0', gap: 2 }}
@@ -278,7 +281,7 @@ function MockupUI() {
           <div style={{ fontSize: 9, color: C.text3, marginTop: 3, letterSpacing: '0.06em' }}>v3.0.0 — offline</div>
         </motion.div>
 
-        
+
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -304,7 +307,7 @@ function MockupUI() {
         </motion.div>
       </motion.div>
 
-      
+
       <motion.div
         initial="hidden"
         whileInView="visible"
@@ -353,7 +356,7 @@ function MockupUI() {
           </div>
         </motion.div>
 
-        
+
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -362,7 +365,7 @@ function MockupUI() {
             hidden: { opacity: 0 },
             visible: {
               opacity: 1,
-               transition: { staggerChildren: 0.06, delayChildren: 0.15 }
+              transition: { staggerChildren: 0.06, delayChildren: 0.15 }
             }
           }}
           style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 4 }}
@@ -410,6 +413,34 @@ function AnimatedNumber({ value, suffix = '' }) {
     return () => obs.disconnect();
   }, [value]);
   return <span ref={ref}>{display}{suffix}</span>;
+}
+
+function TypewriterText({ text, speed = 45, delay = 200, className = '', style = {}, textStyle = {} }) {
+  const [count, setCount] = useState(0);
+  const [started, setStarted] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setStarted(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+
+  useEffect(() => {
+    if (!started || count >= text.length) return;
+    const t = setTimeout(() => setCount(c => c + 1), speed + Math.random() * 30 - 15);
+    return () => clearTimeout(t);
+  }, [started, count, text, speed]);
+
+  return (
+    <span className={className} style={{ ...style, display: 'inline-block', position: 'relative' }}>
+      <span style={{ visibility: 'hidden', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{text}</span>
+      <span style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
+        <span style={textStyle}>{text.slice(0, count)}</span>
+        {count < text.length && (
+          <span style={{ animation: 'blink 0.8s step-end infinite', marginLeft: 1, WebkitTextFillColor: '#71717a' }}>|</span>
+        )}
+      </span>
+    </span>
+  );
 }
 
 function Section({ children, style, delay = 0 }) {
@@ -491,7 +522,7 @@ function LandingLiquidGlass() {
       <GridCanvas />
       <Spotlight />
 
-      
+
       <motion.header
         initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -528,32 +559,42 @@ function LandingLiquidGlass() {
         </nav>
       </motion.header>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 24px 60px' }}>
 
-        
+
         <motion.div
           variants={heroContainerVariants}
           initial="hidden"
           animate="visible"
-          style={{ textAlign: 'center', maxWidth: 860 }}
+          style={{ textAlign: 'center', maxWidth: 1000 }}
         >
-          
+
           <motion.div variants={heroItemVariants}>
             <h1 style={{
-              fontWeight: 800, fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)', lineHeight: 1.05,
-              letterSpacing: '-0.04em', margin: '0 auto 20px', ...CHROME,
-            }}>Tu proximo analisis forense comienza aqui.</h1>
+              fontWeight: 800,
+              fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)',
+              lineHeight: 1.05,
+              letterSpacing: '-0.04em',
+              margin: '0 auto 20px',
+            }}>
+              <TypewriterText
+                text="Tu proximo analisis forense comienza aqui."
+                speed={45}
+                delay={200}
+                textStyle={{ ...CHROME }}
+              />
+            </h1>
           </motion.div>
 
-          
+
           <motion.div variants={heroItemVariants}>
             <p style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)', color: C.text2, maxWidth: 480, margin: '0 auto 38px', lineHeight: 1.8 }}>
               Analisis forense de datos local. 100% offline. Disenado para privacidad absoluta.
             </p>
           </motion.div>
 
-          
+
           <motion.div variants={heroItemVariants} style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
             <button style={{
               padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
@@ -575,7 +616,7 @@ function LandingLiquidGlass() {
             >Ver Documentacion</button>
           </motion.div>
 
-          
+
           <motion.div variants={heroItemVariants} style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
             {['Offline', 'IA Local', 'Cifrado AES-256'].map((f) => (
               <span key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: C.text3, letterSpacing: '0.04em' }}>
@@ -586,11 +627,11 @@ function LandingLiquidGlass() {
 
         </motion.div>
 
-        
+
 
       </section>
 
-      
+
       <motion.section
         initial={{ opacity: 0, y: 60, filter: "blur(12px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -598,14 +639,29 @@ function LandingLiquidGlass() {
         transition={{ duration: 0.9, ease: APPLE_EASE }}
         style={{ position: 'relative', zIndex: 10, padding: '20px 24px 120px' }}
       >
-        <div style={{ maxWidth: 960, margin: '0 auto', borderRadius: 14, boxShadow: '0 40px 100px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.07)', overflow: 'hidden' }}>
-          <div style={{ width: '100%', aspectRatio: '16/10' }}>
-            <MockupUI />
+        <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
+          <div style={{
+            position: 'relative',
+            borderRadius: 16,
+            padding: 1,
+            background: 'linear-gradient(135deg, rgba(59,130,246,0.6) 0%, rgba(139,92,246,0.4) 35%, rgba(59,130,246,0.15) 65%, transparent 100%)',
+            boxShadow: '0 0 40px rgba(59,130,246,0.25), 0 0 80px rgba(139,92,246,0.15), 0 0 120px rgba(59,130,246,0.08)',
+          }}>
+            <div style={{
+              borderRadius: 15,
+              overflow: 'hidden',
+              background: '#09090b',
+              position: 'relative',
+            }}>
+              <div style={{ width: '100%', aspectRatio: '16/10' }}>
+                <MockupUI />
+              </div>
+            </div>
           </div>
         </div>
       </motion.section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '140px 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto' }}>
           <Section style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -638,7 +694,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto' }}>
           <Section style={{ textAlign: 'center', marginBottom: 72 }}>
@@ -647,9 +703,21 @@ function LandingLiquidGlass() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, position: 'relative' }}>
             {STEPS.map((step, i) => (
               <Section key={step.num} delay={i * 0.1}>
-                <div style={{ borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, padding: '40px 28px', height: '100%', position: 'relative', transition: 'transform 0.3s', cursor: 'default' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                <div
+                  style={{ borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, padding: '40px 28px', height: '100%', position: 'relative', transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease', cursor: 'default' }}
+                  onMouseMove={(e) => {
+                    const r = e.currentTarget.getBoundingClientRect();
+                    const x = (e.clientX - r.left) / r.width - 0.5;
+                    const y = (e.clientY - r.top) / r.height - 0.5;
+                    e.currentTarget.style.transform = `perspective(600px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px) scale(1.02)`;
+                    e.currentTarget.style.boxShadow = `0 20px 50px rgba(0,0,0,0.4), ${-x * 10}px ${y * 10}px 30px rgba(59,130,246,0.06)`;
+                    e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) translateY(0) scale(1)';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.borderColor = C.border;
+                  }}
                 >
                   <div style={{ fontSize: 48, fontWeight: 800, color: 'rgba(255,255,255,0.04)', position: 'absolute', top: 20, right: 24, letterSpacing: '-0.04em', lineHeight: 1 }}>{step.num}</div>
                   <div style={{ color: C.accent, marginBottom: 20 }}>{step.icon === 'upload' && Ico.upload(C.accent)}{step.icon === 'search' && Ico.search(C.accent)}{step.icon === 'download' && Ico.download(C.accent)}</div>
@@ -662,7 +730,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 900, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20 }}>
@@ -681,7 +749,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 56, alignItems: 'center' }}>
           <Section>
@@ -728,7 +796,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <Section>
@@ -753,7 +821,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <div style={{ maxWidth: 1060, margin: '0 auto' }}>
           <Section style={{ textAlign: 'center', marginBottom: 64 }}>
@@ -803,7 +871,7 @@ function LandingLiquidGlass() {
         </div>
       </section>
 
-      
+
       <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
         <motion.section
           initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
@@ -831,7 +899,7 @@ function LandingLiquidGlass() {
         </motion.section>
       </section>
 
-      
+
       <motion.footer
         initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
         whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
