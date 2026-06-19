@@ -156,8 +156,21 @@ export default function DetailedMockupUI({ activeIndex = 0 }) {
               className="absolute w-48 h-48 bg-purple-500/10 rounded-full blur-2xl"
             />
             <div className="relative flex flex-col items-center gap-4">
-              <div className="w-20 h-20 rounded-full border border-purple-500/30 bg-purple-500/10 flex items-center justify-center text-purple-400">
-                {Ico.lock('currentColor')}
+              <div className="relative">
+                <motion.div
+                  animate={{
+                    boxShadow: [
+                      '0 0 20px 6px rgba(168,85,247,0.2)',
+                      '0 0 35px 12px rgba(168,85,247,0.35)',
+                      '0 0 20px 6px rgba(168,85,247,0.2)',
+                    ],
+                  }}
+                  transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute inset-0 rounded-full"
+                />
+                <div className="w-20 h-20 rounded-full border border-purple-500/30 bg-purple-500/10 flex items-center justify-center text-purple-400 relative">
+                  {Ico.lock('currentColor')}
+                </div>
               </div>
               <div className="text-sm font-bold text-white tracking-widest uppercase mt-2">
                 AES-256 Activo
