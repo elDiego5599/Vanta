@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useAppContext } from '../lib/AppContext';
-import { transcribeAudio, fileToArrayBuffer, formatTimestamp } from '../lib/whisper';
+import { useAppContext } from '../../lib/AppContext';
+import { transcribeAudio, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
 
 function WaveformSVG() {
   const bars = Array.from({ length: 60 }, (_, i) => {
@@ -146,7 +146,6 @@ export default function ModuloTranscripcion() {
 
   return (
     <div className="h-full flex flex-col p-6">
-      {/* Header */}
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h1 className="text-lg font-bold text-white/90 tracking-tight">Linea de Tiempo</h1>
@@ -162,7 +161,6 @@ export default function ModuloTranscripcion() {
         )}
       </div>
 
-      {/* Audio Player Card */}
       <div className="border border-white/5 rounded-lg bg-white/[0.015] p-4 mb-6">
         <audio
           ref={audioRef}
@@ -172,7 +170,6 @@ export default function ModuloTranscripcion() {
           onEnded={() => setIsPlaying(false)}
         />
 
-        {/* File Info */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-md bg-blue-500/10 flex items-center justify-center">
@@ -195,12 +192,10 @@ export default function ModuloTranscripcion() {
           </div>
         </div>
 
-        {/* Waveform */}
         <div className="mb-3 bg-white/[0.02] rounded-md p-3">
           <WaveformSVG />
         </div>
 
-        {/* Controls */}
         <div className="flex items-center gap-4">
           <button
             onClick={() => {
@@ -240,7 +235,6 @@ export default function ModuloTranscripcion() {
           </div>
         </div>
 
-        {/* Transcription Progress */}
         {isTranscribing && (
           <div className="mt-4 pt-4 border-t border-white/5">
             <div className="flex items-center justify-between mb-2">
@@ -257,7 +251,6 @@ export default function ModuloTranscripcion() {
         )}
       </div>
 
-      {/* Transcript */}
       <div className="flex-1 overflow-y-auto pr-2">
         <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#71717a] mb-3">
           Transcripcion

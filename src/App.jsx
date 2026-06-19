@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import AppContext from './lib/AppContext';
-import LoginScreen from './components/LoginScreen';
-import ModuloIngesta from './components/ModuloIngesta';
-import ModuloTranscripcion from './components/ModuloTranscripcion';
-import ModuloBusqueda from './components/ModuloBusqueda';
+import LoginScreen from './components/app/LoginScreen';
+import ModuloIngesta from './components/app/ModuloIngesta';
+import ModuloTranscripcion from './components/app/ModuloTranscripcion';
+import ModuloBusqueda from './components/app/ModuloBusqueda';
 
 const TABS = [
   { id: 'ingesta', label: 'Evidencias', icon: 'upload' },
@@ -92,9 +92,7 @@ function App() {
       user,
     }}>
       <div className="flex h-screen bg-[#09090b] text-white font-inter overflow-hidden">
-        {/* Sidebar */}
         <aside className="w-[220px] flex-shrink-0 bg-[#060606] border-r border-white/5 flex flex-col">
-          {/* Logo */}
           <div className="px-5 py-5 border-b border-white/5">
             <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-white/85">
               VANTA
@@ -104,7 +102,6 @@ function App() {
             </div>
           </div>
 
-          {/* Nav */}
           <nav className="flex-1 py-3 px-2">
             {TABS.map((tab) => {
               const active = activeTab === tab.id;
@@ -128,7 +125,6 @@ function App() {
             })}
           </nav>
 
-          {/* User + Logout */}
           <div className="px-4 py-3 border-t border-white/5">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-white/10 flex items-center justify-center">
@@ -149,7 +145,6 @@ function App() {
           </div>
         </aside>
 
-        {/* Main Content */}
         <main className="flex-1 overflow-hidden bg-[#09090b]">
           {renderModule()}
         </main>

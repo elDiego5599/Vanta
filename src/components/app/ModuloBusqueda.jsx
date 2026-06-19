@@ -25,13 +25,11 @@ export default function ModuloBusqueda() {
 
   return (
     <div className="h-full flex flex-col p-6">
-      {/* Header */}
       <div className="mb-6">
         <h1 className="text-lg font-bold text-white/90 tracking-tight">Busqueda Semantica Vectorial</h1>
         <p className="text-xs text-[#71717a] mt-1">Busque conceptos dentro de las transcripciones por significado, no solo por palabras exactas.</p>
       </div>
 
-      {/* Search Bar */}
       <div className="flex gap-3 mb-6">
         <input
           type="text"
@@ -53,7 +51,6 @@ export default function ModuloBusqueda() {
         </button>
       </div>
 
-      {/* Results */}
       {results.length > 0 && (
         <div className="flex-1 overflow-y-auto">
           <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#71717a] mb-3">
@@ -114,7 +111,6 @@ export default function ModuloBusqueda() {
         </div>
       )}
 
-      {/* Empty State */}
       {results.length === 0 && !loading && (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">

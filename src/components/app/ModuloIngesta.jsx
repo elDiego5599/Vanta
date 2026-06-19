@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { useAppContext } from '../lib/AppContext';
+import { useAppContext } from '../../lib/AppContext';
 
 export default function ModuloIngesta() {
   const { evidenceQueue, addEvidence, selectFileForTranscription } = useAppContext();
@@ -40,7 +40,6 @@ export default function ModuloIngesta() {
         <p className="text-xs text-[#71717a] mt-1">Arrastre archivos de audio para transcripcion local con Whisper.</p>
       </div>
 
-      {/* Drop Zone */}
       <div
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -75,7 +74,6 @@ export default function ModuloIngesta() {
         </div>
       </div>
 
-      {/* Queue */}
       <div className="flex-1 overflow-y-auto">
         <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#71717a] mb-3">
           Archivos Cargados
