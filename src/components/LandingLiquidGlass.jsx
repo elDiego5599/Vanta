@@ -21,11 +21,10 @@ function CSSGrid() {
 function Header({ scrolled, theme, setTheme }) {
   return (
     <motion.header
-      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 lg:px-12 h-20 backdrop-blur-[24px] transition-all duration-500 border-b ${
-        scrolled
+      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 lg:px-12 h-20 backdrop-blur-[24px] transition-all duration-500 border-b ${scrolled
           ? 'border-[var(--border-subtle)] bg-[var(--page-bg)]/80'
           : 'border-transparent bg-transparent'
-      }`}
+        }`}
     >
       <div className="flex items-center gap-3 select-none chrome-text" data-cursor="button">
         <VantaLogo className="w-7 h-7 text-[var(--text-main)]" />

@@ -31,9 +31,9 @@ function ScrollFeature({ feature, index, setActiveIndex }) {
 
 const FEATURES = [
   { id: 0, icon: Ico.shield(), title: '100% Offline', desc: 'Su máquina es el único contenedor. No hay llamadas a APIs externas ni telemetría oculta.' },
-  { id: 1, icon: Ico.brain(), title: 'Transcripción Local', desc: 'Motor Whisper optimizado ejecutando diarización en tiempo real directamente en su CPU/GPU.' },
-  { id: 2, icon: Ico.link(), title: 'Cadena de Custodia', desc: 'Protegido con hashing SHA-256 automático en el momento exacto de la importación forense.' },
-  { id: 3, icon: Ico.lock(), title: 'Cifrado de Reposo', desc: 'Todos los casos son guardados bajo estándar militar AES-256. Nadie más puede acceder a su evidencia.' },
+  { id: 1, icon: Ico.brain('#3b82f6'), title: 'Transcripción Local', desc: 'Motor Whisper optimizado ejecutando diarización en tiempo real directamente en su CPU/GPU.' },
+  { id: 2, icon: Ico.link('#22c55e'), title: 'Cadena de Custodia', desc: 'Protegido con hashing SHA-256 automático en el momento exacto de la importación forense.' },
+  { id: 3, icon: Ico.lock('#a78bfa'), title: 'Cifrado de Reposo', desc: 'Todos los casos son guardados bajo estándar militar AES-256. Nadie más puede acceder a su evidencia.' },
 ];
 
 export default function ScrollytellingSection() {
