@@ -1,516 +1,217 @@
-import { useRef, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { injectStyles } from './landing/styles';
+import { VantaLogo, Ico } from './landing/Icons';
+import { Reveal, MagneticButton, Title25D, PremiumEdgeWrapper, ThemeToggle } from './landing/Primitives';
+import CustomCursor from './landing/Cursor';
+import ScrollytellingSection from './landing/Scrollytelling';
 
-import {
-  motion,
-  useMotionValue,
-  useSpring,
-} from 'framer-motion';
-
-const STYLE_TAG = `
-  @keyframes chrome-sweep {
-    0%, 100% { background-position: 0% center; }
-    50%      { background-position: 200% center; }
-  }
-  @keyframes blink {
-    50% { opacity: 0; }
-  }
-`;
-
-function injectStyles() {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById('vanta-styles')) return;
-  const s = document.createElement('style');
-  s.id = 'vanta-styles';
-  s.textContent = STYLE_TAG;
-  document.head.appendChild(s);
-}
-
-const C = {
-  bg: '#09090b',
-  card: 'rgba(255,255,255,0.025)',
-  cardHover: 'rgba(255,255,255,0.04)',
-  border: 'rgba(255,255,255,0.06)',
-  borderHover: 'rgba(255,255,255,0.14)',
-  text: '#fafafa',
-  text2: '#a1a1aa',
-  text3: '#71717a',
-  accent: '#3b82f6',
-  accentDim: 'rgba(59,130,246,0.12)',
-  accentText: 'rgba(147,197,253,0.9)',
-};
-
-const CHROME = {
-  background:
-    'linear-gradient(90deg,#52525b 0%,#71717a 18%,#a1a1aa 33%,#d4d4d8 47%,#ffffff 50%,#d4d4d8 53%,#a1a1aa 67%,#71717a 82%,#52525b 100%)',
-  backgroundSize: '200% 100%',
-  WebkitBackgroundClip: 'text',
-  WebkitTextFillColor: 'transparent',
-  backgroundClip: 'text',
-  animation: 'chrome-sweep 6s ease-in-out infinite',
-};
-
-const APPLE_EASE = [0.25, 0.1, 0.25, 1];
-
-const Ico = {
-  shield: (c = C.text2) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  ),
-  brain: (c = C.text2) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a5 5 0 0 1 4.5 2.8A4 4 0 0 1 20 8a4 4 0 0 1-1.8 3.3A4.5 4.5 0 0 1 17 14a4 4 0 0 1-3 3.9V22h-4v-4.1A4 4 0 0 1 7 14a4.5 4.5 0 0 1-1.2-2.7A4 4 0 0 1 4 8a4 4 0 0 1 3.5-3.2A5 5 0 0 1 12 2z" />
-      <path d="M12 2v8" />
-    </svg>
-  ),
-  link: (c = C.text2) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-    </svg>
-  ),
-  file: (c = C.text2) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-    </svg>
-  ),
-  doc: (c = C.text2) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <polyline points="14 2 14 8 20 8" />
-      <line x1="16" y1="13" x2="8" y2="13" />
-      <line x1="16" y1="17" x2="8" y2="17" />
-      <polyline points="10 9 9 9 8 9" />
-    </svg>
-  ),
-  lock: (c = C.text2) => (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
-  ),
-  upload: (c = C.text2) => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="17 8 12 3 7 8" />
-      <line x1="12" y1="3" x2="12" y2="15" />
-    </svg>
-  ),
-  search: (c = C.text2) => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  ),
-  download: (c = C.text2) => (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  ),
-  music: (c = C.text2) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 18V5l12-2v13" />
-      <circle cx="6" cy="18" r="3" />
-      <circle cx="18" cy="16" r="3" />
-    </svg>
-  ),
-  film: (c = C.text2) => (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
-      <line x1="7" y1="2" x2="7" y2="22" />
-      <line x1="17" y1="2" x2="17" y2="22" />
-      <line x1="2" y1="12" x2="22" y2="12" />
-      <line x1="2" y1="7" x2="7" y2="7" />
-      <line x1="2" y1="17" x2="7" y2="17" />
-      <line x1="17" y1="7" x2="22" y2="7" />
-      <line x1="17" y1="17" x2="22" y2="17" />
-    </svg>
-  ),
-  check: (c = C.accent) => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  ),
-};
-
-function GridCanvas() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const CELL = 48;
-    function draw() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      const W = canvas.width;
-      const H = canvas.height;
-      ctx.clearRect(0, 0, W, H);
-      ctx.lineWidth = 0.5;
-      ctx.strokeStyle = 'rgba(50,50,62,0.07)';
-      for (let y = 0; y <= H; y += CELL) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
-      }
-      for (let x = 0; x <= W; x += CELL) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
-      }
-    }
-    draw();
-    window.addEventListener('resize', draw);
-    return () => window.removeEventListener('resize', draw);
-  }, []);
+function CSSGrid() {
   return (
-    <canvas
-      ref={ref}
-      style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}
-    />
-  );
-}
-
-function Spotlight() {
-  const rawX = useMotionValue(-800);
-  const rawY = useMotionValue(-800);
-  const x = useSpring(rawX, { stiffness: 80, damping: 22, mass: 1 });
-  const y = useSpring(rawY, { stiffness: 80, damping: 22, mass: 1 });
-  useEffect(() => {
-    const onMove = (e) => { rawX.set(e.clientX); rawY.set(e.clientY); };
-    window.addEventListener('mousemove', onMove);
-    return () => window.removeEventListener('mousemove', onMove);
-  }, [rawX, rawY]);
-  return (
-    <motion.div
+    <div
+      className="fixed inset-0 z-0 pointer-events-none"
       style={{
-        position: 'fixed', top: 0, left: 0, width: 600, height: 600,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(59,130,246,0.05) 0%, rgba(59,130,246,0.02) 40%, transparent 70%)',
-        pointerEvents: 'none', zIndex: 1, translateX: x, translateY: y, x: '-50%', y: '-50%',
+        backgroundImage: `linear-gradient(to right, var(--grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px)`,
+        backgroundSize: '64px 64px',
       }}
     />
   );
 }
 
-function Waveform() {
-  const bars = Array.from({ length: 52 }, (_, i) =>
-    6 + Math.abs(Math.sin(i * 0.52 + 1.3) * 40) + Math.abs(Math.sin(i * 0.21) * 18)
-  );
+function Header({ scrolled, theme, setTheme }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 2, height: 56 }}>
-      {bars.map((h, i) => (
-        <motion.div
-          key={i}
-          initial={{ scaleY: 0.3 }}
-          animate={{ scaleY: [0.3, 1, 0.5, 0.85, 0.3] }}
-          transition={{ duration: 2.4 + (i % 5) * 0.3, repeat: Infinity, ease: "easeInOut", delay: i * 0.04 }}
-          style={{ width: 2, height: h, borderRadius: 1, background: `rgba(59,130,246,${0.45 + (i % 3) * 0.15})`, transformOrigin: 'center', flexShrink: 0 }}
-        />
-      ))}
-    </div>
-  );
-}
-
-const mockupContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.1,
-    }
-  }
-};
-
-const sidebarVariants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: APPLE_EASE } }
-};
-
-const sidebarItemVariants = {
-  hidden: { opacity: 0, x: -15 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease: APPLE_EASE } }
-};
-
-const panelItemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: APPLE_EASE } }
-};
-
-const transcriptVariants = {
-  hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: APPLE_EASE } }
-};
-
-function MockupUI() {
-  const sideItems = [
-    { label: 'Casos Activos', active: true },
-    { label: 'Evidencias', active: false },
-    { label: 'Transcripciones', active: false },
-    { label: 'Informes', active: false },
-    { label: 'Configuracion', active: false },
-  ];
-  const transcript = [
-    { t: '00:00:14', s: 'Agente', txt: 'Por favor, indique su nombre completo para el registro.' },
-    { t: '00:00:22', s: 'Testigo', txt: 'Mi nombre es Carlos Ramirez Vega.' },
-    { t: '00:00:31', s: 'Agente', txt: 'Confirme la fecha y lugar de los hechos.' },
-    { t: '00:00:48', s: 'Testigo', txt: 'El dieciseis de marzo, en la calle Constitucion 204.' },
-  ];
-
-  return (
-    <motion.div
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: '-100px' }}
-      variants={mockupContainerVariants}
-      style={{ width: '100%', height: '100%', display: 'flex', background: '#0a0a0a', borderRadius: 12, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}
+    <motion.header
+      className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 lg:px-12 h-20 backdrop-blur-[24px] transition-all duration-500 border-b ${
+        scrolled
+          ? 'border-[var(--border-subtle)] bg-[var(--page-bg)]/80'
+          : 'border-transparent bg-transparent'
+      }`}
     >
-
-      <motion.div
-        variants={sidebarVariants}
-        style={{ width: 185, flexShrink: 0, background: '#060606', borderRight: '1px solid rgba(255,255,255,0.06)', display: 'flex', flexDirection: 'column', padding: '20px 0', gap: 2 }}
-      >
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.1 }}
-          style={{ padding: '0 16px 16px', borderBottom: '1px solid rgba(255,255,255,0.05)', marginBottom: 10 }}
-        >
-          <div style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.85)', fontWeight: 700 }}>Vanta</div>
-          <div style={{ fontSize: 9, color: C.text3, marginTop: 3, letterSpacing: '0.06em' }}>v3.0.0 — offline</div>
-        </motion.div>
-
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={{
-            hidden: { opacity: 0 },
-            visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } }
-          }}
-        >
-          {sideItems.map((item, i) => (
-            <motion.div
-              key={item.label}
-              variants={sidebarItemVariants}
-              style={{
-                padding: '7px 16px', fontSize: 10.5, fontWeight: item.active ? 600 : 400,
-                color: item.active ? 'rgba(255,255,255,0.92)' : C.text3,
-                background: item.active ? 'rgba(255,255,255,0.06)' : 'transparent',
-                borderLeft: item.active ? '2px solid rgba(255,255,255,0.75)' : '2px solid transparent',
-                letterSpacing: '0.04em', cursor: 'default',
-              }}
-            >{item.label}</motion.div>
-          ))}
-        </motion.div>
-      </motion.div>
-
-
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.08, delayChildren: 0.1 }
-          }
-        }}
-        style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: 20, gap: 12, overflow: 'hidden' }}
-      >
-        <motion.div
-          variants={panelItemVariants}
-          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-        >
-          <div style={{ fontSize: 13, fontWeight: 700, color: 'rgba(255,255,255,0.88)', letterSpacing: '-0.01em' }}>Caso #2024-0471</div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.8)' }} />
-            <span style={{ fontSize: 9, color: C.text3, letterSpacing: '0.08em' }}>MODO OFFLINE</span>
-          </div>
-        </motion.div>
-
-        <motion.div
-          variants={panelItemVariants}
-          style={{ border: '1px dashed rgba(255,255,255,0.12)', borderRadius: 8, padding: '14px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, background: 'rgba(255,255,255,0.015)', flexShrink: 0 }}
-        >
-          <div style={{ width: 26, height: 26, border: '1px solid rgba(255,255,255,0.15)', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 2v8M3 6l4-4 4 4" stroke="rgba(212,212,216,0.6)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" /><path d="M1 11h12" stroke="rgba(212,212,216,0.35)" strokeWidth="1.2" strokeLinecap="round" /></svg>
-          </div>
-          <div style={{ fontSize: 9.5, color: C.text3, letterSpacing: '0.05em', textAlign: 'center' }}>Arrastre archivos de evidencia aqui</div>
-          <div style={{ fontSize: 8.5, color: 'rgba(63,63,70,0.9)', letterSpacing: '0.04em' }}>MP3, MP4, WAV, MOV — hasta 8 GB</div>
-        </motion.div>
-
-        <motion.div
-          variants={panelItemVariants}
-          style={{ borderRadius: 8, border: '1px solid rgba(59,130,246,0.1)', background: 'rgba(59,130,246,0.025)', padding: '10px 14px', flexShrink: 0 }}
-        >
-          <div style={{ fontSize: 8.5, color: C.text3, letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 8 }}>Forma de onda — interrogatorio_0041.wav</div>
-          <Waveform />
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 6 }}>
-            <span style={{ fontSize: 8, color: 'rgba(63,63,70,0.9)' }}>00:00:00</span>
-            <span style={{ fontSize: 8, color: C.accent }}>REPRODUCIENDO</span>
-            <span style={{ fontSize: 8, color: 'rgba(63,63,70,0.9)' }}>01:24:38</span>
-          </div>
-        </motion.div>
-
-
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { staggerChildren: 0.06, delayChildren: 0.15 }
-            }
-          }}
-          style={{ flex: 1, overflowY: 'hidden', display: 'flex', flexDirection: 'column', gap: 4 }}
-        >
-          {transcript.map((line, i) => (
-            <motion.div
-              key={i}
-              variants={transcriptVariants}
-              style={{ display: 'flex', gap: 10, padding: '5px 0', borderBottom: '1px solid rgba(255,255,255,0.03)' }}
+      <div className="flex items-center gap-3 select-none chrome-text" data-cursor="button">
+        <VantaLogo className="w-7 h-7 text-[var(--text-main)]" />
+        <span className="font-extrabold text-xl tracking-[0.2em] uppercase">Vanta</span>
+      </div>
+      <nav className="hidden md:flex gap-6 lg:gap-10 items-center">
+        {[
+          { href: '#caracteristicas', label: 'Características' },
+          { href: '#docs', label: 'Docs' },
+          { href: '#privacidad', label: 'Privacidad' },
+        ].map((link) => (
+          <MagneticButton key={link.href}>
+            <a
+              href={link.href}
+              className="px-4 py-2 text-[var(--text-muted)] text-xs tracking-[0.1em] uppercase font-semibold transition-colors hover:text-[var(--text-main)] font-mono"
             >
-              <span style={{ fontSize: 8, color: 'rgba(63,63,70,0.9)', flexShrink: 0, width: 46 }}>{line.t}</span>
-              <span style={{ fontSize: 8, fontWeight: 700, color: line.s === 'Agente' ? 'rgba(212,212,216,0.65)' : C.accent, flexShrink: 0, width: 46, letterSpacing: '0.05em', textTransform: 'uppercase' }}>{line.s}</span>
-              <span style={{ fontSize: 8.5, color: 'rgba(161,161,170,0.7)', lineHeight: 1.5 }}>{line.txt}</span>
-            </motion.div>
-          ))}
-        </motion.div>
+              {link.label}
+            </a>
+          </MagneticButton>
+        ))}
+        <div className="w-[1px] h-4 bg-[var(--border-strong)] ml-2" />
+        <ThemeToggle theme={theme} setTheme={setTheme} />
+        <MagneticButton>
+          <button className="text-xs font-bold tracking-widest uppercase text-[var(--btn-text)] border border-transparent rounded-full px-6 py-2.5 bg-[var(--btn-bg)] transition-colors hover:bg-[var(--btn-hover)] shadow-lg">
+            Descargar
+          </button>
+        </MagneticButton>
+      </nav>
+    </motion.header>
+  );
+}
+
+function Hero() {
+  return (
+    <section className="relative z-10 min-h-screen flex flex-col justify-between pt-32 pb-8 px-6 lg:px-12 max-w-[1400px] mx-auto">
+      <div className="flex-1 flex flex-col lg:flex-row items-center justify-between w-full gap-16 lg:gap-8">
+        <Reveal dir="left" className="flex flex-col items-start w-full lg:w-1/3">
+          <Title25D text1="Inteligencia" text2="Forense." />
+          <p className="text-base text-[var(--text-muted)] max-w-sm mb-8 leading-relaxed font-mono">
+            Motor Whisper embebido y cadena de custodia inmutable. Totalmente Offline.
+          </p>
+          <MagneticButton>
+            <button className="px-8 py-4 text-xs font-bold tracking-widest uppercase rounded-full border border-[var(--border-strong)] text-[var(--text-main)] bg-[var(--glass-bg)] backdrop-blur-md transition-all hover:bg-[var(--glass-hover)]">
+              Para Mac / Win
+            </button>
+          </MagneticButton>
+        </Reveal>
+
+        <Reveal dir="up" className="flex justify-center relative w-full lg:w-1/3">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[250px] h-[250px] bg-[var(--text-main)] opacity-10 blur-[80px] rounded-full pointer-events-none" />
+          <div className="w-48 h-48 md:w-64 md:h-64 relative z-10 drop-shadow-2xl text-[var(--text-main)]">
+            <VantaLogo className="w-full h-full" />
+          </div>
+        </Reveal>
+
+        <Reveal dir="right" className="flex flex-col items-start lg:items-end w-full lg:w-1/3 text-left lg:text-right">
+          <div className="flex flex-col gap-8 font-mono text-xs tracking-[0.15em] text-[var(--text-muted)] uppercase">
+            <div>
+              <span className="text-[var(--text-main)] font-bold block mb-1">Cifrado de Reposo</span>
+              AES-256 Estándar Militar
+            </div>
+            <div>
+              <span className="text-[var(--text-main)] font-bold block mb-1">Cadena de Custodia</span>
+              Hashing SHA-256 Local
+            </div>
+            <div>
+              <span className="text-[var(--text-main)] font-bold block mb-1">Transcripción</span>
+              Zero Latency IA Local
+            </div>
+          </div>
+        </Reveal>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 1 }}
+        className="w-full pt-8 border-t border-[var(--border-subtle)] overflow-hidden shrink-0 mt-10"
+      >
+        <div className="flex gap-12 text-[11px] tracking-[0.2em] font-mono text-[var(--text-muted)] uppercase whitespace-nowrap opacity-80">
+          <span>Diseñado para Operaciones Encubiertas</span>
+          <span>•</span>
+          <span>Zero Telemetría</span>
+          <span>•</span>
+          <span>Cumplimiento Forense Estricto</span>
+          <span>•</span>
+          <span>Independencia de Nube Absoluta</span>
+          <span className="hidden md:inline">•</span>
+          <span className="hidden md:inline">Whisper AI Native</span>
+        </div>
       </motion.div>
-    </motion.div>
+    </section>
   );
 }
 
-function AnimatedNumber({ value, suffix = '' }) {
-  const [display, setDisplay] = useState(0);
-  const ref = useRef(null);
-  const done = useRef(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting && !done.current) {
-          done.current = true;
-          const t0 = performance.now();
-          const dur = 1400;
-          (function tick(now) {
-            const p = Math.min((now - t0) / dur, 1);
-            setDisplay(Math.round((1 - Math.pow(1 - p, 3)) * value));
-            if (p < 1) requestAnimationFrame(tick);
-          })(t0);
-        }
-      },
-      { threshold: 0.5 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [value]);
-  return <span ref={ref}>{display}{suffix}</span>;
-}
+const BENTO_CARDS = [
+  { icon: <>{Ico.brain()}</>, title: 'Hardware Optimizado', desc: 'Diarización y procesamiento Whisper usando toda la potencia de Apple Silicon y GPUs dedicadas.' },
+  { icon: <>{Ico.lock()}</>, title: 'Bóveda Criptográfica', desc: 'Volúmenes locales sellados bajo AES-256. Su evidencia permanece completamente inalcanzable.' },
+  { icon: <>{Ico.upload()}</>, title: 'Flujo Forense', desc: 'Arraste formatos estándar y exporte documentos listos para su uso judicial inmediato.' },
+];
 
-function TypewriterText({ text, speed = 45, delay = 200, className = '', style = {}, textStyle = {} }) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setStarted(true), delay);
-    return () => clearTimeout(t);
-  }, [delay]);
-
-  useEffect(() => {
-    if (!started || count >= text.length) return;
-    const t = setTimeout(() => setCount(c => c + 1), speed + Math.random() * 30 - 15);
-    return () => clearTimeout(t);
-  }, [started, count, text, speed]);
-
+function BentoGrid() {
   return (
-    <span className={className} style={{ ...style, display: 'inline-block', position: 'relative' }}>
-      <span style={{ visibility: 'hidden', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{text}</span>
-      <span style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}>
-        <span style={textStyle}>{text.slice(0, count)}</span>
-        {count < text.length && (
-          <span style={{ animation: 'blink 0.8s step-end infinite', marginLeft: 1, WebkitTextFillColor: '#71717a' }}>|</span>
-        )}
-      </span>
-    </span>
+    <section id="caracteristicas" className="relative z-10 px-6 lg:px-12 py-16">
+      <div className="max-w-[1400px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+        {BENTO_CARDS.map((card, i) => (
+          <Reveal key={i} dir="up" delay={(i + 1) * 0.1}>
+            <PremiumEdgeWrapper rounded="rounded-2xl" className="h-full">
+              <div className="p-8 h-full flex flex-col justify-between min-h-[200px]">
+                <div className="text-[var(--text-main)] mb-4">{card.icon}</div>
+                <div>
+                  <h3 className="text-xl font-bold text-[var(--text-main)] tracking-tight mb-2">{card.title}</h3>
+                  <p className="text-sm text-[var(--text-muted)] font-mono">{card.desc}</p>
+                </div>
+              </div>
+            </PremiumEdgeWrapper>
+          </Reveal>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function Section({ children, style, delay = 0 }) {
+function MegaCTA() {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: '-60px' }}
-      transition={{ duration: 0.8, ease: APPLE_EASE, delay }}
-      style={style}
-    >
-      {children}
-    </motion.div>
+    <section id="privacidad" className="relative z-10 px-6 lg:px-12 pt-[100px] pb-[160px]">
+      <div className="max-w-[1400px] mx-auto">
+        <Reveal dir="up">
+          <PremiumEdgeWrapper rounded="rounded-[32px]">
+            <div className="p-14 md:p-24 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 bg-[var(--card-bg)] rounded-[31px]">
+              <div>
+                <Title25D text1="El análisis" text2="comienza aquí." className="text-[clamp(3.5rem,6vw,5.5rem)]" />
+                <p className="text-[var(--text-muted)] text-sm md:text-base font-mono max-w-xl leading-relaxed">
+                  Sin suscripciones recurrentes. Compra única para la herramienta forense definitiva.
+                </p>
+              </div>
+              <div className="flex flex-col items-start lg:items-center gap-4 mt-6 lg:mt-0 shrink-0">
+                <MagneticButton>
+                  <button className="px-10 py-5 text-sm font-bold tracking-widest uppercase rounded-full bg-[var(--btn-bg)] text-[var(--btn-text)] transition-transform hover:scale-105">
+                    Descargar Vanta
+                  </button>
+                </MagneticButton>
+                <span className="text-xs text-[var(--text-muted)] font-mono tracking-widest uppercase">
+                  Mac & Windows
+                </span>
+              </div>
+            </div>
+          </PremiumEdgeWrapper>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 
-const FEATURES = [
-  { icon: 'shield', title: '100% Offline', body: 'Ninguna evidencia abandona la maquina. Sin nube, sin telemetria, sin servidores de terceros.', accent: false },
-  { icon: 'brain', title: 'Transcripcion con IA', body: 'Motor Whisper embebido de alta precision. CPU/GPU local sin dependencias externas.', accent: true },
-  { icon: 'link', title: 'Cadena de Custodia', body: 'Hashing SHA-256 automatico de cada archivo. Registro forense inmutable e inalterable.', accent: false },
-  { icon: 'file', title: 'Formatos de Evidencia', body: 'MP3, MP4, WAV, MOV, FLAC y formatos de intercambio judicial estandar.', accent: false },
-  { icon: 'doc', title: 'Informes Exportables', body: 'PDF y DOCX con sello de tiempo y firma digital, listos para presentacion judicial.', accent: false },
-  { icon: 'lock', title: 'Cifrado AES-256', body: 'Proyectos cifrados en reposo. Acceso protegido por contrasena maestra.', accent: true },
-];
+function Footer() {
+  return (
+    <footer className="border-t border-[var(--border-subtle)] relative z-10 bg-[var(--card-bg)]">
+      <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-24">
+        <div className="flex items-center gap-3 mb-16 chrome-text">
+          <VantaLogo className="w-6 h-6 text-[var(--text-main)]" />
+          <div className="font-extrabold text-xl tracking-[0.2em] uppercase text-[var(--text-main)]">VANTA</div>
+        </div>
+        <div className="border-t border-[var(--border-subtle)] pt-10 flex justify-between items-center flex-wrap gap-4">
+          <span className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">© 2026 Vanta Systems.</span>
+          <span className="text-xs text-[var(--text-muted)] font-mono uppercase tracking-widest">Hecho con discreción.</span>
+        </div>
+      </div>
+    </footer>
+  );
+}
 
-const STEPS = [
-  { num: '01', icon: 'upload', title: 'Importar', desc: 'Arrastre archivos de audio o video. El hashing SHA-256 se ejecuta automaticamente al momento de la ingesta.' },
-  { num: '02', icon: 'search', title: 'Analizar', desc: 'El motor de IA local transcribe con precision profesional. Diarizacion, marcas de tiempo y busqueda de texto completo.' },
-  { num: '03', icon: 'download', title: 'Exportar', desc: 'Informes PDF o DOCX con sello de tiempo, firma digital y cadena de custodia completa.' },
-];
-
-const STATS = [
-  { value: 100, suffix: '%', label: 'Offline', sub: 'Sin conexion a internet' },
-  { value: 256, suffix: '', label: 'AES', sub: 'Cifrado en reposo' },
-  { value: 2, suffix: 's', label: 'Transcripcion', sub: 'Promedio por minuto de audio' },
-  { value: 0, suffix: '', label: 'Datos salen', sub: 'Zero telemetria' },
-];
-
-const FORMATS = [
-  { ext: 'MP3', type: 'Audio', icon: 'music' },
-  { ext: 'WAV', type: 'Audio', icon: 'music' },
-  { ext: 'FLAC', type: 'Audio', icon: 'music' },
-  { ext: 'MP4', type: 'Video', icon: 'film' },
-  { ext: 'MOV', type: 'Video', icon: 'film' },
-];
-
-const heroContainerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.1,
-    }
-  }
-};
-
-const heroItemVariants = {
-  hidden: { opacity: 0, y: 30, filter: "blur(12px)" },
-  visible: {
-    opacity: 1,
-    y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 1, ease: APPLE_EASE }
-  }
-};
-
-function LandingLiquidGlass() {
+export default function LandingLiquidGlass() {
   injectStyles();
   const [scrolled, setScrolled] = useState(false);
+  const [theme, setTheme] = useState('dark');
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === 'light') root.classList.add('light-mode');
+    else if (theme === 'dark') root.classList.remove('light-mode');
+    else {
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) root.classList.add('light-mode');
+      else root.classList.remove('light-mode');
+    }
+  }, [theme]);
+
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -518,437 +219,15 @@ function LandingLiquidGlass() {
   }, []);
 
   return (
-    <div style={{ background: C.bg, minHeight: '100vh', color: C.text, fontFamily: "'Inter',sans-serif", overflowX: 'clip' }}>
-      <GridCanvas />
-      <Spotlight />
-
-
-      <motion.header
-        initial={{ opacity: 0, y: -20, filter: "blur(10px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.7, ease: APPLE_EASE }}
-        style={{
-          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 52px', height: 64,
-          backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-          background: scrolled ? 'rgba(9,9,11,0.82)' : 'transparent',
-          transition: 'background 0.5s ease, border-color 0.5s ease',
-        }}
-      >
-        <span style={{ fontWeight: 800, fontSize: '1.15rem', letterSpacing: '0.18em', textTransform: 'uppercase', ...CHROME }}>Vanta</span>
-        <nav style={{ display: 'flex', gap: 36, alignItems: 'center' }}>
-          {['Caracteristicas', 'Documentacion', 'Privacidad'].map((item) => (
-            <a key={item} href="#" style={{ color: C.text3, textDecoration: 'none', fontSize: '0.73rem', letterSpacing: '0.09em', textTransform: 'uppercase', fontWeight: 500, transition: 'color 0.25s' }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.9)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = C.text3; }}
-            >{item}</a>
-          ))}
-          <a href="#" style={{
-            fontSize: '0.73rem', fontWeight: 600, letterSpacing: '0.09em', textTransform: 'uppercase',
-            color: 'rgba(255,255,255,0.88)', textDecoration: 'none',
-            border: '1px solid rgba(255,255,255,0.16)', borderRadius: 6, padding: '7px 18px',
-            background: 'rgba(255,255,255,0.04)',
-            transition: 'border-color 0.25s, background 0.25s',
-          }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)'; e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.16)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-          >Descargar</a>
-        </nav>
-      </motion.header>
-
-
-      <section style={{ position: 'relative', zIndex: 10, minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '100px 24px 60px' }}>
-
-
-        <motion.div
-          variants={heroContainerVariants}
-          initial="hidden"
-          animate="visible"
-          style={{ textAlign: 'center', maxWidth: 1000 }}
-        >
-
-          <motion.div variants={heroItemVariants}>
-            <h1 style={{
-              fontWeight: 800,
-              fontSize: 'clamp(2.8rem, 6.5vw, 5.2rem)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.04em',
-              margin: '0 auto 20px',
-            }}>
-              <TypewriterText
-                text="Tu proximo analisis forense comienza aqui."
-                speed={45}
-                delay={200}
-                textStyle={{ ...CHROME }}
-              />
-            </h1>
-          </motion.div>
-
-
-          <motion.div variants={heroItemVariants}>
-            <p style={{ fontSize: 'clamp(0.95rem, 1.5vw, 1.1rem)', color: C.text2, maxWidth: 480, margin: '0 auto 38px', lineHeight: 1.8 }}>
-              Analisis forense de datos local. 100% offline. Disenado para privacidad absoluta.
-            </p>
-          </motion.div>
-
-
-          <motion.div variants={heroItemVariants} style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 28 }}>
-            <button style={{
-              padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
-              borderRadius: 8, border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.92)',
-              background: 'linear-gradient(135deg,rgba(255,255,255,0.09) 0%,rgba(255,255,255,0.03) 100%)', backdropFilter: 'blur(12px)',
-              transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.15s',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.65)'; e.currentTarget.style.boxShadow = '0 0 30px rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >Descargar para Windows / macOS</button>
-            <button style={{
-              padding: '13px 30px', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase',
-              borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', color: C.text2,
-              background: 'rgba(255,255,255,0.03)', backdropFilter: 'blur(8px)',
-              transition: 'border-color 0.25s, color 0.25s, transform 0.15s',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = 'rgba(212,212,216,0.9)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = C.text2; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >Ver Documentacion</button>
-          </motion.div>
-
-
-          <motion.div variants={heroItemVariants} style={{ display: 'flex', gap: 24, justifyContent: 'center', flexWrap: 'wrap' }}>
-            {['Offline', 'IA Local', 'Cifrado AES-256'].map((f) => (
-              <span key={f} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.72rem', color: C.text3, letterSpacing: '0.04em' }}>
-                {Ico.check(C.accent)} {f}
-              </span>
-            ))}
-          </motion.div>
-
-        </motion.div>
-
-
-
-      </section>
-
-
-      <motion.section
-        initial={{ opacity: 0, y: 60, filter: "blur(12px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.9, ease: APPLE_EASE }}
-        style={{ position: 'relative', zIndex: 10, padding: '20px 24px 120px' }}
-      >
-        <div style={{ position: 'relative', maxWidth: 960, margin: '0 auto' }}>
-          <div style={{
-            position: 'relative',
-            borderRadius: 16,
-            padding: 1,
-            background: 'linear-gradient(135deg, rgba(59,130,246,0.6) 0%, rgba(139,92,246,0.4) 35%, rgba(59,130,246,0.15) 65%, transparent 100%)',
-            boxShadow: '0 0 40px rgba(59,130,246,0.25), 0 0 80px rgba(139,92,246,0.15), 0 0 120px rgba(59,130,246,0.08)',
-          }}>
-            <div style={{
-              borderRadius: 15,
-              overflow: 'hidden',
-              background: '#09090b',
-              position: 'relative',
-            }}>
-              <div style={{ width: '100%', aspectRatio: '16/10' }}>
-                <MockupUI />
-              </div>
-            </div>
-          </div>
-        </div>
-      </motion.section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '140px 24px 160px' }}>
-        <div style={{ maxWidth: 1060, margin: '0 auto' }}>
-          <Section style={{ textAlign: 'center', marginBottom: 64 }}>
-            <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 100, padding: '4px 16px', marginBottom: 22 }}>
-              <span style={{ fontSize: '0.64rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text3, fontWeight: 600 }}>Capacidades tecnicas</span>
-            </div>
-            <h2 style={{ fontWeight: 800, fontSize: 'clamp(1.7rem, 3.5vw, 2.6rem)', letterSpacing: '-0.03em', maxWidth: 520, margin: '0 auto', lineHeight: 1.12, color: C.text }}>Ingenieria forense sin compromisos.</h2>
-          </Section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-            {FEATURES.map((f, i) => (
-              <motion.div key={f.title}
-                initial={{ opacity: 0, y: 36, filter: "blur(8px)" }} whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.7, ease: APPLE_EASE, delay: i * 0.07 }}
-                whileHover={{ borderColor: f.accent ? 'rgba(59,130,246,0.35)' : C.borderHover, background: f.accent ? 'rgba(59,130,246,0.04)' : C.cardHover }}
-                style={{
-                  borderRadius: 12, padding: '28px 24px',
-                  border: f.accent ? '1px solid rgba(59,130,246,0.15)' : `1px solid ${C.border}`,
-                  background: f.accent ? 'rgba(59,130,246,0.03)' : C.card,
-                  display: 'flex', flexDirection: 'column', gap: 12,
-                  transition: 'border-color 0.3s, background 0.3s', cursor: 'default',
-                }}
-              >
-                <div style={{ color: f.accent ? C.accent : C.text3 }}>{Ico[f.icon](f.accent ? C.accent : C.text3)}</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: f.accent ? C.accentText : C.text, letterSpacing: '-0.01em' }}>{f.title}</div>
-                <div style={{ fontSize: 13.5, lineHeight: 1.7, color: C.text2 }}>{f.body}</div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <div style={{ maxWidth: 1060, margin: '0 auto' }}>
-          <Section style={{ textAlign: 'center', marginBottom: 72 }}>
-            <h2 style={{ fontWeight: 800, fontSize: 'clamp(1.7rem, 3.5vw, 2.6rem)', letterSpacing: '-0.03em', maxWidth: 520, margin: '0 auto', lineHeight: 1.12, color: C.text }}>Tres pasos. Cero complicaciones.</h2>
-          </Section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, position: 'relative' }}>
-            {STEPS.map((step, i) => (
-              <Section key={step.num} delay={i * 0.1}>
-                <div
-                  style={{ borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, padding: '40px 28px', height: '100%', position: 'relative', transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease', cursor: 'default' }}
-                  onMouseMove={(e) => {
-                    const r = e.currentTarget.getBoundingClientRect();
-                    const x = (e.clientX - r.left) / r.width - 0.5;
-                    const y = (e.clientY - r.top) / r.height - 0.5;
-                    e.currentTarget.style.transform = `perspective(600px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-4px) scale(1.02)`;
-                    e.currentTarget.style.boxShadow = `0 20px 50px rgba(0,0,0,0.4), ${-x * 10}px ${y * 10}px 30px rgba(59,130,246,0.06)`;
-                    e.currentTarget.style.borderColor = 'rgba(59,130,246,0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'perspective(600px) rotateY(0deg) rotateX(0deg) translateY(0) scale(1)';
-                    e.currentTarget.style.boxShadow = 'none';
-                    e.currentTarget.style.borderColor = C.border;
-                  }}
-                >
-                  <div style={{ fontSize: 48, fontWeight: 800, color: 'rgba(255,255,255,0.04)', position: 'absolute', top: 20, right: 24, letterSpacing: '-0.04em', lineHeight: 1 }}>{step.num}</div>
-                  <div style={{ color: C.accent, marginBottom: 20 }}>{step.icon === 'upload' && Ico.upload(C.accent)}{step.icon === 'search' && Ico.search(C.accent)}{step.icon === 'download' && Ico.download(C.accent)}</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 10, letterSpacing: '-0.02em' }}>{step.title}</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.75, color: C.text2 }}>{step.desc}</div>
-                </div>
-              </Section>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20 }}>
-            {STATS.map((s, i) => (
-              <Section key={s.label} delay={i * 0.08}>
-                <div style={{ textAlign: 'center', padding: '32px 16px', borderRadius: 12, border: `1px solid ${C.border}`, background: C.card }}>
-                  <div style={{ fontSize: 'clamp(2.2rem, 4vw, 3rem)', fontWeight: 800, color: C.text, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: 6 }}>
-                    <AnimatedNumber value={s.value} suffix={s.suffix} />
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text2, marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 12, color: C.text3 }}>{s.sub}</div>
-                </div>
-              </Section>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <div style={{ maxWidth: 1060, margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 56, alignItems: 'center' }}>
-          <Section>
-            <div style={{ display: 'inline-block', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 100, padding: '4px 14px', marginBottom: 20 }}>
-              <span style={{ fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: C.text3, fontWeight: 600 }}>Privacidad</span>
-            </div>
-            <h2 style={{ fontWeight: 800, fontSize: 'clamp(1.7rem, 3.5vw, 2.5rem)', letterSpacing: '-0.03em', lineHeight: 1.12, marginBottom: 20, color: C.text }}>Disenado para la<br />privacidad absoluta.</h2>
-            <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text2, maxWidth: 420 }}>En un mundo donde los datos sensibles viajan por servidores de terceros, Vanta toma la postura opuesta: cada byte permanece en su maquina. Sin conexiones, sin actualizaciones automaticas, sin excepciones.</p>
-          </Section>
-          <Section delay={0.12}>
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              variants={{
-                hidden: { opacity: 0 },
-                visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } }
-              }}
-              style={{ display: 'flex', flexDirection: 'column', gap: 14 }}
-            >
-              {[
-                { t: 'Sin conexion a internet', d: 'La aplicacion nunca establishce comunicacion con servidores externos.' },
-                { t: 'Cifrado en reposo', d: 'AES-256 en todos los proyectos. Solo usted tiene la clave.' },
-                { t: 'Sin telemetria', d: 'Zero datos de uso, diagnosticos o analytics.' },
-                { t: 'Auditoria completa', d: 'Cada accion registrada con hash inmutable para revision forense.' },
-              ].map((item, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, ease: APPLE_EASE }}
-                  style={{ padding: '18px 20px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.card, display: 'flex', gap: 14, alignItems: 'flex-start' }}
-                >
-                  <div style={{ marginTop: 2, flexShrink: 0 }}>{Ico.check(C.accent)}</div>
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 700, color: C.text, marginBottom: 3 }}>{item.t}</div>
-                    <div style={{ fontSize: 13, lineHeight: 1.6, color: C.text3 }}>{item.d}</div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          </Section>
-        </div>
-      </section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <div style={{ maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
-          <Section>
-            <h2 style={{ fontWeight: 800, fontSize: 'clamp(1.7rem, 3.5vw, 2.6rem)', letterSpacing: '-0.03em', maxWidth: 560, margin: '0 auto 16px', lineHeight: 1.12, color: C.text }}>Formatos de evidencia soportados.</h2>
-            <p style={{ fontSize: 15, lineHeight: 1.75, color: C.text2, maxWidth: 480, margin: '0 auto 48px' }}>Compatibilidad nativa con los formatos mas utilizados en investigacion forense.</p>
-          </Section>
-          <Section delay={0.08}>
-            <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
-              {FORMATS.map((f, i) => (
-                <motion.div key={f.ext}
-                  initial={{ opacity: 0, scale: 0.92, filter: "blur(8px)" }} whileInView={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-                  viewport={{ once: true }} transition={{ duration: 0.5, delay: i * 0.06, ease: APPLE_EASE }}
-                  style={{ padding: '22px 28px', borderRadius: 10, border: `1px solid ${C.border}`, background: C.card, minWidth: 105, textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}
-                >
-                  <div style={{ color: C.text3 }}>{Ico[f.icon](C.text3)}</div>
-                  <div style={{ fontSize: 18, fontWeight: 800, letterSpacing: '0.06em', color: C.text }}>{f.ext}</div>
-                  <div style={{ fontSize: 11, color: C.text3, letterSpacing: '0.06em', textTransform: 'uppercase' }}>{f.type}</div>
-                </motion.div>
-              ))}
-            </div>
-          </Section>
-        </div>
-      </section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <div style={{ maxWidth: 1060, margin: '0 auto' }}>
-          <Section style={{ textAlign: 'center', marginBottom: 64 }}>
-            <h2 style={{ fontWeight: 800, fontSize: 'clamp(1.7rem, 3.5vw, 2.6rem)', letterSpacing: '-0.03em', maxWidth: 560, margin: '0 auto', lineHeight: 1.12, color: C.text }}>Hecho para profesionales.</h2>
-          </Section>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
-            {[
-              { tag: 'Fuerzas del orden', title: 'Investigaciones que requieren sigilo total.', desc: 'Procese interrogatorios, vigilancias y grabaciones de campo sin riesgo de filtracion.', accent: C.accent },
-              { tag: 'Equipos legales', title: 'Preparacion de casos con evidencia audiovisual.', desc: 'Transcriba deposiciones, genere informes con sello de tiempo y cadena de custodia verificable.', accent: '#8b5cf6' },
-              { tag: 'Investigadores privados', title: 'Herramienta profesional sin suscripcion.', desc: 'Compra unica, sin costos recurrentes. Procese entrevistas y audio de campo de forma segura.', accent: '#22c55e' },
-            ].map((card, i) => (
-              <Section key={card.tag} delay={i * 0.08}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, ease: APPLE_EASE }}
-                  style={{ padding: '36px 28px', borderRadius: 12, border: `1px solid ${C.border}`, background: C.card, height: '100%', transition: 'border-color 0.3s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = card.accent + '33'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = C.border; }}
-                >
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.05 }}
-                    style={{ fontSize: '0.64rem', fontWeight: 700, letterSpacing: '0.12em', color: card.accent, marginBottom: 16, textTransform: 'uppercase' }}
-                  >{card.tag}</motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.1 }}
-                    style={{ fontSize: 18, fontWeight: 700, color: C.text, marginBottom: 10, letterSpacing: '-0.02em', lineHeight: 1.3 }}
-                  >{card.title}</motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, ease: APPLE_EASE, delay: 0.15 }}
-                    style={{ fontSize: 14, lineHeight: 1.75, color: C.text2 }}
-                  >{card.desc}</motion.div>
-                </motion.div>
-              </Section>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
-      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px 160px' }}>
-        <motion.section
-          initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
-          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          viewport={{ once: true, margin: '-80px' }}
-          transition={{ duration: 0.8, ease: APPLE_EASE }}
-        >
-          <div style={{
-            maxWidth: 720, margin: '0 auto', textAlign: 'center', padding: '80px 40px',
-            borderRadius: 16, border: `1px solid ${C.border}`, background: 'rgba(255,255,255,0.015)',
-          }}>
-            <h2 style={{ fontWeight: 800, fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.035em', lineHeight: 1.1, marginBottom: 20, color: C.text }}>Su evidencia merece<br />la mejor herramienta.</h2>
-            <p style={{ fontSize: 16, lineHeight: 1.75, color: C.text2, maxWidth: 440, margin: '0 auto 36px' }}>Descargue Vanta hoy. Sin suscripcion, sin nube, sin compromisos de privacidad.</p>
-            <button style={{
-              padding: '15px 40px', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-              borderRadius: 8, border: '1px solid rgba(255,255,255,0.3)', cursor: 'pointer', color: 'rgba(255,255,255,0.92)',
-              background: 'linear-gradient(135deg,rgba(255,255,255,0.10) 0%,rgba(255,255,255,0.03) 100%)', backdropFilter: 'blur(12px)',
-              transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.15s',
-            }}
-              onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.65)'; e.currentTarget.style.boxShadow = '0 0 40px rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.transform = 'translateY(0)'; }}
-            >Descargar Vanta</button>
-            <div style={{ marginTop: 16, fontSize: '0.7rem', color: C.text3, letterSpacing: '0.06em' }}>Sin tarjeta de credito. Compra unica.</div>
-          </div>
-        </motion.section>
-      </section>
-
-
-      <motion.footer
-        initial={{ opacity: 0, y: 40, filter: "blur(10px)" }}
-        whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.8, ease: APPLE_EASE }}
-        style={{ borderTop: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 10 }}
-      >
-        <div style={{ maxWidth: 1060, margin: '0 auto', padding: '60px 52px 40px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr', gap: 40, marginBottom: 48 }}>
-            <div>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem', letterSpacing: '0.16em', textTransform: 'uppercase', color: C.text, marginBottom: 12 }}>VANTA</div>
-              <div style={{ fontSize: 13, lineHeight: 1.7, color: C.text3, maxWidth: 280 }}>Software de analisis forense local. Privacidad por diseno.</div>
-            </div>
-            <div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.text3, marginBottom: 16 }}>Producto</div>
-              {['Caracteristicas', 'Descargar', 'Changelog'].map((l) => (
-                <div key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 10, cursor: 'default', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = C.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = C.text2; }}
-                >{l}</div>
-              ))}
-            </div>
-            <div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.text3, marginBottom: 16 }}>Recursos</div>
-              {['Documentacion', 'Privacidad', 'Seguridad'].map((l) => (
-                <div key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 10, cursor: 'default', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = C.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = C.text2; }}
-                >{l}</div>
-              ))}
-            </div>
-            <div>
-              <div style={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', color: C.text3, marginBottom: 16 }}>Legal</div>
-              {['Terminos', 'Licencia'].map((l) => (
-                <div key={l} style={{ fontSize: 13, color: C.text2, marginBottom: 10, cursor: 'default', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = C.text; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = C.text2; }}
-                >{l}</div>
-              ))}
-            </div>
-          </div>
-          <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-            <span style={{ fontSize: '0.7rem', color: C.text3, letterSpacing: '0.06em' }}>&copy; 2024 Vanta. Todos los derechos reservados.</span>
-            <span style={{ fontSize: '0.7rem', color: C.text3, letterSpacing: '0.06em' }}>Hecho con discrecion.</span>
-          </div>
-        </div>
-      </motion.footer>
+    <div className="bg-[var(--page-bg)] text-[var(--text-main)] min-h-screen font-sans overflow-x-clip relative selection:bg-blue-500/30 transition-colors duration-700">
+      <CSSGrid />
+      <CustomCursor />
+      <Header scrolled={scrolled} theme={theme} setTheme={setTheme} />
+      <Hero />
+      <BentoGrid />
+      <ScrollytellingSection />
+      <MegaCTA />
+      <Footer />
     </div>
   );
 }
-
-export default LandingLiquidGlass;
