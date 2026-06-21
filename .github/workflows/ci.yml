@@ -35,9 +35,11 @@ jobs:
         run: npm run build
 
       - name: Build Storybook
+        if: ${{ vars.SKIP_STORYBOOK != 'true' }}
         run: npm run build-storybook
 
       - name: Chromatic
+        if: ${{ secrets.CHROMATIC_PROJECT_TOKEN != '' }}
         uses: chromaui/action@latest
         with:
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
