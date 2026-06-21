@@ -1,0 +1,242 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Icons > renders VantaLogo with custom className 1`] = `
+<svg
+  class="w-12 h-12"
+  fill="none"
+  viewBox="0 0 100 100"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <lineargradient
+      id="_r_1_"
+      x1="-100%"
+      x2="0%"
+      y1="-100%"
+      y2="0%"
+    >
+      <stop
+        offset="0%"
+        stop-color="var(--chrome-1)"
+      />
+      <stop
+        offset="30%"
+        stop-color="var(--chrome-2)"
+      />
+      <stop
+        offset="50%"
+        stop-color="var(--text-main)"
+      />
+      <stop
+        offset="70%"
+        stop-color="var(--chrome-2)"
+      />
+      <stop
+        offset="100%"
+        stop-color="var(--chrome-1)"
+      />
+      <animate
+        attributeName="x1"
+        dur="6s"
+        repeatCount="indefinite"
+        values="-100%;200%;-100%"
+      />
+      <animate
+        attributeName="y1"
+        dur="6s"
+        repeatCount="indefinite"
+        values="-100%;200%;-100%"
+      />
+      <animate
+        attributeName="x2"
+        dur="6s"
+        repeatCount="indefinite"
+        values="0%;300%;0%"
+      />
+      <animate
+        attributeName="y2"
+        dur="6s"
+        repeatCount="indefinite"
+        values="0%;300%;0%"
+      />
+    </lineargradient>
+  </defs>
+  <polygon
+    fill="url(#_r_1_)"
+    opacity="0.95"
+    points="10,25 40,85 55,85 25,25"
+  />
+  <polygon
+    fill="url(#_r_1_)"
+    opacity="0.75"
+    points="90,25 60,85 45,85 75,25"
+  />
+  <polygon
+    fill="url(#_r_1_)"
+    opacity="0.85"
+    points="35,25 65,25 50,55"
+  />
+</svg>
+`;
+
+exports[`Icons > renders VantaLogo with default className 1`] = `
+<svg
+  class="w-8 h-8"
+  fill="none"
+  viewBox="0 0 100 100"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <defs>
+    <lineargradient
+      id="_r_0_"
+      x1="-100%"
+      x2="0%"
+      y1="-100%"
+      y2="0%"
+    >
+      <stop
+        offset="0%"
+        stop-color="var(--chrome-1)"
+      />
+      <stop
+        offset="30%"
+        stop-color="var(--chrome-2)"
+      />
+      <stop
+        offset="50%"
+        stop-color="var(--text-main)"
+      />
+      <stop
+        offset="70%"
+        stop-color="var(--chrome-2)"
+      />
+      <stop
+        offset="100%"
+        stop-color="var(--chrome-1)"
+      />
+      <animate
+        attributeName="x1"
+        dur="6s"
+        repeatCount="indefinite"
+        values="-100%;200%;-100%"
+      />
+      <animate
+        attributeName="y1"
+        dur="6s"
+        repeatCount="indefinite"
+        values="-100%;200%;-100%"
+      />
+      <animate
+        attributeName="x2"
+        dur="6s"
+        repeatCount="indefinite"
+        values="0%;300%;0%"
+      />
+      <animate
+        attributeName="y2"
+        dur="6s"
+        repeatCount="indefinite"
+        values="0%;300%;0%"
+      />
+    </lineargradient>
+  </defs>
+  <polygon
+    fill="url(#_r_0_)"
+    opacity="0.95"
+    points="10,25 40,85 55,85 25,25"
+  />
+  <polygon
+    fill="url(#_r_0_)"
+    opacity="0.75"
+    points="90,25 60,85 45,85 75,25"
+  />
+  <polygon
+    fill="url(#_r_0_)"
+    opacity="0.85"
+    points="35,25 65,25 50,55"
+  />
+</svg>
+`;
+
+exports[`Icons > renders all feature icons 1`] = `
+<div>
+  <svg
+    aria-hidden="true"
+    fill="none"
+    focusable="false"
+    height="24"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="1.5"
+    viewBox="0 0 24 24"
+    width="24"
+  >
+    <path
+      d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+    />
+  </svg>
+  <svg
+    aria-hidden="true"
+    fill="none"
+    focusable="false"
+    height="24"
+    stroke="#3b82f6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="1.5"
+    viewBox="0 0 24 24"
+    width="24"
+  >
+    <path
+      d="M12 2a5 5 0 0 1 4.5 2.8A4 4 0 0 1 20 8a4 4 0 0 1-1.8 3.3A4.5 4.5 0 0 1 17 14a4 4 0 0 1-3 3.9V22h-4v-4.1A4 4 0 0 1 7 14a4.5 4.5 0 0 1-1.2-2.7A4 4 0 0 1 4 8a4 4 0 0 1 3.5-3.2A5 5 0 0 1 12 2z"
+    />
+    <path
+      d="M12 2v8"
+    />
+  </svg>
+  <svg
+    aria-hidden="true"
+    fill="none"
+    focusable="false"
+    height="24"
+    stroke="#22c55e"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="1.5"
+    viewBox="0 0 24 24"
+    width="24"
+  >
+    <path
+      d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"
+    />
+    <path
+      d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
+    />
+  </svg>
+  <svg
+    aria-hidden="true"
+    fill="none"
+    focusable="false"
+    height="24"
+    stroke="#a78bfa"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="1.5"
+    viewBox="0 0 24 24"
+    width="24"
+  >
+    <rect
+      height="11"
+      rx="2"
+      ry="2"
+      width="18"
+      x="3"
+      y="11"
+    />
+    <path
+      d="M7 11V7a5 5 0 0 1 10 0v4"
+    />
+  </svg>
+</div>
+`;

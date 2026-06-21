@@ -4,12 +4,23 @@ import tailwindcss from 'tailwindcss'
 import autoprefixer from 'autoprefixer'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+const isAnalyze = process.env.ANALYZE === 'true'
+
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    isAnalyze && visualizer({
+      filename: 'dist/stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ].filter(Boolean),
   css: {
     postcss: {
       plugins: [tailwindcss(), autoprefixer()],

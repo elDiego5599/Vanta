@@ -1,0 +1,1028 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`MockupUI > renders chain view (activeIndex=2) 1`] = `
+<div
+  class="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05]"
+>
+  <div
+    class="w-[150px] md:w-[200px] xl:w-[240px] shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col py-5 gap-0.5"
+  >
+    <div
+      class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
+    >
+      <div
+        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+      >
+        <svg
+          class="w-4 h-4 text-white"
+          fill="currentColor"
+          viewBox="0 0 100 100"
+        >
+          <polygon
+            points="10,25 40,85 55,85 25,25"
+          />
+          <polygon
+            opacity="0.6"
+            points="90,25 60,85 45,85 75,25"
+          />
+          <polygon
+            opacity="0.8"
+            points="35,25 65,25 50,55"
+          />
+        </svg>
+        VANTA
+      </div>
+      <div
+        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
+      >
+        v3.0.0 — offline
+      </div>
+    </div>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Casos Activos
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-semibold text-white/90 bg-white/[0.06] border-white/75"
+      type="button"
+    >
+      Evidencias
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Transcripciones
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Informes
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Ajustes
+    </button>
+  </div>
+  <div
+    class="flex-1 flex flex-col p-6 gap-5 overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative"
+  >
+    <div
+      class="flex items-center justify-between z-10"
+    >
+      <div
+        class="text-[14px] font-bold text-white/90 tracking-[-0.01em]"
+      >
+        Caso #2024-0471
+      </div>
+      <div
+        class="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.05]"
+      >
+        <div
+          class="w-1.5 h-1.5 rounded-full animate-pulse bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]"
+        />
+        <span
+          class="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase"
+        >
+          Offline Local
+        </span>
+      </div>
+    </div>
+    <div
+      class="flex-1 rounded-xl border border-white/[0.05] bg-[#000] p-5 font-mono text-[11px] text-zinc-400 overflow-hidden relative"
+      style="opacity: 0;"
+    >
+      <div
+        class="mb-3 text-zinc-600"
+      >
+        &gt; Iniciando protocolo de hashing SHA-256...
+      </div>
+      <div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000000000... chunk_0
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000001eef... chunk_1
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000003dde... chunk_2
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000005ccd... chunk_3
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000007bbc... chunk_4
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000009aab... chunk_5
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c14900000b99a... chunk_6
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c14900000d889... chunk_7
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c14900000f778... chunk_8
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000011667... chunk_9
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000013556... chunk_10
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000015445... chunk_11
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000017334... chunk_12
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000019223... chunk_13
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c14900001b112... chunk_14
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c14900001d001... chunk_15
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c14900001eef0... chunk_16
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000020ddf... chunk_17
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000022cce... chunk_18
+        </div>
+        <div
+          class="mb-1.5 opacity-80 truncate"
+        >
+          <span
+            class="text-green-500 font-bold"
+          >
+            [VERIFIED]
+          </span>
+           
+          e3b0c44298fc1c149000024bbd... chunk_19
+        </div>
+      </div>
+      <div
+        class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black to-transparent"
+      />
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MockupUI > renders crypto view (activeIndex=3) 1`] = `
+<div
+  class="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05]"
+>
+  <div
+    class="w-[150px] md:w-[200px] xl:w-[240px] shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col py-5 gap-0.5"
+  >
+    <div
+      class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
+    >
+      <div
+        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+      >
+        <svg
+          class="w-4 h-4 text-white"
+          fill="currentColor"
+          viewBox="0 0 100 100"
+        >
+          <polygon
+            points="10,25 40,85 55,85 25,25"
+          />
+          <polygon
+            opacity="0.6"
+            points="90,25 60,85 45,85 75,25"
+          />
+          <polygon
+            opacity="0.8"
+            points="35,25 65,25 50,55"
+          />
+        </svg>
+        VANTA
+      </div>
+      <div
+        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
+      >
+        v3.0.0 — offline
+      </div>
+    </div>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-semibold text-white/90 bg-white/[0.06] border-white/75"
+      type="button"
+    >
+      Casos Activos
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Evidencias
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Transcripciones
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Informes
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Ajustes
+    </button>
+  </div>
+  <div
+    class="flex-1 flex flex-col p-6 gap-5 overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative"
+  >
+    <div
+      class="flex items-center justify-between z-10"
+    >
+      <div
+        class="text-[14px] font-bold text-white/90 tracking-[-0.01em]"
+      >
+        Caso #2024-0471
+      </div>
+      <div
+        class="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.05]"
+      >
+        <div
+          class="w-1.5 h-1.5 rounded-full animate-pulse bg-purple-500 shadow-[0_0_6px_rgba(168,85,247,0.8)]"
+        />
+        <span
+          class="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase"
+        >
+          AES SECURED
+        </span>
+      </div>
+    </div>
+    <div
+      class="flex-1 flex items-center justify-center relative"
+      style="opacity: 0;"
+    >
+      <div
+        class="absolute w-48 h-48 bg-purple-500/10 rounded-full blur-2xl"
+      />
+      <div
+        class="relative flex flex-col items-center gap-4"
+      >
+        <div
+          class="relative"
+        >
+          <div
+            class="absolute inset-0 rounded-full"
+          />
+          <div
+            class="w-20 h-20 rounded-full border border-purple-500/30 bg-purple-500/10 flex items-center justify-center text-purple-400 relative"
+          >
+            <svg
+              aria-hidden="true"
+              fill="none"
+              focusable="false"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.5"
+              viewBox="0 0 24 24"
+              width="24"
+            >
+              <rect
+                height="11"
+                rx="2"
+                ry="2"
+                width="18"
+                x="3"
+                y="11"
+              />
+              <path
+                d="M7 11V7a5 5 0 0 1 10 0v4"
+              />
+            </svg>
+          </div>
+        </div>
+        <div
+          class="text-sm font-bold text-white tracking-widest uppercase mt-2"
+        >
+          AES-256 Activo
+        </div>
+        <div
+          class="text-[11px] text-zinc-500 font-mono text-center max-w-[250px]"
+        >
+          Volumen montado y asegurado localmente. Ningún proceso externo puede leer la evidencia.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MockupUI > renders status view (activeIndex=0) 1`] = `
+<div
+  class="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05]"
+>
+  <div
+    class="w-[150px] md:w-[200px] xl:w-[240px] shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col py-5 gap-0.5"
+  >
+    <div
+      class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
+    >
+      <div
+        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+      >
+        <svg
+          class="w-4 h-4 text-white"
+          fill="currentColor"
+          viewBox="0 0 100 100"
+        >
+          <polygon
+            points="10,25 40,85 55,85 25,25"
+          />
+          <polygon
+            opacity="0.6"
+            points="90,25 60,85 45,85 75,25"
+          />
+          <polygon
+            opacity="0.8"
+            points="35,25 65,25 50,55"
+          />
+        </svg>
+        VANTA
+      </div>
+      <div
+        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
+      >
+        v3.0.0 — offline
+      </div>
+    </div>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Casos Activos
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Evidencias
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Transcripciones
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Informes
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-semibold text-white/90 bg-white/[0.06] border-white/75"
+      type="button"
+    >
+      Ajustes
+    </button>
+  </div>
+  <div
+    class="flex-1 flex flex-col p-6 gap-5 overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative"
+  >
+    <div
+      class="flex items-center justify-between z-10"
+    >
+      <div
+        class="text-[14px] font-bold text-white/90 tracking-[-0.01em]"
+      >
+        Caso #2024-0471
+      </div>
+      <div
+        class="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.05]"
+      >
+        <div
+          class="w-1.5 h-1.5 rounded-full animate-pulse bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]"
+        />
+        <span
+          class="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase"
+        >
+          Offline Local
+        </span>
+      </div>
+    </div>
+    <div
+      class="flex-1 flex flex-col items-center justify-center gap-6"
+      style="opacity: 0;"
+    >
+      <div
+        class="w-20 h-20 rounded-full border border-white/20 bg-white/5 flex items-center justify-center text-white/80"
+      >
+        <svg
+          aria-hidden="true"
+          fill="none"
+          focusable="false"
+          height="32"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          width="32"
+        >
+          <path
+            d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+          />
+        </svg>
+      </div>
+      <div
+        class="text-center font-mono"
+      >
+        <div
+          class="text-[13px] font-bold text-white tracking-widest uppercase mb-3"
+        >
+          Air-Gapped Mode
+        </div>
+        <div
+          class="text-[10px] text-zinc-500 space-y-1.5 uppercase tracking-wider"
+        >
+          <p>
+            Conexiones: 
+            <span
+              class="text-zinc-300"
+            >
+              Bloqueadas
+            </span>
+          </p>
+          <p>
+            Telemetría: 
+            <span
+              class="text-zinc-300"
+            >
+              Desactivada
+            </span>
+          </p>
+          <p>
+            Motor Local: 
+            <span
+              class="text-green-500 font-bold animate-pulse"
+            >
+              En Línea
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`MockupUI > renders transcription view (activeIndex=1) 1`] = `
+<div
+  class="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05]"
+>
+  <div
+    class="w-[150px] md:w-[200px] xl:w-[240px] shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col py-5 gap-0.5"
+  >
+    <div
+      class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
+    >
+      <div
+        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+      >
+        <svg
+          class="w-4 h-4 text-white"
+          fill="currentColor"
+          viewBox="0 0 100 100"
+        >
+          <polygon
+            points="10,25 40,85 55,85 25,25"
+          />
+          <polygon
+            opacity="0.6"
+            points="90,25 60,85 45,85 75,25"
+          />
+          <polygon
+            opacity="0.8"
+            points="35,25 65,25 50,55"
+          />
+        </svg>
+        VANTA
+      </div>
+      <div
+        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
+      >
+        v3.0.0 — offline
+      </div>
+    </div>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Casos Activos
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Evidencias
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-semibold text-white/90 bg-white/[0.06] border-white/75"
+      type="button"
+    >
+      Transcripciones
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Informes
+    </button>
+    <button
+      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
+      type="button"
+    >
+      Ajustes
+    </button>
+  </div>
+  <div
+    class="flex-1 flex flex-col p-6 gap-5 overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative"
+  >
+    <div
+      class="flex items-center justify-between z-10"
+    >
+      <div
+        class="text-[14px] font-bold text-white/90 tracking-[-0.01em]"
+      >
+        Caso #2024-0471
+      </div>
+      <div
+        class="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.05]"
+      >
+        <div
+          class="w-1.5 h-1.5 rounded-full animate-pulse bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.8)]"
+        />
+        <span
+          class="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase"
+        >
+          Offline Local
+        </span>
+      </div>
+    </div>
+    <div
+      class="flex-1 flex flex-col gap-4"
+      style="opacity: 0;"
+    >
+      <div
+        class="rounded-xl border border-white/[0.05] bg-white/[0.02] py-4 px-5"
+      >
+        <div
+          class="text-[10px] text-zinc-500 tracking-[0.10em] uppercase mb-3 font-mono"
+        >
+          interrogatorio_0041.wav
+        </div>
+        <div
+          class="flex items-center gap-[3px] h-10 overflow-hidden"
+        >
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 44.54232741668772px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 48.51664335244804px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 42.0782798778373px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 27.720042675624306px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 28.849788987351346px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 49.12426442805127px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 61.43994644660013px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 62.87696829010882px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 53.22538567939163px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 35.033210767307125px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 30.142568123192348px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 46.17938483238496px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 54.52640738771783px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 52.355377436613445px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 39.51708849918746px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 18.915264946582692px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 17.659525897128795px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 39.70900935614857px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 54.4953638629821px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 58.82577897781405px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 52.16770726020587px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 36.762748318164405px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 30.833564880871073px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 49.44893758369557px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 60.51829116547248px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 60.93169945266319px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 50.23120133837217px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 30.747188133540277px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 19.120371346706776px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 34.35899180639414px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 43.467610718093084px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 49.64943480082833px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 45.18424157191683px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 32.03876204987209px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 24.806667589143522px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 45.98359563345592px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 60.06470965902497px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 63.65059077274019px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 55.9495061571927px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 38.97984810699381px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 25.728244162552237px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 42.62497080708395px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 52.72619621226306px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 52.73071626127832px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 41.90738793639373px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 23.228385215514983px; animation: wave-bar-beat 1.5s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 13.680983717718565px; animation: wave-bar-beat 1.7s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 36.576587838838634px; animation: wave-bar-beat 1.9s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 53.09760451711282px; animation: wave-bar-beat 2.1s ease-in-out infinite;"
+          />
+          <div
+            class="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style="height: 59.58543368151278px; animation: wave-bar-beat 2.3s ease-in-out infinite;"
+          />
+        </div>
+      </div>
+      <div
+        class="flex-1 overflow-y-hidden flex flex-col gap-2"
+      >
+        <button
+          aria-label="Agente: Indique su nombre completo para el registro."
+          class="text-left flex gap-4 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors px-2 -mx-2 rounded focus-visible:bg-white/[0.05] outline-none"
+          type="button"
+        >
+          <span
+            class="text-[11px] text-zinc-600 font-mono w-[55px] mt-0.5"
+          >
+            00:00:14
+          </span>
+          <span
+            class="text-[11px] font-bold w-[55px] tracking-wide uppercase mt-0.5 text-zinc-500"
+          >
+            Agente
+          </span>
+          <span
+            class="text-xs text-white/80 leading-relaxed"
+          >
+            Indique su nombre completo para el registro.
+          </span>
+        </button>
+        <button
+          aria-label="Testigo: Carlos Ramirez Vega."
+          class="text-left flex gap-4 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors px-2 -mx-2 rounded focus-visible:bg-white/[0.05] outline-none"
+          type="button"
+        >
+          <span
+            class="text-[11px] text-zinc-600 font-mono w-[55px] mt-0.5"
+          >
+            00:00:22
+          </span>
+          <span
+            class="text-[11px] font-bold w-[55px] tracking-wide uppercase mt-0.5 text-blue-500"
+          >
+            Testigo
+          </span>
+          <span
+            class="text-xs text-white/80 leading-relaxed"
+          >
+            Carlos Ramirez Vega.
+          </span>
+        </button>
+        <button
+          aria-label="Agente: Confirme la fecha y lugar exacto de los hechos."
+          class="text-left flex gap-4 py-2 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors px-2 -mx-2 rounded focus-visible:bg-white/[0.05] outline-none"
+          type="button"
+        >
+          <span
+            class="text-[11px] text-zinc-600 font-mono w-[55px] mt-0.5"
+          >
+            00:00:31
+          </span>
+          <span
+            class="text-[11px] font-bold w-[55px] tracking-wide uppercase mt-0.5 text-zinc-500"
+          >
+            Agente
+          </span>
+          <span
+            class="text-xs text-white/80 leading-relaxed"
+          >
+            Confirme la fecha y lugar exacto de los hechos.
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

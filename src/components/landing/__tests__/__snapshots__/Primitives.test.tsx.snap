@@ -1,0 +1,150 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Primitives > renders PremiumEdgeWrapper with custom colors 1`] = `
+<div
+  class="relative group p-[1px]"
+>
+  <div
+    class="absolute inset-0 rounded-[24px] overflow-hidden z-0"
+  >
+    <div
+      class="absolute top-1/2 left-1/2 w-[150%] aspect-square animate-rotate-gradient rounded-full opacity-60"
+      style="background: conic-gradient(from 0deg, transparent 0%, transparent 35%, rgb(59, 130, 246) 45%, rgb(96, 165, 250) 50%, rgb(59, 130, 246) 55%, transparent 65%, transparent 100%); filter: blur(10px);"
+    />
+  </div>
+  <div
+    class="absolute inset-[1px] bg-[var(--card-bg)] rounded-[24px] z-10 transition-colors duration-700 shadow-[inset_0_1px_1px_var(--border-subtle)]"
+  />
+  <div
+    class="relative z-20 h-full"
+  >
+    <div>
+      Blue glow
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Primitives > renders PremiumEdgeWrapper with default glow 1`] = `
+<div
+  class="relative group p-[1px]"
+>
+  <div
+    class="absolute inset-0 rounded-[24px] overflow-hidden z-0"
+  >
+    <div
+      class="absolute top-1/2 left-1/2 w-[150%] aspect-square animate-rotate-gradient rounded-full opacity-60"
+      style="background: conic-gradient(from 0deg, transparent 0%, transparent 35%, var(--glow-edge) 45%, var(--text-main) 50%, var(--glow-edge) 55%, transparent 65%, transparent 100%); filter: blur(10px);"
+    />
+  </div>
+  <div
+    class="absolute inset-[1px] bg-[var(--card-bg)] rounded-[24px] z-10 transition-colors duration-700 shadow-[inset_0_1px_1px_var(--border-subtle)]"
+  />
+  <div
+    class="relative z-20 h-full"
+  >
+    <div>
+      Wrapped content
+    </div>
+  </div>
+</div>
+`;
+
+exports[`Primitives > renders Reveal with default props 1`] = `
+<div
+  class=""
+  style="opacity: 0; transform: translateX(-40px);"
+>
+  <div>
+    Content
+  </div>
+</div>
+`;
+
+exports[`Primitives > renders ThemeToggle in dark mode 1`] = `
+<div
+  class="relative inline-flex items-center justify-center"
+>
+  <div
+    class="w-full h-full"
+    style="transform: none;"
+  >
+    <button
+      aria-label="Cambiar Tema"
+      class="p-2.5 rounded-full border border-[var(--border-strong)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+    >
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="18"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="18"
+      >
+        <path
+          d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`Primitives > renders ThemeToggle in light mode 1`] = `
+<div
+  class="relative inline-flex items-center justify-center"
+>
+  <div
+    class="w-full h-full"
+    style="transform: none;"
+  >
+    <button
+      aria-label="Cambiar Tema"
+      class="p-2.5 rounded-full border border-[var(--border-strong)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+    >
+      <svg
+        aria-hidden="true"
+        fill="none"
+        height="18"
+        stroke="currentColor"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        viewBox="0 0 24 24"
+        width="18"
+      >
+        <circle
+          cx="12"
+          cy="12"
+          r="5"
+        />
+        <path
+          d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`Primitives > renders Title25D 1`] = `
+<div
+  class="mb-6 w-fit cursor-none"
+>
+  <h1
+    class="font-extrabold tracking-tighter text-25d text-[clamp(3rem,5vw,5.5rem)]"
+  >
+    Inteligencia
+     
+    <br />
+    <span
+      class="chrome-text pb-2 block mt-1"
+    >
+      Forense
+    </span>
+  </h1>
+</div>
+`;
