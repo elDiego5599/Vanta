@@ -17,6 +17,9 @@ src-tauri/target/
 src-tauri/WixTools/
 src-tauri/Frameworks/
 
+# Storybook build output
+storybook-static/
+
 # Whisper models (downloaded on demand)
 public/whisper-models/
 public/ort-wasm*.wasm
