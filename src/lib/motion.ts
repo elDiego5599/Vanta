@@ -13,12 +13,6 @@ export const spring: Transition = {
   damping: 20,
 }
 
-export const cursorTransition: Transition = {
-  type: 'tween',
-  ease: 'easeOut',
-  duration: 0.15,
-}
-
 export const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 40 },
   visible: { opacity: 1, y: 0 },

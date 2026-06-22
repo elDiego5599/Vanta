@@ -1,6 +1,5 @@
 import { lazy, Suspense } from 'react';
 import { useScroll } from '../lib/use-scroll';
-import CustomCursor from './landing/Cursor';
 import { CSSGrid } from './landing/CSSGrid';
 import { Header } from './landing/Header';
 import { Hero } from './landing/Hero';
@@ -18,7 +17,6 @@ export default function LandingLiquidGlass() {
   return (
     <div className="bg-[var(--page-bg)] text-[var(--text-main)] min-h-screen font-sans overflow-x-clip relative selection:bg-blue-500/30 transition-colors duration-700">
       <CSSGrid />
-      <CustomCursor />
       <Header scrolled={scrolled} />
       <Hero />
       <ErrorBoundary>

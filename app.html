@@ -11,6 +11,9 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      globalThis.process = globalThis.process || { env: { NODE_ENV: 'production' }, versions: {} };
+    </script>
     <script type="module" src="/src/main-app.jsx"></script>
   </body>
 </html>

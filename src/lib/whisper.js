@@ -1,10 +1,21 @@
-import { pipeline, env } from '@xenova/transformers';
+let pipeline, env
 
-env.allowLocalModels = false;
+async function ensureEnv() {
+  if (!env) {
+    const mod = await import('@xenova/transformers');
+    pipeline = mod.pipeline;
+    env = mod.env;
+    env.allowLocalModels = false;
+    if (env.backends?.onnx?.wasm) {
+      env.backends.onnx.wasm.wasmPaths = '/';
+    }
+  }
+}
 
 let transcriber = null;
 
 async function ensureModel(onProgress) {
+  await ensureEnv();
   if (transcriber) return transcriber;
 
   transcriber = await pipeline(

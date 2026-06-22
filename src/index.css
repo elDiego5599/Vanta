@@ -116,11 +116,6 @@
   75% { transform: scaleY(0.9); }
 }
 
-.hide-native-cursor,
-.hide-native-cursor * {
-  cursor: none !important;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

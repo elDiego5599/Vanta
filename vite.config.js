@@ -26,6 +26,9 @@ export default defineConfig({
       plugins: [tailwindcss(), autoprefixer()],
     },
   },
+  optimizeDeps: {
+    exclude: ['@xenova/transformers', 'onnxruntime-web', 'onnxruntime-common'],
+  },
   appType: 'mpa',
   server: {
     fs: {

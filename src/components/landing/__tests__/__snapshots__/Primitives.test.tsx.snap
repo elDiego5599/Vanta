@@ -132,7 +132,7 @@ exports[`Primitives > renders ThemeToggle in light mode 1`] = `
 
 exports[`Primitives > renders Title25D 1`] = `
 <div
-  class="mb-6 w-fit cursor-none"
+  class="mb-6 w-fit"
 >
   <h1
     class="font-extrabold tracking-tighter text-25d text-[clamp(3rem,5vw,5.5rem)]"
