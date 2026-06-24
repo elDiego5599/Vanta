@@ -5,6 +5,29 @@ if (env.backends?.onnx?.wasm) {
   env.backends.onnx.wasm.wasmPaths = '/';
 }
 
+async function patchFetchForHuggingFace() {
+  try {
+    const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
+    const originalFetch = globalThis.fetch.bind(globalThis);
+    globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url = (typeof input === 'string' ? input : input instanceof URL ? input.href : input.url) ?? '';
+      if (url.includes('huggingface.co') || url.includes('hf.co')) {
+        try {
+          const response = await tauriFetch(url, init as Record<string, unknown>);
+          return response as unknown as Response;
+        } catch (e) {
+          console.warn('Tauri HTTP fetch failed, falling back:', e);
+        }
+      }
+      return originalFetch(input, init);
+    };
+  } catch {
+    // Not running in Tauri, use browser fetch (CORS may block some requests)
+  }
+}
+
+await patchFetchForHuggingFace();
+
 type Transcriber = Awaited<ReturnType<typeof pipeline>>;
 
 let transcriber: Transcriber | null = null;
@@ -17,17 +40,12 @@ interface ProgressData {
 
 type ProgressCallback = (data: ProgressData) => void;
 
-interface Chunk {
+export interface ChunkResult {
   text: string;
   timestamp: [number, number];
 }
 
-interface TranscriptionResult {
-  text: string;
-  chunks: Chunk[];
-}
-
-async function ensureModel(onProgress?: ProgressCallback): Promise<Transcriber> {
+export async function loadModel(onProgress?: ProgressCallback): Promise<Transcriber> {
   if (transcriber) return transcriber;
 
   transcriber = (await pipeline(
@@ -39,14 +57,13 @@ async function ensureModel(onProgress?: ProgressCallback): Promise<Transcriber> 
   return transcriber;
 }
 
-async function decodeAudio(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
+export async function decodeAudioToF32(arrayBuffer: ArrayBuffer, targetRate = 16000): Promise<Float32Array> {
   const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
   const audioCtx = new AudioCtx();
   try {
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     const rawData = audioBuffer.getChannelData(0);
     const sampleRate = audioBuffer.sampleRate;
-    const targetRate = 16000;
 
     if (sampleRate === targetRate) return rawData;
 
@@ -65,23 +82,74 @@ async function decodeAudio(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
   }
 }
 
+function extractChunks(raw: Record<string, unknown>, offsetSeconds: number): ChunkResult[] {
+  if (Array.isArray(raw.chunks)) {
+    return raw.chunks.map((c: Record<string, unknown>) => {
+      const ts = (c.timestamp ?? c.timestamps ?? [0, 0]) as number[];
+      return {
+        text: typeof c.text === 'string' ? c.text.trim() : '',
+        timestamp: [offsetSeconds + (ts[0] ?? 0), offsetSeconds + (ts[1] ?? 0)] as [number, number],
+      };
+    });
+  }
+  const text = typeof raw.text === 'string' ? raw.text.trim() : '';
+  if (text) {
+    return [{ text, timestamp: [offsetSeconds, offsetSeconds + 30] }];
+  }
+  return [];
+}
+
+export interface TranscribeOptions {
+  onChunk?: (chunk: ChunkResult) => void;
+  chunkLengthSec?: number;
+}
+
+export async function transcribeProgressive(
+  model: Transcriber,
+  audio: Float32Array,
+  options: TranscribeOptions = {},
+): Promise<ChunkResult[]> {
+  const { onChunk, chunkLengthSec = 30 } = options;
+  const sampleRate = 16000;
+  const chunkSize = sampleRate * chunkLengthSec;
+  const allChunks: ChunkResult[] = [];
+
+  for (let offset = 0; offset < audio.length; offset += chunkSize) {
+    const end = Math.min(offset + chunkSize, audio.length);
+    const segment = audio.slice(offset, end);
+    const offsetSeconds = offset / sampleRate;
+
+    let raw: Record<string, unknown>;
+    try {
+      raw = (await model(segment, {
+        language: 'es',
+        task: 'transcribe',
+        return_timestamps: true,
+      })) as Record<string, unknown>;
+    } catch (err) {
+      console.error('Error en segmento', offsetSeconds, err);
+      throw err;
+    }
+
+    const chunks = extractChunks(raw, offsetSeconds);
+    for (const c of chunks) {
+      allChunks.push(c);
+      onChunk?.(c);
+    }
+  }
+
+  return allChunks;
+}
+
 export async function transcribeAudio(
   arrayBuffer: ArrayBuffer,
   onProgress?: ProgressCallback,
-): Promise<TranscriptionResult> {
-  const model = await ensureModel(onProgress);
-  const audioData = await decodeAudio(arrayBuffer);
-
-  const result = await model(audioData, {
-    language: 'es',
-    task: 'transcribe',
-    chunk_length_s: 30,
-    stride_length_s: 5,
-    return_timestamps: true,
-    progress_callback: onProgress,
-  });
-
-  return result as unknown as TranscriptionResult;
+): Promise<{ text: string; chunks: ChunkResult[] }> {
+  const model = await loadModel(onProgress);
+  const audio = await decodeAudioToF32(arrayBuffer);
+  const chunks = await transcribeProgressive(model, audio);
+  const text = chunks.map((c) => c.text).join(' ');
+  return { text, chunks };
 }
 
 export function formatTimestamp(seconds: number | null | undefined): string {

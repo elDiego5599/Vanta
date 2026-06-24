@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
-import { transcribeAudio, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
+import { loadModel, decodeAudioToF32, transcribeProgressive, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
+import type { ChunkResult } from '../../lib/whisper';
 import { PremiumEdgeWrapper } from '../landing/Primitives';
 
 interface TranscriptLine {
@@ -76,6 +77,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [duration, setDuration] = useState('00:00:00');
   const [playProgress, setPlayProgress] = useState(0);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -94,6 +96,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       setPlayProgress(0);
       setCurrentTime('00:00:00');
       setDuration('00:00:00');
+      setError(null);
     }, 0);
     return () => {
       clearTimeout(timer);
@@ -118,6 +121,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const startTranscription = useCallback(async () => {
     if (!selectedFile?.file) return;
 
+    setError(null);
     setIsTranscribing(true);
     setProgress(0);
     setStatusText('Cargando modelo Whisper...');
@@ -128,27 +132,43 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     }
 
     try {
-      const arrayBuffer = await fileToArrayBuffer(selectedFile.file);
-
-      setStatusText('Transcribiendo audio...');
-
-      const result = await transcribeAudio(arrayBuffer, (p) => {
-        if (p.status === 'progress') {
-          setProgress(Math.round(p.progress || 0));
-        } else if (p.status === 'loading') {
-          setStatusText('Descargando modelo...');
-        }
+      const model = await loadModel((p) => {
+        if (p.status === 'loading') setStatusText('Descargando modelo Whisper...');
+        else if (p.status === 'progress') setProgress(Math.min(Math.round(p.progress || 0), 10));
       });
 
-      if (result && result.chunks) {
-        const segments = result.chunks.map((chunk) => ({
-          t: formatTimestamp(chunk.timestamp[0]),
-          text: chunk.text.trim(),
-          start: chunk.timestamp[0],
-          end: chunk.timestamp[1],
-        }));
-        setTranscript(segments);
-      }
+      setProgress(10);
+      setStatusText('Leyendo archivo de audio...');
+
+      const arrayBuffer = await fileToArrayBuffer(selectedFile.file);
+
+      setProgress(15);
+      setStatusText('Decodificando audio...');
+
+      const audioData = await decodeAudioToF32(arrayBuffer);
+
+      setProgress(20);
+      setStatusText('Transcribiendo...');
+
+      let lineIdx = 0;
+      const allLines: TranscriptLine[] = [];
+
+      await transcribeProgressive(model, audioData, {
+        chunkLengthSec: 30,
+        onChunk: (chunk: ChunkResult) => {
+          const line: TranscriptLine = {
+            t: formatTimestamp(chunk.timestamp[0]),
+            text: chunk.text,
+            start: chunk.timestamp[0],
+            end: chunk.timestamp[1],
+          };
+          allLines.push(line);
+          lineIdx++;
+          setTranscript([...allLines]);
+          const pct = Math.round((lineIdx * 100) / Math.ceil(audioData.length / (16000 * 30)));
+          setProgress(Math.min(20 + Math.round(pct * 0.75), 95));
+        },
+      });
 
       setProgress(100);
       setStatusText('Completado');
@@ -157,8 +177,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         updateEvidence(selectedFile.id, { estado: 'listo', progreso: 100 });
       }
     } catch (err) {
-      console.error('Error en transcripcion:', err);
-      setStatusText('Error: ' + (err instanceof Error ? err.message : String(err)));
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('Error en transcripcion:', msg);
+      setError(msg);
+      setStatusText('Error');
       if (selectedFile.id) {
         updateEvidence(selectedFile.id, { estado: 'error', progreso: 0 });
       }
@@ -181,11 +203,13 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     );
   }
 
-  const statusColor = isTranscribing
-    ? 'text-yellow-500'
-    : transcript.length > 0
-      ? 'text-green-500'
-      : 'text-[var(--text-muted)]';
+  const statusColor = error
+    ? 'text-red-500'
+    : isTranscribing
+      ? 'text-yellow-500'
+      : transcript.length > 0
+        ? 'text-green-500'
+        : 'text-[var(--text-muted)]';
 
   return (
     <div className="h-full flex flex-col p-6">
@@ -194,7 +218,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           <h1 className="text-lg font-bold text-[var(--text-main)] tracking-tight">Linea de Tiempo</h1>
           <p className="text-xs text-[var(--text-muted)] mt-1">Transcripcion interactiva con Whisper local.</p>
         </div>
-        {!isTranscribing && transcript.length === 0 && (
+        {!isTranscribing && transcript.length === 0 && !error && (
           <button
             onClick={startTranscription}
             className="px-4 py-2 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-xs text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
@@ -202,7 +226,21 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             Iniciar Transcripcion
           </button>
         )}
+        {error && (
+          <button
+            onClick={startTranscription}
+            className="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-md text-xs text-red-500 hover:bg-red-500/20 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+          >
+            Reintentar
+          </button>
+        )}
       </div>
+
+      {error && (
+        <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-lg text-[10px] text-red-500 font-mono leading-relaxed">
+          [ERROR] {error}
+        </div>
+      )}
 
       <PremiumEdgeWrapper rounded="rounded-lg" className="mb-6">
         <div className="p-4">
@@ -229,7 +267,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
               </div>
             </div>
             <div className={`text-[10px] tracking-wider uppercase ${statusColor}`}>
-              {isTranscribing ? statusText : transcript.length > 0 ? 'Completado' : 'Pendiente'}
+              {error ? 'Error' : isTranscribing ? statusText : transcript.length > 0 ? 'Completado' : 'Pendiente'}
             </div>
           </div>
 
@@ -287,13 +325,17 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
       <div className="flex-1 overflow-y-auto pr-2">
         <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
-          Transcripcion
+          Transcripcion {transcript.length > 0 && `(${transcript.length})`}
         </h2>
 
         {transcript.length === 0 && !isTranscribing ? (
           <div className="border border-[var(--border-subtle)] rounded-lg p-8 text-center">
             <div className="text-[var(--text-muted)] text-xs">
-              {selectedFile ? 'Presione "Iniciar Transcripcion" para comenzar' : 'Seleccione un archivo de audio'}
+              {error
+                ? 'Ocurrio un error durante la transcripcion. Presione Reintentar.'
+                : selectedFile
+                  ? 'Presione "Iniciar Transcripcion" para comenzar'
+                  : 'Seleccione un archivo de audio'}
             </div>
           </div>
         ) : (
@@ -333,6 +375,21 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                   </span>
                 </motion.div>
               ))}
+              {isTranscribing && (
+                <motion.div
+                  key="loading"
+                  className="flex gap-3 px-3 py-2.5 rounded-md"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <span className="text-[10px] text-[var(--text-muted)] tabular-nums w-14 pt-0.5 font-mono">
+                    ...
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)]/50 italic">
+                    Transcribiendo...
+                  </span>
+                </motion.div>
+              )}
             </AnimatePresence>
           </div>
         )}

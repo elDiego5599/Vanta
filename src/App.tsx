@@ -163,15 +163,13 @@ function AppShell() {
           Saltar al contenido
         </a>
 
-        <div className="md:hidden">
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm"
-              onClick={() => setSidebarOpen(false)}
-              aria-hidden="true"
-            />
-          )}
-        </div>
+        {sidebarOpen && (
+          <div
+            className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
 
         <aside
           className={`
@@ -179,25 +177,26 @@ function AppShell() {
             flex flex-col bg-[var(--card-bg)]/80 backdrop-blur-[24px]
             border-r border-[var(--border-subtle)]
             transition-all duration-300 ease-in-out
-            ${sidebarOpen ? 'w-[220px] translate-x-0' : '-translate-x-full md:translate-x-0 md:w-[64px]'}
+            ${sidebarOpen ? 'w-[220px] translate-x-0' : '-translate-x-full md:translate-x-0 md:w-[56px]'}
+            ${sidebarOpen ? 'shadow-2xl md:shadow-none' : ''}
           `}
         >
-          <div className="relative px-3 py-3 border-b border-[var(--border-subtle)] flex items-center justify-between overflow-hidden flex-shrink-0">
-            <div className="absolute -inset-x-20 -top-20 w-[300px] h-[300px] bg-[var(--text-main)] opacity-[0.02] blur-[80px] rounded-full pointer-events-none" />
-            <div className="relative z-10 flex items-center gap-3 overflow-hidden">
-              <div className={`transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0 md:opacity-100'}`}>
-                <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-[var(--text-main)] whitespace-nowrap">
-                  VANTA
-                </div>
-                <div className="text-[9px] text-[var(--text-muted)] mt-0.5 tracking-wide whitespace-nowrap">
-                  v0.1.0 — offline
-                </div>
+          <div className={`
+            flex items-center border-b border-[var(--border-subtle)] flex-shrink-0
+            ${sidebarOpen ? 'h-14 px-4 justify-between' : 'h-12 px-0 justify-center'}
+          `}>
+            <div className={`flex items-center gap-3 overflow-hidden ${sidebarOpen ? '' : 'hidden'}`}>
+              <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-[var(--text-main)] whitespace-nowrap">
+                VANTA
+              </div>
+              <div className="text-[9px] text-[var(--text-muted)] tracking-wide whitespace-nowrap">
+                v0.1.0
               </div>
             </div>
-            <div className="relative z-10 flex items-center gap-1">
+            <div className={`flex items-center gap-1 ${sidebarOpen ? '' : 'flex-col'}`}>
               <button
                 onClick={toggleSidebar}
-                className="hidden md:flex w-7 h-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
                 aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
@@ -206,22 +205,14 @@ function AppShell() {
                   <polyline points="15 18 9 12 15 6" />
                 </svg>
               </button>
-              <button
-                onClick={toggleSidebar}
-                className="md:hidden w-7 h-7 items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                aria-label="Cerrar barra lateral"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-              <ThemeToggle theme={theme} setTheme={setTheme} />
+              <div className={`${sidebarOpen ? '' : 'hidden'}`}>
+                <ThemeToggle theme={theme} setTheme={setTheme} />
+              </div>
             </div>
           </div>
 
-          <nav className="flex-1 py-3 px-2 overflow-hidden" aria-label="Navegación principal">
-            <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch">
+          <nav className="flex-1 py-2 overflow-y-auto" aria-label="Navegación principal">
+            <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-0.5 px-1">
               {TABS.map((tab) => {
                 const active = activeTab === tab.id;
                 return (
@@ -235,19 +226,21 @@ function AppShell() {
                     onClick={() => handleTabClick(tab.id)}
                     onKeyDown={handleTabKeyDown}
                     className={`
-                      flex items-center gap-3 px-3 py-2.5 rounded-md text-left
-                      transition-all duration-200 mb-0.5
+                      flex items-center rounded-md transition-all duration-200
                       outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
-                      ${sidebarOpen ? 'w-full' : 'w-full justify-center md:justify-center'}
+                      ${sidebarOpen
+                        ? 'gap-3 px-3 py-2.5 text-left w-full'
+                        : 'gap-0 px-0 py-2.5 justify-center w-full'
+                      }
                       ${active
-                        ? 'bg-[var(--glass-bg)] text-[var(--text-main)] border-l-2 border-[var(--accent)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] border-l-2 border-transparent'
+                        ? 'bg-[var(--glass-bg)] text-[var(--text-main)] md:border-l-2 md:border-[var(--accent)]'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)]'
                       }
                     `}
                     title={tab.label}
                   >
                     <SidebarIcon type={tab.icon} active={active} />
-                    <span className={`text-[12px] tracking-wide whitespace-nowrap transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0 md:opacity-0 w-0 overflow-hidden'}`}>
+                    <span className={`text-xs tracking-wide whitespace-nowrap ${sidebarOpen ? '' : 'hidden'}`}>
                       {tab.label}
                     </span>
                   </button>
@@ -256,23 +249,38 @@ function AppShell() {
             </div>
           </nav>
 
-          <div className={`px-3 py-3 border-t border-[var(--border-subtle)] transition-all duration-200 ${sidebarOpen ? '' : 'md:px-2'}`}>
-            <div className={`flex items-center gap-2 mb-3 ${sidebarOpen ? '' : 'md:justify-center'}`}>
+          <div className={`
+            border-t border-[var(--border-subtle)] flex-shrink-0
+            ${sidebarOpen ? 'px-4 py-3' : 'px-1 py-2'}
+          `}>
+            <div className={`flex items-center ${sidebarOpen ? 'gap-2 mb-3' : 'gap-0 mb-2 justify-center'}`}>
               <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
                 <span className="text-[10px] font-bold text-[var(--accent-text)]">
                   {user.usuario.charAt(0).toUpperCase()}
                 </span>
               </div>
-              <div className={`flex-1 min-w-0 transition-opacity duration-200 ${sidebarOpen ? 'opacity-100' : 'opacity-0 md:opacity-0 w-0 overflow-hidden'}`}>
+              <div className={`flex-1 min-w-0 ${sidebarOpen ? '' : 'hidden'}`}>
                 <div className="text-[11px] text-[var(--text-main)] truncate">{user.usuario}</div>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className={`py-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] rounded-md transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 ${sidebarOpen ? 'w-full' : 'md:w-full'}`}
+              className={`
+                text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)]
+                border border-[var(--border-subtle)] hover:border-[var(--border-strong)]
+                rounded-md transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
+                ${sidebarOpen ? 'w-full py-1.5' : 'w-full py-1.5 flex items-center justify-center'}
+              `}
               title="Cerrar Sesion"
+              aria-label="Cerrar Sesion"
             >
-              {sidebarOpen ? 'Cerrar Sesion' : ''}
+              {sidebarOpen ? 'Cerrar Sesion' : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              )}
             </button>
           </div>
         </aside>

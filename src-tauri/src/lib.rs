@@ -60,6 +60,7 @@ pub fn run() {
                         .build(),
                 )?;
             }
+            app.handle().plugin(tauri_plugin_http::init())?;
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
