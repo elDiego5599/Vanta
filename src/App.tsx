@@ -3,7 +3,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
 import type { AppContextType, EvidenceItem } from './lib/AppContext';
 import { ThemeProvider } from './lib/theme';
-import { ThemeToggle } from './components/landing/Primitives';
 import { useTheme } from './lib/use-theme';
 import { fadeIn, transition } from './lib/motion';
 import ErrorBoundary from './components/landing/ErrorBoundary';
@@ -45,25 +44,51 @@ const SidebarIcon = memo(function SidebarIcon({ type, active }: SidebarIconProps
   const color = active ? 'var(--accent)' : 'var(--text-muted)';
   const icons: Record<string, React.ReactNode> = {
     upload: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
         <polyline points="17 8 12 3 7 8" />
         <line x1="12" y1="3" x2="12" y2="15" />
       </svg>
     ),
     waveform: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M2 12h2l3-9 4 18 4-18 3 9h4" />
       </svg>
     ),
     search: (
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="11" cy="11" r="8" />
         <line x1="21" y1="21" x2="16.65" y2="16.65" />
       </svg>
     ),
   };
   return icons[type] ?? null;
+});
+
+const ThemeIcon = memo(function ThemeIcon({ theme }: { theme: string }) {
+  const color = 'var(--text-muted)';
+  if (theme === 'light') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="5" />
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    );
+  }
+  if (theme === 'dark') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  );
 });
 
 function AppShell() {
@@ -169,7 +194,7 @@ function AppShell() {
 
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
@@ -182,27 +207,28 @@ function AppShell() {
                 ? 'w-[150px] md:w-[200px] xl:w-[240px]'
                 : '-translate-x-full md:translate-x-0 md:w-[56px]'
               }
-              shrink-0 bg-black/60 backdrop-blur-xl border-r border-white/[0.06] flex flex-col
+              shrink-0 flex flex-col
               transition-all duration-300 ease-in-out
               ${sidebarOpen ? '' : '-translate-x-full md:translate-x-0'}
+              bg-[var(--card-bg)] border-r border-[var(--border-subtle)]
             `}
           >
             <div className={`
-              flex border-b border-white/[0.06] flex-shrink-0
-              ${sidebarOpen ? 'px-5 py-5' : 'h-14 justify-center'}
+              flex border-b border-[var(--border-subtle)] flex-shrink-0
+              ${sidebarOpen ? 'px-5 py-4' : 'h-14 justify-center items-center'}
             `}>
               {sidebarOpen ? (
                 <div className="w-full">
-                  <div className="text-[13px] tracking-[0.16em] uppercase text-white/90 font-bold flex items-center gap-2.5">
-                    <VantaMiniLogo className="w-[18px] h-[18px] text-white/80" />
+                  <div className="text-[13px] tracking-[0.16em] uppercase text-[var(--text-main)] font-bold flex items-center gap-2.5">
+                    <VantaMiniLogo className="w-[18px] h-[18px]" />
                     VANTA
                   </div>
-                  <div className="text-[10px] text-zinc-500 mt-1.5 tracking-[0.06em] font-mono">
+                  <div className="text-[10px] text-[var(--text-muted)] mt-1.5 tracking-[0.06em] font-mono">
                     v0.1.0 — offline
                   </div>
                 </div>
               ) : (
-                <VantaMiniLogo className="w-[18px] h-[18px] text-white/60" />
+                <VantaMiniLogo className="w-[20px] h-[20px]" />
               )}
             </div>
 
@@ -221,18 +247,18 @@ function AppShell() {
                       onClick={() => handleTabClick(tab.id)}
                       onKeyDown={handleTabKeyDown}
                       className={`
-                        outline-none focus-visible:bg-white/[0.05] transition-all duration-200
+                        outline-none focus-visible:bg-[var(--glass-hover)] transition-all duration-200
                         ${sidebarOpen
                           ? 'w-full text-left px-3 py-2 text-[12px] tracking-[0.03em] border-l-2 flex items-center gap-2.5 rounded-r-md'
                           : 'w-full py-2.5 justify-center flex items-center rounded-md'
                         }
                         ${active
                           ? sidebarOpen
-                            ? 'font-medium text-white/90 bg-white/[0.07] border-l-white/60'
-                            : 'text-white/90 bg-white/[0.07]'
+                            ? 'font-medium text-[var(--text-main)] bg-[var(--glass-bg)] border-l-[var(--accent)]'
+                            : 'text-[var(--text-main)] bg-[var(--glass-bg)]'
                           : sidebarOpen
-                            ? 'font-normal text-zinc-500 border-l-transparent hover:text-zinc-300 hover:bg-white/[0.03]'
-                            : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.03]'
+                            ? 'font-normal text-[var(--text-muted)] border-l-transparent hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)]'
+                            : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)]'
                         }
                       `}
                       title={tab.label}
@@ -247,23 +273,23 @@ function AppShell() {
               </div>
             </nav>
 
-            <div className="border-t border-white/[0.06] flex-shrink-0 p-3">
+            <div className="border-t border-[var(--border-subtle)] flex-shrink-0 p-3">
               <div className={`flex items-center ${sidebarOpen ? 'gap-2.5 mb-3' : 'justify-center mb-2'}`}>
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[11px] font-bold text-blue-400">
+                <div className="w-8 h-8 rounded-full bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
+                  <span className="text-[11px] font-bold text-[var(--accent-text)]">
                     {user.usuario.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 {sidebarOpen && (
                   <div className="flex-1 min-w-0">
-                    <div className="text-[11px] text-zinc-300 truncate font-medium">{user.usuario}</div>
+                    <div className="text-[11px] text-[var(--text-main)] truncate font-medium">{user.usuario}</div>
                   </div>
                 )}
               </div>
               <div className={`flex items-center gap-1 ${sidebarOpen ? '' : 'flex-col'}`}>
                 <button
                   onClick={toggleSidebar}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-500 hover:text-white/80 hover:bg-white/[0.06] transition-colors outline-none"
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none"
                   aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
                   title={sidebarOpen ? 'Contraer' : 'Expandir'}
                 >
@@ -273,10 +299,21 @@ function AppShell() {
                     <polyline points="15 18 9 12 15 6" />
                   </svg>
                 </button>
-                <ThemeToggle theme={theme} setTheme={setTheme} />
+                <button
+                  onClick={() => {
+                    if (theme === 'dark') setTheme('light');
+                    else if (theme === 'light') setTheme('system');
+                    else setTheme('dark');
+                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none"
+                  aria-label="Cambiar Tema"
+                  title="Cambiar Tema"
+                >
+                  <ThemeIcon theme={theme} />
+                </button>
                 <button
                   onClick={handleLogout}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-500 hover:text-red-400 hover:bg-white/[0.06] transition-colors outline-none"
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--glass-hover)] transition-colors outline-none"
                   title="Cerrar Sesion"
                   aria-label="Cerrar Sesion"
                 >
@@ -296,7 +333,7 @@ function AppShell() {
             <div className="md:hidden absolute top-3 left-3 z-20">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="w-8 h-8 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none"
                 aria-label="Abrir barra lateral"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
