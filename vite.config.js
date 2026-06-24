@@ -21,13 +21,18 @@ export default defineConfig({
       brotliSize: true,
     }),
   ].filter(Boolean),
+  resolve: {
+    alias: {
+      '@xenova/transformers': resolve(__dirname, 'node_modules/@xenova/transformers/dist/transformers.js'),
+    },
+  },
   css: {
     postcss: {
       plugins: [tailwindcss(), autoprefixer()],
     },
   },
   optimizeDeps: {
-    exclude: ['@xenova/transformers', 'onnxruntime-web', 'onnxruntime-common'],
+    exclude: ['@xenova/transformers'],
   },
   appType: 'mpa',
   server: {
