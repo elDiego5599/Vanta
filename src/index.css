@@ -28,27 +28,27 @@
 }
 
 .light-mode {
-  --page-bg: #f4f4f5;
+  --page-bg: #fafafa;
   --card-bg: #ffffff;
   --text-main: #09090b;
   --text-muted: #71717a;
   --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-strong: rgba(0, 0, 0, 0.2);
+  --border-strong: rgba(0, 0, 0, 0.15);
   --btn-bg: #09090b;
   --btn-text: #ffffff;
   --btn-hover: #27272a;
   --chrome-1: #a1a1aa;
   --chrome-2: #52525b;
-  --grid-line: rgba(0, 0, 0, 0.05);
+  --grid-line: rgba(0, 0, 0, 0.04);
   --text-3d-1: #e4e4e7;
   --text-3d-2: #d4d4d8;
   --text-3d-shadow: rgba(0, 0, 0, 0.15);
-  --glow-edge: rgba(0, 0, 0, 0.25);
-  --glass-bg: rgba(0, 0, 0, 0.02);
-  --glass-hover: rgba(0, 0, 0, 0.06);
+  --glow-edge: rgba(0, 0, 0, 0.15);
+  --glass-bg: #ffffff;
+  --glass-hover: #f4f4f5;
   --input-bg: #f4f4f5;
   --accent: #3b82f6;
-  --accent-subtle: rgba(59, 130, 246, 0.2);
+  --accent-subtle: rgba(59, 130, 246, 0.1);
   --accent-text: #3b82f6;
 }
 

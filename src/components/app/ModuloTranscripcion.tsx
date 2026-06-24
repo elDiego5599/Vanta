@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo, type RefObject } from 'react';
+import { useState, useRef, useEffect, useCallback, memo, useImperativeHandle, forwardRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
 import { loadModel, decodeAudioToF32, transcribeProgressive, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
@@ -21,56 +21,58 @@ const lineVariants = {
   }),
 };
 
-const BAR_COUNT = 50;
-const BASE_HEIGHT = 4;
-const MAX_HEIGHT = 40;
+const BAR_COUNT = 120;
+const HALF = BAR_COUNT / 2;
+
+function staticWaveform(): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const norm = i / BAR_COUNT;
+    const envelope = Math.sin(norm * Math.PI);
+    const wave = Math.sin(i * 0.3) * 0.3 + Math.sin(i * 0.7) * 0.25 + Math.sin(i * 1.4) * 0.2 + Math.sin(i * 2.8) * 0.1;
+    out.push(4 + envelope * (14 + wave * 12));
+  }
+  return out;
+}
+
+const STATIC_BARS = staticWaveform();
 
 interface LiveWaveformProps {
-  audioRef: RefObject<HTMLAudioElement | null>;
+  audioRef: React.RefObject<HTMLAudioElement | null>;
   isPlaying: boolean;
 }
 
-const LiveWaveform = memo(function LiveWaveform({ audioRef, isPlaying }: LiveWaveformProps) {
-  const [bars, setBars] = useState<number[]>(() => Array(BAR_COUNT).fill(BASE_HEIGHT));
-  const analyserRef = useRef<AnalyserNode | null>(null);
+const LiveWaveform = memo(forwardRef(function LiveWaveform({ audioRef, isPlaying }: LiveWaveformProps, ref) {
+  const [bars, setBars] = useState<number[]>(() => [...STATIC_BARS]);
   const ctxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
   const rafRef = useRef<number>(0);
-  const smoothedRef = useRef<Float32Array>(new Float32Array(BAR_COUNT));
+  const smoothedRef = useRef<number[]>([...STATIC_BARS]);
 
-  useEffect(() => {
+  const initAudioChain = useCallback(() => {
+    if (sourceRef.current) return;
+
     const audio = audioRef.current;
     if (!audio) return;
 
-    let ctx = ctxRef.current;
-    if (!ctx) {
-      ctx = new AudioContext();
-      ctxRef.current = ctx;
-    }
+    const ctx = new AudioContext();
+    ctxRef.current = ctx;
 
-    if (!analyserRef.current) {
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 128;
-      analyser.smoothingTimeConstant = 0.7;
-      analyserRef.current = analyser;
+    const analyser = ctx.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.smoothingTimeConstant = 0.75;
+    analyserRef.current = analyser;
 
-      if (!sourceRef.current) {
-        try {
-          const source = ctx.createMediaElementSource(audio);
-          source.connect(analyser);
-          analyser.connect(ctx.destination);
-          sourceRef.current = source;
-        } catch {
-          // MediaElementSource already created for this element
-          analyser.connect(ctx.destination);
-        }
-      }
-    }
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-    };
+    const source = ctx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+    sourceRef.current = source;
   }, [audioRef]);
+
+  useImperativeHandle(ref, () => ({
+    initAudioChain,
+  }));
 
   useEffect(() => {
     const analyser = analyserRef.current;
@@ -87,33 +89,37 @@ const LiveWaveform = memo(function LiveWaveform({ audioRef, isPlaying }: LiveWav
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     const smoothed = smoothedRef.current;
+    const binCount = analyser.frequencyBinCount;
+    const step = Math.max(1, Math.floor(binCount / HALF));
 
-    const update = () => {
+    const tick = () => {
       analyser.getByteFrequencyData(dataArray);
 
-      const binCount = analyser.frequencyBinCount;
-      const step = Math.max(1, Math.floor(binCount / BAR_COUNT));
-
-      for (let i = 0; i < BAR_COUNT; i++) {
-        const idx = Math.min(i * step, binCount - 1);
-        const raw = (dataArray[idx] ?? 0) / 255;
-        const target = BASE_HEIGHT + raw * (MAX_HEIGHT - BASE_HEIGHT);
-        const prev = smoothed[i] ?? BASE_HEIGHT;
+      for (let i = 0; i < HALF; i++) {
+        let sum = 0;
+        for (let j = 0; j < step; j++) {
+          sum += dataArray[Math.min(i * step + j, binCount - 1)] ?? 0;
+        }
+        const raw = (sum / step) / 255;
+        const target = 4 + raw * 50;
+        const prev = smoothed[i] ?? 4;
         smoothed[i] = prev * 0.4 + target * 0.6;
+        smoothed[BAR_COUNT - 1 - i] = smoothed[i] ?? 4;
       }
 
-      setBars(Array.from(smoothed));
-      rafRef.current = requestAnimationFrame(update);
+      setBars([...smoothed]);
+      rafRef.current = requestAnimationFrame(tick);
     };
 
-    rafRef.current = requestAnimationFrame(update);
-
+    rafRef.current = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafRef.current);
-  }, [isPlaying, audioRef]);
+  }, [isPlaying]);
 
   useEffect(() => {
     return () => {
       cancelAnimationFrame(rafRef.current);
+      sourceRef.current?.disconnect();
+      analyserRef.current?.disconnect();
       ctxRef.current?.close();
       ctxRef.current = null;
       analyserRef.current = null;
@@ -122,17 +128,44 @@ const LiveWaveform = memo(function LiveWaveform({ audioRef, isPlaying }: LiveWav
   }, []);
 
   return (
-    <div className="flex items-center gap-[3px] h-10 overflow-hidden">
-      {bars.map((h, i) => (
-        <div
-          key={i}
-          className="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
-          style={{ height: h, transition: isPlaying ? 'none' : 'height 0.3s ease-out' }}
-        />
-      ))}
+    <div
+      className="flex items-center w-full overflow-hidden cursor-pointer"
+      style={{ gap: '2px', height: '64px' }}
+      onClick={() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+        initAudioChain();
+        if (ctxRef.current?.state === 'suspended') {
+          ctxRef.current.resume();
+        }
+        if (audio.paused) {
+          audio.play().catch(() => {});
+        } else {
+          audio.pause();
+        }
+      }}
+    >
+      {bars.map((h, i) => {
+        const norm = i / BAR_COUNT;
+        const edgeFade = norm < 0.08 ? norm / 0.08 : norm > 0.92 ? (1 - norm) / 0.08 : 1;
+
+        return (
+          <div
+            key={i}
+            className="flex-shrink-0 rounded-full"
+            style={{
+              width: '3px',
+              height: `${Math.max(4, h * edgeFade)}px`,
+              backgroundColor: 'var(--accent)',
+              opacity: isPlaying ? 0.85 : 0.4,
+              transition: isPlaying ? 'none' : 'height 0.5s cubic-bezier(0.16,1,0.3,1)',
+            }}
+          />
+        );
+      })}
     </div>
   );
-});
+}));
 
 const PauseIcon = memo(() => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -169,12 +202,14 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const waveformRef = useRef<{ initAudioChain: () => void } | null>(null);
 
   useEffect(() => {
     if (!selectedFile?.file) return;
     const url = URL.createObjectURL(selectedFile.file);
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     }
     setAudioUrl(url);
     setTranscript([]);
@@ -202,6 +237,24 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       setDuration(formatTimestamp(audioRef.current.duration));
     }
   }, []);
+
+  const togglePlay = useCallback(async () => {
+    waveformRef.current?.initAudioChain();
+    const audio = audioRef.current;
+    if (!audio) return;
+    try {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        await audio.play();
+        setIsPlaying(true);
+      }
+    } catch (e) {
+      console.error('Audio play error:', e);
+      setIsPlaying(false);
+    }
+  }, [isPlaying]);
 
   const startTranscription = useCallback(async () => {
     if (!selectedFile?.file) return;
@@ -279,11 +332,11 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       <div className="h-full flex items-center justify-center p-6">
         <PremiumEdgeWrapper rounded="rounded-lg">
           <div className="px-12 py-14 text-center">
-            <div className="w-16 h-16 rounded-xl border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ border: '1px solid var(--border-subtle)' }}>
               <MusicIcon />
             </div>
-            <div className="text-xs text-[var(--text-muted)] mb-1">Sin archivo seleccionado</div>
-            <div className="text-[10px] text-[var(--text-muted)]/60">Seleccione un archivo de evidencia para transcribir</div>
+            <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Sin archivo seleccionado</div>
+            <div className="text-[10px]" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>Seleccione un archivo de evidencia para transcribir</div>
           </div>
         </PremiumEdgeWrapper>
       </div>
@@ -296,18 +349,25 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       ? 'text-yellow-500'
       : transcript.length > 0
         ? 'text-green-500'
-        : 'text-[var(--text-muted)]';
+        : 'text-zinc-400';
 
   return (
     <div className="h-full flex flex-col p-6">
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <p className="text-[10px] text-[var(--text-muted)] mt-0.5 tracking-[0.06em] font-mono">Transcripcion interactiva con Whisper local.</p>
+          <p className="text-[10px] mt-0.5 tracking-[0.06em] font-mono" style={{ color: 'var(--text-muted)' }}>
+            Transcripcion interactiva con Whisper local.
+          </p>
         </div>
         {!isTranscribing && transcript.length === 0 && !error && (
           <button
             onClick={startTranscription}
-            className="px-4 py-2 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-xs text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+            className="px-4 py-2 rounded-md text-xs transition-opacity outline-none"
+            style={{
+              backgroundColor: 'var(--accent-subtle)',
+              border: '1px solid var(--accent-subtle)',
+              color: 'var(--accent-text)',
+            }}
           >
             Iniciar Transcripcion
           </button>
@@ -315,7 +375,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         {error && (
           <button
             onClick={startTranscription}
-            className="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-md text-xs text-red-500 hover:bg-red-500/20 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
+            className="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-md text-xs text-red-500 hover:bg-red-500/20 transition-colors outline-none"
           >
             Reintentar
           </button>
@@ -340,7 +400,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center">
+              <div
+                className="w-8 h-8 rounded-md flex items-center justify-center"
+                style={{ backgroundColor: 'var(--accent-subtle)' }}
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 18V5l12-2v13" />
                   <circle cx="6" cy="18" r="3" />
@@ -348,8 +411,8 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                 </svg>
               </div>
               <div>
-                <div className="text-xs font-semibold text-[var(--text-main)]">{selectedFile.nombre}</div>
-                <div className="text-[10px] text-[var(--text-muted)]">{selectedFile.tamano}</div>
+                <div className="text-xs font-semibold" style={{ color: 'var(--text-main)' }}>{selectedFile.nombre}</div>
+                <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{selectedFile.tamano}</div>
               </div>
             </div>
             <div className={`text-[10px] tracking-wider uppercase ${statusColor}`}>
@@ -357,58 +420,66 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             </div>
           </div>
 
-          <div className="mb-3 bg-[var(--glass-bg)] rounded-md p-3">
-            <LiveWaveform audioRef={audioRef} isPlaying={isPlaying} />
+          <div
+            className="mb-3 rounded-lg overflow-hidden"
+            style={{
+              backgroundColor: '#0c0f14',
+              border: '1px solid rgba(255,255,255,0.06)',
+            }}
+          >
+            <div className="px-4 pt-3 pb-1">
+              <div className="text-[10px] font-mono tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                {selectedFile.nombre}
+              </div>
+            </div>
+            <div className="px-3 pb-3">
+              <LiveWaveform ref={waveformRef} audioRef={audioRef} isPlaying={isPlaying} />
+            </div>
           </div>
 
           <div className="flex items-center gap-4">
             <button
-              onClick={async () => {
-                const audio = audioRef.current;
-                if (!audio) return;
-                try {
-                  if (isPlaying) {
-                    audio.pause();
-                    setIsPlaying(false);
-                  } else {
-                    await audio.play();
-                    setIsPlaying(true);
-                  }
-                } catch (e) {
-                  console.error('Audio play error:', e);
-                  setIsPlaying(false);
-                }
-              }}
+              onClick={togglePlay}
               aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-              className="w-8 h-8 rounded-full border border-[var(--border-strong)] flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+              className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity outline-none"
+              style={{
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-strong)',
+              }}
             >
               {isPlaying ? <PauseIcon /> : <PlayIcon />}
             </button>
             <div className="flex-1">
-              <div className="w-full h-1 bg-[var(--glass-bg)] rounded-full overflow-hidden">
+              <div className="w-full h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--glass-bg)' }}>
                 <div
-                  className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-300"
-                  style={{ width: `${playProgress}%` }}
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${playProgress}%`,
+                    backgroundColor: 'color-mix(in srgb, var(--accent) 70%, transparent)',
+                  }}
                 />
               </div>
             </div>
-            <div className="text-[10px] text-[var(--text-muted)] tabular-nums">
-              <span className="text-[var(--text-main)]">{currentTime}</span>
+            <div className="text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
+              <span style={{ color: 'var(--text-main)' }}>{currentTime}</span>
               <span className="mx-1">/</span>
               <span>{duration}</span>
             </div>
           </div>
 
           {isTranscribing && (
-            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+            <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] text-[var(--text-muted)]">{statusText}</span>
-                <span className="text-[10px] text-[var(--accent-text)] tabular-nums">{progress}%</span>
+                <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{statusText}</span>
+                <span className="text-[10px] tabular-nums" style={{ color: 'var(--accent-text)' }}>{progress}%</span>
               </div>
-              <div className="w-full h-1.5 bg-[var(--glass-bg)] rounded-full overflow-hidden">
+              <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--glass-bg)' }}>
                 <div
-                  className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${progress}%`,
+                    backgroundColor: 'color-mix(in srgb, var(--accent) 70%, transparent)',
+                  }}
                 />
               </div>
             </div>
@@ -417,14 +488,14 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       </PremiumEdgeWrapper>
 
       <div className="flex-1 overflow-y-auto pr-2">
-        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
+        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase mb-3" style={{ color: 'var(--text-muted)' }}>
           Transcripcion {transcript.length > 0 && `(${transcript.length})`}
         </h2>
 
         {transcript.length === 0 && !isTranscribing ? (
           <PremiumEdgeWrapper rounded="rounded-lg">
             <div className="px-8 py-10 text-center">
-              <div className="text-[var(--text-muted)] text-xs">
+              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {error
                   ? 'Ocurrio un error durante la transcripcion. Presione Reintentar.'
                   : selectedFile
@@ -434,7 +505,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             </div>
           </PremiumEdgeWrapper>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0">
             <AnimatePresence>
               {transcript.map((line, idx) => (
                 <motion.div
@@ -447,24 +518,22 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                   onMouseLeave={() => setHoveredLine(null)}
                   onClick={() => {
                     if (audioRef.current && line.start != null) {
+                      waveformRef.current?.initAudioChain();
                       audioRef.current.currentTime = line.start;
                       audioRef.current.play();
                       setIsPlaying(true);
                     }
                   }}
-                  className={`
-                    text-left flex gap-4 py-2 border-b border-white/[0.03] transition-colors
-                    px-2 -mx-2 rounded outline-none focus-visible:bg-white/[0.05]
-                    ${hoveredLine === idx
-                      ? 'bg-white/[0.02]'
-                      : ''
-                    }
-                  `}
+                  className="text-left flex gap-4 py-2.5 transition-colors px-2 -mx-2 rounded cursor-pointer"
+                  style={{
+                    borderBottom: '1px solid var(--border-subtle)',
+                    backgroundColor: hoveredLine === idx ? 'var(--glass-hover)' : 'transparent',
+                  }}
                 >
-                  <span className="text-[11px] text-zinc-600 font-mono w-[55px] mt-0.5 flex-shrink-0">
+                  <span className="text-[11px] font-mono w-[55px] mt-0.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
                     {line.t}
                   </span>
-                  <span className="text-xs text-white/80 leading-relaxed">
+                  <span className="text-xs leading-relaxed" style={{ color: 'var(--text-main)' }}>
                     {line.text}
                   </span>
                 </motion.div>
@@ -476,10 +545,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                 >
-                  <span className="text-[10px] text-[var(--text-muted)] tabular-nums w-14 pt-0.5 font-mono">
+                  <span className="text-[10px] tabular-nums w-14 pt-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>
                     ...
                   </span>
-                  <span className="text-xs text-[var(--text-muted)]/50 italic">
+                  <span className="text-xs italic" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
                     Transcribiendo...
                   </span>
                 </motion.div>

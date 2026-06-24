@@ -194,13 +194,13 @@ function AppShell() {
 
         {sidebarOpen && (
           <div
-            className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
+            className="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm md:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-hidden="true"
           />
         )}
 
-        <div className="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05] shadow-[0_0_80px_rgba(0,0,0,0.8)] relative">
+        <div className="flex w-full h-full bg-[var(--card-bg)] rounded-[22px] overflow-hidden border border-[var(--border-subtle)] shadow-[0_8px_60px_-12px_rgba(0,0,0,0.3)] relative">
           <aside
             className={`
               ${sidebarOpen
@@ -327,8 +327,8 @@ function AppShell() {
             </div>
           </aside>
 
-          <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative" tabIndex={-1}>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--text-main)] opacity-[0.03] blur-[120px] rounded-full pointer-events-none z-0" />
+          <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[var(--page-bg)] relative" tabIndex={-1}>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--accent)] opacity-[0.04] blur-[120px] rounded-full pointer-events-none z-0" />
 
             <div className="md:hidden absolute top-3 left-3 z-20">
               <button
@@ -345,12 +345,12 @@ function AppShell() {
             </div>
 
             <div className="z-10 flex items-center justify-between px-6 pt-6 pb-0">
-              <div className="text-[14px] font-bold text-white/90 tracking-[-0.01em]">
+              <div className="text-[14px] font-bold text-[var(--text-main)] tracking-[-0.01em]">
                 {MODULE_TITLES[activeTab]}
               </div>
-              <div className="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.05]">
+              <div className="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-[var(--glass-bg)] border border-[var(--border-subtle)]">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
-                <span className="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase">
+                <span className="text-[10px] text-[var(--text-muted)] tracking-[0.08em] font-mono uppercase">
                   Offline Local
                 </span>
               </div>
