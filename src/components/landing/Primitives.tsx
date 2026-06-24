@@ -32,9 +32,10 @@ export function Reveal({ children, dir = 'left', delay = 0, className = '' }: Re
 interface MagneticButtonProps {
   children: ReactNode;
   className?: string;
+  disabled?: boolean;
 }
 
-export function MagneticButton({ children, className = '' }: MagneticButtonProps) {
+export function MagneticButton({ children, className = '', disabled = false }: MagneticButtonProps) {
   const ref = useRef<HTMLDivElement>(null);
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -42,7 +43,7 @@ export function MagneticButton({ children, className = '' }: MagneticButtonProps
   const springY = useSpring(y, { stiffness: 150, damping: 15, mass: 0.1 });
 
   const handleMouse = (e: ReactMouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
+    if (disabled || !ref.current) return;
     const { left, top, width, height } = ref.current.getBoundingClientRect();
     x.set((e.clientX - (left + width / 2)) * 0.2);
     y.set((e.clientY - (top + height / 2)) * 0.2);

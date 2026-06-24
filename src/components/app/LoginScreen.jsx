@@ -1,127 +1,18 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, useSpring, useMotionValue } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { MagneticButton, PremiumEdgeWrapper, ThemeToggle } from '../landing/Primitives';
+import { VantaLogo } from '../landing/Icons';
+import { CSSGrid } from '../landing/CSSGrid';
+import { useTheme } from '../../lib/use-theme';
 
 const ULTRA_EASE = [0.16, 1, 0.3, 1];
 
-function VantaLogo({ className = "w-8 h-8" }) {
-  return (
-    <svg viewBox="0 0 100 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="chromeGlowLogin2" x1="-100%" y1="-100%" x2="0%" y2="0%">
-          <stop offset="0%" stopColor="var(--chrome-1)" />
-          <stop offset="30%" stopColor="var(--chrome-2)" />
-          <stop offset="50%" stopColor="var(--text-main)" />
-          <stop offset="70%" stopColor="var(--chrome-2)" />
-          <stop offset="100%" stopColor="var(--chrome-1)" />
-          <animate attributeName="x1" values="-100%;200%;-100%" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y1" values="-100%;200%;-100%" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="x2" values="0%;300%;0%" dur="6s" repeatCount="indefinite" />
-          <animate attributeName="y2" values="0%;300%;0%" dur="6s" repeatCount="indefinite" />
-        </linearGradient>
-      </defs>
-      <polygon points="10,25 40,85 55,85 25,25" fill="url(#chromeGlowLogin2)" opacity="0.95" />
-      <polygon points="90,25 60,85 45,85 75,25" fill="url(#chromeGlowLogin2)" opacity="0.75" />
-      <polygon points="35,25 65,25 50,55" fill="url(#chromeGlowLogin2)" opacity="0.85" />
-    </svg>
-  );
-}
-
-const Ico = {
-  sun: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" /></svg>,
-  moon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>,
-  system: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
-};
-
-function MagneticButton({ children, className = '', disabled = false }) {
-  const ref = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 150, damping: 15, mass: 0.1 });
-  const springY = useSpring(y, { stiffness: 150, damping: 15, mass: 0.1 });
-
-  const handleMouse = (e) => {
-    if (disabled) return;
-    const { left, top, width, height } = ref.current.getBoundingClientRect();
-    x.set((e.clientX - (left + width / 2)) * 0.2);
-    y.set((e.clientY - (top + height / 2)) * 0.2);
-  };
-  const handleLeave = () => { x.set(0); y.set(0); };
-
-  return (
-    <motion.div ref={ref} onMouseMove={handleMouse} onMouseLeave={handleLeave} style={{ x: springX, y: springY }} className={`inline-block w-full ${className}`}>
-      {children}
-    </motion.div>
-  );
-}
-
-function PremiumEdgeWrapper({ children, className = '', rounded = 'rounded-[24px]' }) {
-  return (
-    <div className={`relative group ${className} p-[1px]`}>
-      <div className={`absolute -inset-[1px] ${rounded} overflow-hidden blur-[12px] opacity-20 transition-opacity duration-700 -z-10`}>
-        <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2">
-          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 6, ease: "linear" }} className="w-full h-full rounded-full bg-[conic-gradient(from_0deg,transparent_0%,transparent_30%,var(--glow-edge)_45%,var(--text-main)_50%,var(--glow-edge)_55%,transparent_70%,transparent_100%)]" />
-        </div>
-      </div>
-      <div className={`absolute -inset-[1px] ${rounded} overflow-hidden z-0`}>
-        <div className="absolute top-1/2 left-1/2 w-[200%] aspect-square -translate-x-1/2 -translate-y-1/2">
-          <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 6, ease: "linear" }} className="w-full h-full rounded-full bg-[conic-gradient(from_0deg,transparent_0%,transparent_40%,var(--glow-edge)_48%,var(--text-main)_50%,var(--glow-edge)_52%,transparent_60%,transparent_100%)]" />
-        </div>
-      </div>
-      <div className={`absolute inset-[1px] bg-[var(--card-bg)] ${rounded} z-10 transition-colors duration-700 shadow-[inset_0_1px_1px_var(--border-subtle)]`} />
-      <div className="relative z-20 h-full">{children}</div>
-    </div>
-  );
-}
-
-function CSSGrid() {
-  return (
-    <div className="fixed inset-0 z-0 pointer-events-none" style={{
-      backgroundImage: `linear-gradient(to right, var(--grid-line) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px)`,
-      backgroundSize: '48px 48px'
-    }} />
-  );
-}
-
-function ThemeToggle({ theme, setTheme }) {
-  const toggle = () => {
-    if (theme === 'dark') setTheme('light');
-    else if (theme === 'light') setTheme('system');
-    else setTheme('dark');
-  };
-
-  return (
-    <button onClick={toggle} className="absolute top-6 right-6 p-2.5 rounded-full border border-[var(--border-strong)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-muted)] hover:text-[var(--text-main)] shadow-lg z-50 focus:outline-none" aria-label="Cambiar Tema">
-      {theme === 'dark' && Ico.moon}
-      {theme === 'light' && Ico.sun}
-      {theme === 'system' && Ico.system}
-    </button>
-  );
-}
-
 export default function LoginScreen({ onLogin }) {
+  const { theme, setTheme } = useTheme();
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
-  const [theme, setTheme] = useState('system');
-
-  useEffect(() => {
-    const root = document.documentElement;
-    const apply = () => {
-      if (theme === 'light') root.classList.add('light-mode');
-      else if (theme === 'dark') root.classList.remove('light-mode');
-      else {
-        if (window.matchMedia('(prefers-color-scheme: light)').matches) root.classList.add('light-mode');
-        else root.classList.remove('light-mode');
-      }
-    };
-    apply();
-    if (theme === 'system') {
-      const mq = window.matchMedia('(prefers-color-scheme: light)');
-      mq.addEventListener('change', apply);
-      return () => mq.removeEventListener('change', apply);
-    }
-  }, [theme]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -159,7 +50,7 @@ export default function LoginScreen({ onLogin }) {
 
             <div className="text-center mb-10 w-full flex flex-col items-center">
               <div className="w-16 h-16 rounded-[20px] border border-[var(--border-strong)] bg-[var(--glass-bg)] flex items-center justify-center mb-5 shadow-[inset_0_1px_1px_var(--border-subtle)]">
-                <VantaLogo className="w-8 h-8 text-[var(--text-main)]" />
+                <VantaLogo className="w-8 h-8" />
               </div>
               <h1 className="text-2xl font-extrabold tracking-[0.2em] uppercase chrome-text select-none">
                 VANTA
@@ -180,7 +71,7 @@ export default function LoginScreen({ onLogin }) {
                     value={usuario}
                     onChange={(e) => setUsuario(e.target.value)}
                     placeholder="ID de Agente"
-                    className="w-full px-4 py-3.5 bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-xl text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] placeholder-opacity-50 focus:outline-none focus:border-blue-500/50 focus:bg-[var(--glass-bg)] transition-all"
+                    className="w-full px-4 py-3.5 bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-xl text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] placeholder:opacity-50 focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--glass-bg)] transition-all"
                     autoFocus
                     disabled={cargando}
                   />
@@ -194,14 +85,14 @@ export default function LoginScreen({ onLogin }) {
                     value={contrasena}
                     onChange={(e) => setContrasena(e.target.value)}
                     placeholder="Clave de Acceso"
-                    className="w-full px-4 py-3.5 bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-xl text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] placeholder-opacity-50 focus:outline-none focus:border-blue-500/50 focus:bg-[var(--glass-bg)] transition-all"
+                    className="w-full px-4 py-3.5 bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-xl text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] placeholder:opacity-50 focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--glass-bg)] transition-all"
                     disabled={cargando}
                   />
                 </div>
               </div>
 
               {error && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="text-[10px] font-mono text-red-500 dark:text-red-400 mb-6 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg text-center tracking-widest uppercase">
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="text-[10px] font-mono text-red-500 mb-6 bg-red-500/10 border border-red-500/20 px-3 py-2 rounded-lg text-center tracking-widest uppercase">
                   [ERROR] {error}
                 </motion.div>
               )}

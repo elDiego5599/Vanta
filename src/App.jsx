@@ -1,5 +1,8 @@
 import { useState, memo } from 'react';
 import AppContext from './lib/AppContext';
+import { ThemeProvider } from './lib/theme';
+import { ThemeToggle } from './components/landing/Primitives';
+import { useTheme } from './lib/use-theme';
 import LoginScreen from './components/app/LoginScreen';
 import ModuloIngesta from './components/app/ModuloIngesta';
 import ModuloTranscripcion from './components/app/ModuloTranscripcion';
@@ -36,7 +39,8 @@ const SidebarIcon = memo(function SidebarIcon({ type, active }) {
   return icons[type] || null;
 });
 
-function App() {
+function AppShell() {
+  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState(null);
   const [activeTab, setActiveTab] = useState('ingesta');
   const [evidenceQueue, setEvidenceQueue] = useState([]);
@@ -93,13 +97,16 @@ function App() {
     }}>
       <div className="flex h-screen bg-[var(--page-bg)] text-[var(--text-main)] font-sans overflow-hidden">
         <aside className="w-[220px] flex-shrink-0 bg-[var(--card-bg)] border-r border-[var(--border-subtle)] flex flex-col">
-          <div className="px-5 py-5 border-b border-[var(--border-subtle)]">
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-[var(--text-main)]">
-              VANTA
+          <div className="px-5 py-5 border-b border-[var(--border-subtle)] flex items-center justify-between">
+            <div>
+              <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-[var(--text-main)]">
+                VANTA
+              </div>
+              <div className="text-[9px] text-[var(--text-muted)] mt-1 tracking-wide">
+                v0.1.0 — offline
+              </div>
             </div>
-            <div className="text-[9px] text-[var(--text-muted)] mt-1 tracking-wide">
-              v0.1.0 — offline
-            </div>
+            <ThemeToggle theme={theme} setTheme={setTheme} />
           </div>
 
           <nav className="flex-1 py-3 px-2" aria-label="Navegación principal">
@@ -155,10 +162,16 @@ function App() {
   );
 }
 
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppShell />
+    </ThemeProvider>
+  );
+}
+
 function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1048576).toFixed(1) + ' MB';
 }
-
-export default App;
