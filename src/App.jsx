@@ -1,8 +1,10 @@
 import { useState, memo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
 import { ThemeProvider } from './lib/theme';
 import { ThemeToggle } from './components/landing/Primitives';
 import { useTheme } from './lib/use-theme';
+import { transition } from './lib/motion';
 import LoginScreen from './components/app/LoginScreen';
 import ModuloIngesta from './components/app/ModuloIngesta';
 import ModuloTranscripcion from './components/app/ModuloTranscripcion';
@@ -13,6 +15,12 @@ const TABS = [
   { id: 'transcripcion', label: 'Transcripcion', icon: 'waveform' },
   { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' },
 ];
+
+const pageVariants = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -12 },
+};
 
 const SidebarIcon = memo(function SidebarIcon({ type, active }) {
   const color = active ? 'var(--accent)' : 'var(--text-muted)';
@@ -96,9 +104,10 @@ function AppShell() {
       user,
     }}>
       <div className="flex h-screen bg-[var(--page-bg)] text-[var(--text-main)] font-sans overflow-hidden">
-        <aside className="w-[220px] flex-shrink-0 bg-[var(--card-bg)] border-r border-[var(--border-subtle)] flex flex-col">
-          <div className="px-5 py-5 border-b border-[var(--border-subtle)] flex items-center justify-between">
-            <div>
+        <aside className="w-[220px] flex-shrink-0 bg-[var(--card-bg)]/80 backdrop-blur-[24px] border-r border-[var(--border-subtle)] flex flex-col">
+          <div className="relative px-5 py-5 border-b border-[var(--border-subtle)] flex items-center justify-between overflow-hidden">
+            <div className="absolute -inset-x-20 -top-20 w-[300px] h-[300px] bg-[var(--text-main)] opacity-[0.02] blur-[80px] rounded-full pointer-events-none" />
+            <div className="relative z-10">
               <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-[var(--text-main)]">
                 VANTA
               </div>
@@ -106,7 +115,9 @@ function AppShell() {
                 v0.1.0 — offline
               </div>
             </div>
-            <ThemeToggle theme={theme} setTheme={setTheme} />
+            <div className="relative z-10">
+              <ThemeToggle theme={theme} setTheme={setTheme} />
+            </div>
           </div>
 
           <nav className="flex-1 py-3 px-2" aria-label="Navegación principal">
@@ -155,7 +166,19 @@ function AppShell() {
         </aside>
 
         <main className="flex-1 overflow-hidden bg-[var(--page-bg)]">
-          {renderModule()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={transition}
+              className="h-full"
+            >
+              {renderModule()}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </AppContext.Provider>

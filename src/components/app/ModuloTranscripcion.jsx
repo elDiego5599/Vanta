@@ -1,6 +1,17 @@
 import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
 import { transcribeAudio, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
+import { PremiumEdgeWrapper } from '../landing/Primitives';
+
+const lineVariants = {
+  hidden: { opacity: 0, x: -12 },
+  visible: (i) => ({
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
+  }),
+};
 
 const WaveformSVG = memo(function WaveformSVG() {
   const bars = Array.from({ length: 60 }, (_, i) => {
@@ -184,84 +195,86 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         )}
       </div>
 
-      <div className="border border-[var(--border-subtle)] rounded-lg bg-[var(--glass-bg)] p-4 mb-6">
-        <audio
-          ref={audioRef}
-          src={audioUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={() => setIsPlaying(false)}
-        />
+      <PremiumEdgeWrapper rounded="rounded-lg" className="mb-6">
+        <div className="p-4">
+          <audio
+            ref={audioRef}
+            src={audioUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleLoadedMetadata}
+            onEnded={() => setIsPlaying(false)}
+          />
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18V5l12-2v13" />
-                <circle cx="6" cy="18" r="3" />
-                <circle cx="18" cy="16" r="3" />
-              </svg>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18V5l12-2v13" />
+                  <circle cx="6" cy="18" r="3" />
+                  <circle cx="18" cy="16" r="3" />
+                </svg>
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-[var(--text-main)]">{selectedFile.nombre}</div>
+                <div className="text-[10px] text-[var(--text-muted)]">{selectedFile.tamano}</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-[var(--text-main)]">{selectedFile.nombre}</div>
-              <div className="text-[10px] text-[var(--text-muted)]">{selectedFile.tamano}</div>
+            <div className={`text-[10px] tracking-wider uppercase ${statusColor}`}>
+              {isTranscribing ? statusText : transcript.length > 0 ? 'Completado' : 'Pendiente'}
             </div>
           </div>
-          <div className={`text-[10px] tracking-wider uppercase ${statusColor}`}>
-            {isTranscribing ? statusText : transcript.length > 0 ? 'Completado' : 'Pendiente'}
+
+          <div className="mb-3 bg-[var(--glass-bg)] rounded-md p-3">
+            <WaveformSVG />
           </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => {
+                if (!audioRef.current) return;
+                if (isPlaying) {
+                  audioRef.current.pause();
+                } else {
+                  audioRef.current.play();
+                }
+                setIsPlaying(!isPlaying);
+              }}
+              aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+              className="w-8 h-8 rounded-full border border-[var(--border-strong)] flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+            >
+              {isPlaying ? <PauseIcon /> : <PlayIcon />}
+            </button>
+            <div className="flex-1">
+              <div className="w-full h-1 bg-[var(--glass-bg)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-300"
+                  style={{ width: `${playProgress}%` }}
+                />
+              </div>
+            </div>
+            <div className="text-[10px] text-[var(--text-muted)] tabular-nums">
+              <span className="text-[var(--text-main)]">{currentTime}</span>
+              <span className="mx-1">/</span>
+              <span>{duration}</span>
+            </div>
+          </div>
+
+          {isTranscribing && (
+            <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[10px] text-[var(--text-muted)]">{statusText}</span>
+                <span className="text-[10px] text-[var(--accent-text)] tabular-nums">{progress}%</span>
+              </div>
+              <div className="w-full h-1.5 bg-[var(--glass-bg)] rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+          )}
         </div>
-
-        <div className="mb-3 bg-[var(--glass-bg)] rounded-md p-3">
-          <WaveformSVG />
-        </div>
-
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => {
-              if (!audioRef.current) return;
-              if (isPlaying) {
-                audioRef.current.pause();
-              } else {
-                audioRef.current.play();
-              }
-              setIsPlaying(!isPlaying);
-            }}
-            aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-            className="w-8 h-8 rounded-full border border-[var(--border-strong)] flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-          >
-            {isPlaying ? <PauseIcon /> : <PlayIcon />}
-          </button>
-          <div className="flex-1">
-            <div className="w-full h-1 bg-[var(--glass-bg)] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-300"
-                style={{ width: `${playProgress}%` }}
-              />
-            </div>
-          </div>
-          <div className="text-[10px] text-[var(--text-muted)] tabular-nums">
-            <span className="text-[var(--text-main)]">{currentTime}</span>
-            <span className="mx-1">/</span>
-            <span>{duration}</span>
-          </div>
-        </div>
-
-        {isTranscribing && (
-          <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-[var(--text-muted)]">{statusText}</span>
-              <span className="text-[10px] text-[var(--accent-text)] tabular-nums">{progress}%</span>
-            </div>
-            <div className="w-full h-1.5 bg-[var(--glass-bg)] rounded-full overflow-hidden">
-              <div
-                className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-500"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-          </div>
-        )}
-      </div>
+      </PremiumEdgeWrapper>
 
       <div className="flex-1 overflow-y-auto pr-2">
         <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
@@ -276,36 +289,42 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           </div>
         ) : (
           <div className="space-y-1">
-            {transcript.map((line, idx) => (
-              <div
-                key={idx}
-                onMouseEnter={() => setHoveredLine(idx)}
-                onMouseLeave={() => setHoveredLine(null)}
-                onClick={() => {
-                  if (audioRef.current && line.start != null) {
-                    audioRef.current.currentTime = line.start;
-                    audioRef.current.play();
-                    setIsPlaying(true);
-                  }
-                }}
-                className={`
-                  flex gap-3 px-3 py-2.5 rounded-md cursor-pointer
-                  transition-all duration-200
-                  outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
-                  ${hoveredLine === idx
-                    ? 'bg-[var(--glass-hover)] border border-[var(--border-subtle)]'
-                    : 'border border-transparent hover:bg-[var(--glass-bg)]'
-                  }
-                `}
-              >
-                <span className="text-[10px] text-[var(--text-muted)] tabular-nums flex-shrink-0 w-14 pt-0.5 font-mono">
-                  {line.t}
-                </span>
-                <span className="text-xs text-[var(--text-muted)] leading-relaxed">
-                  {line.text}
-                </span>
-              </div>
-            ))}
+            <AnimatePresence>
+              {transcript.map((line, idx) => (
+                <motion.div
+                  key={idx}
+                  custom={idx}
+                  variants={lineVariants}
+                  initial="hidden"
+                  animate="visible"
+                  onMouseEnter={() => setHoveredLine(idx)}
+                  onMouseLeave={() => setHoveredLine(null)}
+                  onClick={() => {
+                    if (audioRef.current && line.start != null) {
+                      audioRef.current.currentTime = line.start;
+                      audioRef.current.play();
+                      setIsPlaying(true);
+                    }
+                  }}
+                  className={`
+                    flex gap-3 px-3 py-2.5 rounded-md cursor-pointer
+                    transition-all duration-200
+                    outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
+                    ${hoveredLine === idx
+                      ? 'bg-[var(--glass-hover)] border border-[var(--border-subtle)]'
+                      : 'border border-transparent hover:bg-[var(--glass-bg)]'
+                    }
+                  `}
+                >
+                  <span className="text-[10px] text-[var(--text-muted)] tabular-nums flex-shrink-0 w-14 pt-0.5 font-mono">
+                    {line.t}
+                  </span>
+                  <span className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    {line.text}
+                  </span>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>

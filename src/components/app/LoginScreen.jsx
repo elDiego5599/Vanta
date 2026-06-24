@@ -33,7 +33,9 @@ export default function LoginScreen({ onLogin }) {
   return (
     <div className="min-h-screen w-screen flex items-center justify-center bg-[var(--page-bg)] transition-colors duration-700 overflow-hidden relative selection:bg-blue-500/30 font-sans text-[var(--text-main)]">
 
-      <ThemeToggle theme={theme} setTheme={setTheme} />
+      <div className="absolute top-6 right-6 z-50">
+        <ThemeToggle theme={theme} setTheme={setTheme} />
+      </div>
 
       <CSSGrid />
 
@@ -97,7 +99,7 @@ export default function LoginScreen({ onLogin }) {
                 </motion.div>
               )}
 
-              <MagneticButton disabled={cargando}>
+              <MagneticButton disabled={cargando} className="w-full">
                 <button
                   type="submit"
                   disabled={cargando}

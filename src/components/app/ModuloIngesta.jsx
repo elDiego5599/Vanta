@@ -1,5 +1,17 @@
 import { useState, useCallback, memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
+import { PremiumEdgeWrapper } from '../landing/Primitives';
+
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+};
 
 const UploadIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -56,37 +68,39 @@ const ModuloIngesta = memo(function ModuloIngesta() {
         <p className="text-xs text-[var(--text-muted)] mt-1">Arrastre archivos de audio para transcripcion local con Whisper.</p>
       </div>
 
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`
-          relative border border-dashed rounded-lg p-8 mb-6
-          flex flex-col items-center justify-center gap-3
-          transition-all duration-300
-          outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
-          ${isDragging
-            ? 'border-[var(--accent)]/50 bg-[var(--accent-subtle)]'
-            : 'border-[var(--border-subtle)] bg-[var(--glass-bg)] hover:border-[var(--border-strong)] hover:bg-[var(--glass-hover)]'
-          }
-        `}
-      >
-        <input
-          type="file"
-          accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.opus,.wma,.aac"
-          multiple
-          onChange={handleFileInput}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          aria-label="Seleccionar archivos de audio"
-        />
-        <div className="w-12 h-12 rounded-lg border border-[var(--border-subtle)] flex items-center justify-center">
-          <UploadIcon />
+      <PremiumEdgeWrapper rounded="rounded-lg" className="mb-6">
+        <div
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`
+            relative border border-dashed rounded-lg p-8
+            flex flex-col items-center justify-center gap-3
+            transition-all duration-300
+            outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
+            ${isDragging
+              ? 'border-[var(--accent)]/50 bg-[var(--accent-subtle)]'
+              : 'border-transparent bg-transparent'
+            }
+          `}
+        >
+          <input
+            type="file"
+            accept="audio/*,.wav,.mp3,.ogg,.flac,.m4a,.opus,.wma,.aac"
+            multiple
+            onChange={handleFileInput}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            aria-label="Seleccionar archivos de audio"
+          />
+          <div className="w-12 h-12 rounded-lg border border-[var(--border-subtle)] flex items-center justify-center">
+            <UploadIcon />
+          </div>
+          <div className="text-center">
+            <div className="text-xs text-[var(--text-muted)]">Arrastre archivos de audio aqui</div>
+            <div className="text-[10px] text-[var(--text-muted)]/60 mt-1">WAV, MP3, OGG, FLAC, M4A</div>
+          </div>
         </div>
-        <div className="text-center">
-          <div className="text-xs text-[var(--text-muted)]">Arrastre archivos de audio aqui</div>
-          <div className="text-[10px] text-[var(--text-muted)]/60 mt-1">WAV, MP3, OGG, FLAC, M4A</div>
-        </div>
-      </div>
+      </PremiumEdgeWrapper>
 
       <div className="flex-1 overflow-y-auto">
         <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
@@ -99,28 +113,38 @@ const ModuloIngesta = memo(function ModuloIngesta() {
             <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Arrastre o seleccione archivos de audio</div>
           </div>
         ) : (
-          <div className="space-y-2">
-            {evidenceQueue.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-colors"
-              >
-                <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center flex-shrink-0">
-                  <AudioIcon />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium text-[var(--text-main)] truncate">{item.nombre}</div>
-                  <div className="text-[10px] text-[var(--text-muted)]">{item.tamano}</div>
-                </div>
-                <button
-                  onClick={() => selectFileForTranscription(item)}
-                  className="px-3 py-1.5 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-[10px] font-medium text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors flex-shrink-0"
+          <motion.div
+            className="space-y-2"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <AnimatePresence>
+              {evidenceQueue.map((item) => (
+                <motion.div
+                  key={item.id}
+                  layout
+                  variants={itemVariants}
+                  exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
+                  className="flex items-center gap-4 p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-colors"
                 >
-                  Transcribir
-                </button>
-              </div>
-            ))}
-          </div>
+                  <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center flex-shrink-0">
+                    <AudioIcon />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-medium text-[var(--text-main)] truncate">{item.nombre}</div>
+                    <div className="text-[10px] text-[var(--text-muted)]">{item.tamano}</div>
+                  </div>
+                  <button
+                    onClick={() => selectFileForTranscription(item)}
+                    className="px-3 py-1.5 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-[10px] font-medium text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors flex-shrink-0"
+                  >
+                    Transcribir
+                  </button>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </div>

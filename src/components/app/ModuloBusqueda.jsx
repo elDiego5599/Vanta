@@ -1,4 +1,15 @@
 import { useState, useCallback, memo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { PremiumEdgeWrapper } from '../landing/Primitives';
+
+const resultVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 },
+  }),
+};
 
 const ModuloBusqueda = memo(function ModuloBusqueda() {
   const [query, setQuery] = useState('');
@@ -51,30 +62,42 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
             <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Realice una busqueda para ver resultados</div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {results.map((r, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 cursor-pointer"
-              >
-                <div className="text-xs text-[var(--text-muted)] mb-2">{r.archivo}</div>
-                <div className="text-sm text-[var(--text-muted)] leading-relaxed mb-3">
-                  {r.fragmento}
-                </div>
-                <div className="flex items-center gap-4 text-[10px]">
-                  <span className="text-[var(--accent-text)] font-mono">{r.hablante}</span>
-                  <span className="text-[var(--text-muted)]">{r.timestamp}</span>
-                </div>
-                <div className="flex gap-2 mt-3">
-                  {r.etiquetas?.map((tag, ti) => (
-                    <span key={ti} className="px-2 py-0.5 rounded-md bg-[var(--glass-bg)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)]">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <motion.div
+            className="space-y-3"
+            initial="hidden"
+            animate="visible"
+          >
+            <AnimatePresence>
+              {results.map((r, idx) => (
+                <motion.div
+                  key={idx}
+                  custom={idx}
+                  variants={resultVariants}
+                  exit={{ opacity: 0, y: -12, transition: { duration: 0.2 } }}
+                >
+                  <PremiumEdgeWrapper rounded="rounded-lg">
+                    <div className="p-4 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 cursor-pointer">
+                      <div className="text-xs text-[var(--text-muted)] mb-2">{r.archivo}</div>
+                      <div className="text-sm text-[var(--text-muted)] leading-relaxed mb-3">
+                        {r.fragmento}
+                      </div>
+                      <div className="flex items-center gap-4 text-[10px]">
+                        <span className="text-[var(--accent-text)] font-mono">{r.hablante}</span>
+                        <span className="text-[var(--text-muted)]">{r.timestamp}</span>
+                      </div>
+                      <div className="flex gap-2 mt-3">
+                        {r.etiquetas?.map((tag, ti) => (
+                          <span key={ti} className="px-2 py-0.5 rounded-md bg-[var(--glass-bg)] border border-[var(--border-subtle)] text-[10px] text-[var(--text-muted)]">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </PremiumEdgeWrapper>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </div>
