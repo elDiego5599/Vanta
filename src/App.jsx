@@ -1,4 +1,4 @@
-import { useState, memo, lazy, Suspense } from 'react';
+import { useState, useMemo, useCallback, memo, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
 import { ThemeProvider } from './lib/theme';
@@ -63,12 +63,12 @@ function AppShell() {
   const [evidenceQueue, setEvidenceQueue] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
 
-  const selectFileForTranscription = (file) => {
+  const selectFileForTranscription = useCallback((file) => {
     setSelectedFile(file);
     setActiveTab('transcripcion');
-  };
+  }, []);
 
-  const addEvidence = (file) => {
+  const addEvidence = useCallback((file) => {
     const id = `ev-${Date.now()}`;
     const item = {
       id,
@@ -79,21 +79,21 @@ function AppShell() {
       tamano: formatSize(file.size),
     };
     setEvidenceQueue((prev) => [item, ...prev]);
-  };
+  }, []);
 
-  const updateEvidence = (id, updates) => {
+  const updateEvidence = useCallback((id, updates) => {
     setEvidenceQueue((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
     );
-  };
+  }, []);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setUser(null);
     setActiveTab('ingesta');
     setSelectedFile(null);
-  };
+  }, []);
 
-  const handleTabKeyDown = (e) => {
+  const handleTabKeyDown = useCallback((e) => {
     const idx = TABS.findIndex((t) => t.id === activeTab);
     let nextIdx = idx;
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
@@ -107,7 +107,13 @@ function AppShell() {
       setActiveTab(TABS[nextIdx].id);
       document.getElementById(`tab-${TABS[nextIdx].id}`)?.focus();
     }
-  };
+  }, [activeTab]);
+
+  const contextValue = useMemo(() => ({
+    evidenceQueue, addEvidence, updateEvidence,
+    selectedFile, selectFileForTranscription,
+    user,
+  }), [evidenceQueue, addEvidence, updateEvidence, selectedFile, selectFileForTranscription, user]);
 
   if (!user) {
     return <LoginScreen onLogin={setUser} />;
@@ -116,11 +122,7 @@ function AppShell() {
   const ActiveModule = MODULE_MAP[activeTab] || ModuloIngesta;
 
   return (
-    <AppContext.Provider value={{
-      evidenceQueue, addEvidence, updateEvidence,
-      selectedFile, selectFileForTranscription,
-      user,
-    }}>
+    <AppContext.Provider value={contextValue}>
       <div className="flex h-screen bg-[var(--page-bg)] text-[var(--text-main)] font-sans overflow-hidden">
         <a
           href="#main-content"

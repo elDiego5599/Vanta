@@ -52,9 +52,9 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
+        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
           Resultados {results.length > 0 && `(${results.length})`}
-        </div>
+        </h2>
 
         {results.length === 0 && !loading ? (
           <div className="border border-[var(--border-subtle)] rounded-lg p-12 text-center">

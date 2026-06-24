@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { motion } from 'framer-motion';
 import { MagneticButton, PremiumEdgeWrapper, ThemeToggle } from '../landing/Primitives';
 import { VantaLogo } from '../landing/Icons';
@@ -7,7 +7,7 @@ import { useTheme } from '../../lib/use-theme';
 
 const ULTRA_EASE = [0.16, 1, 0.3, 1];
 
-export default function LoginScreen({ onLogin }) {
+const LoginScreen = memo(function LoginScreen({ onLogin }) {
   const { theme, setTheme } = useTheme();
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
@@ -129,4 +129,6 @@ export default function LoginScreen({ onLogin }) {
       </motion.div>
     </div>
   );
-}
+});
+
+export default LoginScreen;

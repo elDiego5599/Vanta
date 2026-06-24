@@ -36,26 +36,26 @@ const WaveformSVG = memo(function WaveformSVG() {
   );
 });
 
-const PauseIcon = () => (
+const PauseIcon = memo(() => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
     <rect x="6" y="4" width="4" height="16" rx="1" />
     <rect x="14" y="4" width="4" height="16" rx="1" />
   </svg>
-);
+));
 
-const PlayIcon = () => (
+const PlayIcon = memo(() => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
     <polygon points="5,3 19,12 5,21" />
   </svg>
-);
+));
 
-const MusicIcon = () => (
+const MusicIcon = memo(() => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13" />
     <circle cx="6" cy="18" r="3" />
     <circle cx="18" cy="16" r="3" />
   </svg>
-);
+));
 
 const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const { selectedFile, updateEvidence } = useAppContext();
@@ -277,9 +277,9 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       </PremiumEdgeWrapper>
 
       <div className="flex-1 overflow-y-auto pr-2">
-        <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
+        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
           Transcripcion
-        </div>
+        </h2>
 
         {transcript.length === 0 && !isTranscribing ? (
           <div className="border border-[var(--border-subtle)] rounded-lg p-8 text-center">

@@ -13,21 +13,21 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
 };
 
-const UploadIcon = () => (
+const UploadIcon = memo(() => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
     <polyline points="17 8 12 3 7 8" />
     <line x1="12" y1="3" x2="12" y2="15" />
   </svg>
-);
+));
 
-const AudioIcon = () => (
+const AudioIcon = memo(() => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M9 18V5l12-2v13" />
     <circle cx="6" cy="18" r="3" />
     <circle cx="18" cy="16" r="3" />
   </svg>
-);
+));
 
 const ModuloIngesta = memo(function ModuloIngesta() {
   const { evidenceQueue, addEvidence, selectFileForTranscription } = useAppContext();
@@ -103,9 +103,9 @@ const ModuloIngesta = memo(function ModuloIngesta() {
       </PremiumEdgeWrapper>
 
       <div className="flex-1 overflow-y-auto">
-        <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
+        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
           Archivos Cargados
-        </div>
+        </h2>
 
         {evidenceQueue.length === 0 ? (
           <div className="border border-[var(--border-subtle)] rounded-lg p-12 text-center">
