@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useEffect, useCallback, memo, type RefObject } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
 import { loadModel, decodeAudioToF32, transcribeProgressive, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
@@ -21,23 +21,115 @@ const lineVariants = {
   }),
 };
 
-const WAVE_BARS = Array.from({ length: 60 }, (_, i) =>
-  6 + Math.abs(Math.sin(i * 0.52 + 1.3) * 40) + Math.abs(Math.sin(i * 0.21) * 18)
-);
+const BAR_COUNT = 50;
+const BASE_HEIGHT = 4;
+const MAX_HEIGHT = 40;
 
-const WaveformAnimated = memo(function WaveformAnimated() {
+interface LiveWaveformProps {
+  audioRef: RefObject<HTMLAudioElement | null>;
+  isPlaying: boolean;
+}
+
+const LiveWaveform = memo(function LiveWaveform({ audioRef, isPlaying }: LiveWaveformProps) {
+  const [bars, setBars] = useState<number[]>(() => Array(BAR_COUNT).fill(BASE_HEIGHT));
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const ctxRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const rafRef = useRef<number>(0);
+  const smoothedRef = useRef<Float32Array>(new Float32Array(BAR_COUNT));
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    let ctx = ctxRef.current;
+    if (!ctx) {
+      ctx = new AudioContext();
+      ctxRef.current = ctx;
+    }
+
+    if (!analyserRef.current) {
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.7;
+      analyserRef.current = analyser;
+
+      if (!sourceRef.current) {
+        try {
+          const source = ctx.createMediaElementSource(audio);
+          source.connect(analyser);
+          analyser.connect(ctx.destination);
+          sourceRef.current = source;
+        } catch {
+          // MediaElementSource already created for this element
+          analyser.connect(ctx.destination);
+        }
+      }
+    }
+
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [audioRef]);
+
+  useEffect(() => {
+    const analyser = analyserRef.current;
+    const ctx = ctxRef.current;
+
+    if (!isPlaying || !analyser || !ctx) {
+      cancelAnimationFrame(rafRef.current);
+      return;
+    }
+
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const smoothed = smoothedRef.current;
+
+    const update = () => {
+      analyser.getByteFrequencyData(dataArray);
+
+      const binCount = analyser.frequencyBinCount;
+      const step = Math.max(1, Math.floor(binCount / BAR_COUNT));
+
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const idx = Math.min(i * step, binCount - 1);
+        const raw = (dataArray[idx] ?? 0) / 255;
+        const target = BASE_HEIGHT + raw * (MAX_HEIGHT - BASE_HEIGHT);
+        const prev = smoothed[i] ?? BASE_HEIGHT;
+        smoothed[i] = prev * 0.4 + target * 0.6;
+      }
+
+      setBars(Array.from(smoothed));
+      rafRef.current = requestAnimationFrame(update);
+    };
+
+    rafRef.current = requestAnimationFrame(update);
+
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [isPlaying, audioRef]);
+
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(rafRef.current);
+      ctxRef.current?.close();
+      ctxRef.current = null;
+      analyserRef.current = null;
+      sourceRef.current = null;
+    };
+  }, []);
+
   return (
     <div className="flex items-center gap-[3px] h-10 overflow-hidden">
-      {WAVE_BARS.map((h, i) => {
-        const dur = 1.5 + (i % 5) * 0.2;
-        return (
-          <div
-            key={i}
-            className="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
-            style={{ height: h, animation: `wave-bar-beat ${dur}s ease-in-out infinite` }}
-          />
-        );
-      })}
+      {bars.map((h, i) => (
+        <div
+          key={i}
+          className="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+          style={{ height: h, transition: isPlaying ? 'none' : 'height 0.3s ease-out' }}
+        />
+      ))}
     </div>
   );
 });
@@ -271,7 +363,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           </div>
 
           <div className="mb-3 bg-[var(--glass-bg)] rounded-md p-3">
-            <WaveformAnimated />
+            <LiveWaveform audioRef={audioRef} isPlaying={isPlaying} />
           </div>
 
           <div className="flex items-center gap-4">

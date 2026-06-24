@@ -191,38 +191,17 @@ function AppShell() {
               flex border-b border-white/[0.05] flex-shrink-0
               ${sidebarOpen ? 'flex-col items-start px-5 py-5' : 'h-12 justify-center'}
             `}>
-              <div className={`${sidebarOpen ? '' : 'hidden'}`}>
-                <div className="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2">
-                  <VantaMiniLogo className="w-4 h-4" />
-                  VANTA
-                </div>
-                <div className="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono">
-                  v0.1.0 — offline
-                </div>
-                <div className="flex items-center gap-1 mt-3">
-                  <ThemeToggle theme={theme} setTheme={setTheme} />
-                  <button
-                    onClick={toggleSidebar}
-                    className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                    aria-label="Contraer barra lateral"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="15 18 9 12 15 6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              <div className={`${sidebarOpen ? 'hidden' : 'flex flex-col items-center gap-1'}`}>
+            <div className={`${sidebarOpen ? '' : 'hidden'}`}>
+              <div className="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2">
                 <VantaMiniLogo className="w-4 h-4" />
-                <button
-                  onClick={toggleSidebar}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                  aria-label="Expandir barra lateral"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
+                VANTA
+              </div>
+              <div className="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono">
+                v0.1.0 — offline
+              </div>
+            </div>
+              <div className={`${sidebarOpen ? 'hidden' : 'flex flex-col items-center gap-2'}`}>
+                <VantaMiniLogo className="w-4 h-4" />
               </div>
             </div>
 
@@ -267,29 +246,50 @@ function AppShell() {
               </div>
             </nav>
 
-            <div className={`
-              border-t border-white/[0.05] flex-shrink-0
-              ${sidebarOpen ? 'px-5 py-3' : 'px-1 py-2'}
-            `}>
-              <div className={`flex items-center ${sidebarOpen ? 'gap-2' : 'gap-0 justify-center'}`}>
-                <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-white/[0.05] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[10px] font-bold text-[var(--accent-text)]">
-                    {user.usuario.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <div className={`flex-1 min-w-0 ${sidebarOpen ? '' : 'hidden'}`}>
-                  <div className="text-[11px] text-zinc-400 truncate font-mono">{user.usuario}</div>
-                  <button
-                    onClick={handleLogout}
-                    className="text-[9px] text-zinc-600 hover:text-white/60 transition-colors font-mono tracking-wide"
-                    title="Cerrar Sesion"
-                    aria-label="Cerrar Sesion"
-                  >
-                    cerrar sesion
-                  </button>
-                </div>
+          <div className={`
+            border-t border-white/[0.05] flex-shrink-0
+            ${sidebarOpen ? 'px-4 py-3' : 'px-1 py-2'}
+          `}>
+            <div className={`flex items-center ${sidebarOpen ? 'gap-2 mb-3' : 'justify-center mb-2'}`}>
+              <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-white/[0.05] flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] font-bold text-[var(--accent-text)]">
+                  {user.usuario.charAt(0).toUpperCase()}
+                </span>
               </div>
+              {sidebarOpen && (
+                <div className="flex-1 min-w-0">
+                  <div className="text-[11px] text-zinc-400 truncate font-mono">{user.usuario}</div>
+                </div>
+              )}
             </div>
+            <div className={`flex items-center ${sidebarOpen ? 'gap-1' : 'flex-col gap-1'}`}>
+              <button
+                onClick={toggleSidebar}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
+                title={sidebarOpen ? 'Contraer' : 'Expandir'}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                  className={`transition-transform duration-200 ${sidebarOpen ? '' : 'rotate-180'}`}
+                >
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <ThemeToggle theme={theme} setTheme={setTheme} />
+              <button
+                onClick={handleLogout}
+                className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-red-400 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                title="Cerrar Sesion"
+                aria-label="Cerrar Sesion"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </div>
+          </div>
           </aside>
 
           <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative" tabIndex={-1}>
