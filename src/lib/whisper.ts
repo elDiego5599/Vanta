@@ -50,7 +50,7 @@ export async function loadModel(onProgress?: ProgressCallback): Promise<Transcri
 
   transcriber = (await pipeline(
     'automatic-speech-recognition',
-    'Xenova/whisper-medium',
+    'Xenova/whisper-small',
     onProgress ? { progress_callback: onProgress } : undefined,
   )) as unknown as Transcriber;
 

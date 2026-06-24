@@ -39,9 +39,8 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
 
   return (
     <div className="h-full flex flex-col p-6">
-      <div className="mb-6">
-        <h1 className="text-lg font-bold text-[var(--text-main)] tracking-tight">Busqueda Semantica</h1>
-        <p className="text-xs text-[var(--text-muted)] mt-1">Busque conceptos en las transcripciones almacenadas.</p>
+      <div className="mb-4">
+        <p className="text-[10px] text-[var(--text-muted)] tracking-[0.06em] font-mono">Busque conceptos en las transcripciones almacenadas.</p>
       </div>
 
       <div className="flex gap-3 mb-8">
@@ -69,10 +68,12 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
         </h2>
 
         {results.length === 0 && !loading ? (
-          <div className="border border-[var(--border-subtle)] rounded-lg p-12 text-center">
-            <div className="text-[var(--text-muted)] text-xs">Sin resultados</div>
-            <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Realice una busqueda para ver resultados</div>
-          </div>
+          <PremiumEdgeWrapper rounded="rounded-lg">
+            <div className="px-12 py-14 text-center">
+              <div className="text-[var(--text-muted)] text-xs">Sin resultados</div>
+              <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Realice una busqueda para ver resultados</div>
+            </div>
+          </PremiumEdgeWrapper>
         ) : (
           <motion.div
             className="space-y-3"

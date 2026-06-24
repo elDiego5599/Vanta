@@ -63,9 +63,8 @@ const ModuloIngesta = memo(function ModuloIngesta() {
 
   return (
     <div className="h-full flex flex-col p-6">
-      <div className="mb-6">
-        <h1 className="text-lg font-bold text-[var(--text-main)] tracking-tight">Ingesta de Evidencia</h1>
-        <p className="text-xs text-[var(--text-muted)] mt-1">Arrastre archivos de audio para transcripcion local con Whisper.</p>
+      <div className="mb-4">
+        <p className="text-[10px] text-[var(--text-muted)] tracking-[0.06em] font-mono">Arrastre archivos de audio para transcripcion local con Whisper.</p>
       </div>
 
       <PremiumEdgeWrapper rounded="rounded-lg" className="mb-6">
@@ -108,10 +107,12 @@ const ModuloIngesta = memo(function ModuloIngesta() {
         </h2>
 
         {evidenceQueue.length === 0 ? (
-          <div className="border border-[var(--border-subtle)] rounded-lg p-12 text-center">
-            <div className="text-[var(--text-muted)] text-xs">No hay archivos</div>
-            <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Arrastre o seleccione archivos de audio</div>
-          </div>
+          <PremiumEdgeWrapper rounded="rounded-lg">
+            <div className="px-12 py-14 text-center">
+              <div className="text-[var(--text-muted)] text-xs">No hay archivos</div>
+              <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Arrastre o seleccione archivos de audio</div>
+            </div>
+          </PremiumEdgeWrapper>
         ) : (
           <motion.div
             className="space-y-2"

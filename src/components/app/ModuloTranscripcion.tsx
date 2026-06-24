@@ -21,26 +21,24 @@ const lineVariants = {
   }),
 };
 
-const WaveformSVG = memo(function WaveformSVG() {
-  const bars = Array.from({ length: 60 }, (_, i) => {
-    const h = 8 + Math.abs(Math.sin(i * 0.4 + 1.2) * 35) + Math.abs(Math.sin(i * 0.18) * 15);
-    return h;
-  });
+const WAVE_BARS = Array.from({ length: 60 }, (_, i) =>
+  6 + Math.abs(Math.sin(i * 0.52 + 1.3) * 40) + Math.abs(Math.sin(i * 0.21) * 18)
+);
 
+const WaveformAnimated = memo(function WaveformAnimated() {
   return (
-    <svg width="100%" height="64" viewBox="0 0 600 64" preserveAspectRatio="none">
-      {bars.map((h, i) => (
-        <rect
-          key={i}
-          x={i * 10}
-          y={(64 - h) / 2}
-          width="6"
-          height={h}
-          rx="2"
-          fill={`rgba(59,130,246,${0.3 + (i % 3) * 0.15})`}
-        />
-      ))}
-    </svg>
+    <div className="flex items-center gap-[3px] h-10 overflow-hidden">
+      {WAVE_BARS.map((h, i) => {
+        const dur = 1.5 + (i % 5) * 0.2;
+        return (
+          <div
+            key={i}
+            className="w-[3px] rounded-[1px] bg-blue-500/60 origin-center"
+            style={{ height: h, animation: `wave-bar-beat ${dur}s ease-in-out infinite` }}
+          />
+        );
+      })}
+    </div>
   );
 });
 
@@ -191,14 +189,16 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
   if (!selectedFile) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-xl border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4">
-            <MusicIcon />
+      <div className="h-full flex items-center justify-center p-6">
+        <PremiumEdgeWrapper rounded="rounded-lg">
+          <div className="px-12 py-14 text-center">
+            <div className="w-16 h-16 rounded-xl border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4">
+              <MusicIcon />
+            </div>
+            <div className="text-xs text-[var(--text-muted)] mb-1">Sin archivo seleccionado</div>
+            <div className="text-[10px] text-[var(--text-muted)]/60">Seleccione un archivo de evidencia para transcribir</div>
           </div>
-          <div className="text-sm text-[var(--text-muted)] mb-1">Sin archivo seleccionado</div>
-          <div className="text-[10px] text-[var(--text-muted)]/60">Seleccione un archivo de evidencia para transcribir</div>
-        </div>
+        </PremiumEdgeWrapper>
       </div>
     );
   }
@@ -213,10 +213,9 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
   return (
     <div className="h-full flex flex-col p-6">
-      <div className="mb-6 flex items-start justify-between">
+      <div className="mb-4 flex items-start justify-between">
         <div>
-          <h1 className="text-lg font-bold text-[var(--text-main)] tracking-tight">Linea de Tiempo</h1>
-          <p className="text-xs text-[var(--text-muted)] mt-1">Transcripcion interactiva con Whisper local.</p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-0.5 tracking-[0.06em] font-mono">Transcripcion interactiva con Whisper local.</p>
         </div>
         {!isTranscribing && transcript.length === 0 && !error && (
           <button
@@ -272,7 +271,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           </div>
 
           <div className="mb-3 bg-[var(--glass-bg)] rounded-md p-3">
-            <WaveformSVG />
+            <WaveformAnimated />
           </div>
 
           <div className="flex items-center gap-4">
@@ -329,15 +328,17 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         </h2>
 
         {transcript.length === 0 && !isTranscribing ? (
-          <div className="border border-[var(--border-subtle)] rounded-lg p-8 text-center">
-            <div className="text-[var(--text-muted)] text-xs">
-              {error
-                ? 'Ocurrio un error durante la transcripcion. Presione Reintentar.'
-                : selectedFile
-                  ? 'Presione "Iniciar Transcripcion" para comenzar'
-                  : 'Seleccione un archivo de audio'}
+          <PremiumEdgeWrapper rounded="rounded-lg">
+            <div className="px-8 py-10 text-center">
+              <div className="text-[var(--text-muted)] text-xs">
+                {error
+                  ? 'Ocurrio un error durante la transcripcion. Presione Reintentar.'
+                  : selectedFile
+                    ? 'Presione "Iniciar Transcripcion" para comenzar'
+                    : 'Seleccione un archivo de audio'}
+              </div>
             </div>
-          </div>
+          </PremiumEdgeWrapper>
         ) : (
           <div className="space-y-1">
             <AnimatePresence>
