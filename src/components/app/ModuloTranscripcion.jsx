@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { useAppContext } from '../../lib/AppContext';
 import { transcribeAudio, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
 
-function WaveformSVG() {
+const WaveformSVG = memo(function WaveformSVG() {
   const bars = Array.from({ length: 60 }, (_, i) => {
     const h = 8 + Math.abs(Math.sin(i * 0.4 + 1.2) * 35) + Math.abs(Math.sin(i * 0.18) * 15);
     return h;
@@ -23,9 +23,30 @@ function WaveformSVG() {
       ))}
     </svg>
   );
-}
+});
 
-export default function ModuloTranscripcion() {
+const PauseIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+    <rect x="6" y="4" width="4" height="16" rx="1" />
+    <rect x="14" y="4" width="4" height="16" rx="1" />
+  </svg>
+);
+
+const PlayIcon = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+    <polygon points="5,3 19,12 5,21" />
+  </svg>
+);
+
+const MusicIcon = () => (
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 18V5l12-2v13" />
+    <circle cx="6" cy="18" r="3" />
+    <circle cx="18" cy="16" r="3" />
+  </svg>
+);
+
+const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const { selectedFile, updateEvidence } = useAppContext();
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -130,38 +151,40 @@ export default function ModuloTranscripcion() {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 rounded-xl border border-white/10 flex items-center justify-center mx-auto mb-4">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#52525b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 18V5l12-2v13" />
-              <circle cx="6" cy="18" r="3" />
-              <circle cx="18" cy="16" r="3" />
-            </svg>
+          <div className="w-16 h-16 rounded-xl border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4">
+            <MusicIcon />
           </div>
-          <div className="text-sm text-[#71717a] mb-1">Sin archivo seleccionado</div>
-          <div className="text-[10px] text-[#52525b]">Seleccione un archivo de evidencia para transcribir</div>
+          <div className="text-sm text-[var(--text-muted)] mb-1">Sin archivo seleccionado</div>
+          <div className="text-[10px] text-[var(--text-muted)]/60">Seleccione un archivo de evidencia para transcribir</div>
         </div>
       </div>
     );
   }
 
+  const statusColor = isTranscribing
+    ? 'text-yellow-500'
+    : transcript.length > 0
+      ? 'text-green-500'
+      : 'text-[var(--text-muted)]';
+
   return (
     <div className="h-full flex flex-col p-6">
       <div className="mb-6 flex items-start justify-between">
         <div>
-          <h1 className="text-lg font-bold text-white/90 tracking-tight">Linea de Tiempo</h1>
-          <p className="text-xs text-[#71717a] mt-1">Transcripcion interactiva con Whisper local.</p>
+          <h1 className="text-lg font-bold text-[var(--text-main)] tracking-tight">Linea de Tiempo</h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Transcripcion interactiva con Whisper local.</p>
         </div>
         {!isTranscribing && transcript.length === 0 && (
           <button
             onClick={startTranscription}
-            className="px-4 py-2 bg-blue-500/20 border border-blue-500/30 rounded-md text-xs text-blue-400 hover:bg-blue-500/30 transition-colors"
+            className="px-4 py-2 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-xs text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
           >
             Iniciar Transcripcion
           </button>
         )}
       </div>
 
-      <div className="border border-white/5 rounded-lg bg-white/[0.015] p-4 mb-6">
+      <div className="border border-[var(--border-subtle)] rounded-lg bg-[var(--glass-bg)] p-4 mb-6">
         <audio
           ref={audioRef}
           src={audioUrl}
@@ -172,27 +195,24 @@ export default function ModuloTranscripcion() {
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-md bg-blue-500/10 flex items-center justify-center">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 18V5l12-2v13" />
                 <circle cx="6" cy="18" r="3" />
                 <circle cx="18" cy="16" r="3" />
               </svg>
             </div>
             <div>
-              <div className="text-xs font-semibold text-white/80">{selectedFile.nombre}</div>
-              <div className="text-[10px] text-[#71717a]">{selectedFile.tamano}</div>
+              <div className="text-xs font-semibold text-[var(--text-main)]">{selectedFile.nombre}</div>
+              <div className="text-[10px] text-[var(--text-muted)]">{selectedFile.tamano}</div>
             </div>
           </div>
-          <div className={`text-[10px] tracking-wider uppercase ${
-            isTranscribing ? 'text-yellow-500' :
-            transcript.length > 0 ? 'text-green-500' : 'text-[#71717a]'
-          }`}>
+          <div className={`text-[10px] tracking-wider uppercase ${statusColor}`}>
             {isTranscribing ? statusText : transcript.length > 0 ? 'Completado' : 'Pendiente'}
           </div>
         </div>
 
-        <div className="mb-3 bg-white/[0.02] rounded-md p-3">
+        <div className="mb-3 bg-[var(--glass-bg)] rounded-md p-3">
           <WaveformSVG />
         </div>
 
@@ -207,43 +227,35 @@ export default function ModuloTranscripcion() {
               }
               setIsPlaying(!isPlaying);
             }}
-            className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/5 transition-colors"
+            aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+            className="w-8 h-8 rounded-full border border-[var(--border-strong)] flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
           >
-            {isPlaying ? (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
-                <rect x="6" y="4" width="4" height="16" rx="1" />
-                <rect x="14" y="4" width="4" height="16" rx="1" />
-              </svg>
-            ) : (
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
-            )}
+            {isPlaying ? <PauseIcon /> : <PlayIcon />}
           </button>
           <div className="flex-1">
-            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-full h-1 bg-[var(--glass-bg)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-500/70 rounded-full transition-all duration-300"
+                className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-300"
                 style={{ width: `${playProgress}%` }}
               />
             </div>
           </div>
-          <div className="text-[10px] text-[#71717a] tabular-nums">
-            <span className="text-white/60">{currentTime}</span>
+          <div className="text-[10px] text-[var(--text-muted)] tabular-nums">
+            <span className="text-[var(--text-main)]">{currentTime}</span>
             <span className="mx-1">/</span>
             <span>{duration}</span>
           </div>
         </div>
 
         {isTranscribing && (
-          <div className="mt-4 pt-4 border-t border-white/5">
+          <div className="mt-4 pt-4 border-t border-[var(--border-subtle)]">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] text-[#71717a]">{statusText}</span>
-              <span className="text-[10px] text-blue-400 tabular-nums">{progress}%</span>
+              <span className="text-[10px] text-[var(--text-muted)]">{statusText}</span>
+              <span className="text-[10px] text-[var(--accent-text)] tabular-nums">{progress}%</span>
             </div>
-            <div className="w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
+            <div className="w-full h-1.5 bg-[var(--glass-bg)] rounded-full overflow-hidden">
               <div
-                className="h-full bg-blue-500/70 rounded-full transition-all duration-500"
+                className="h-full bg-[var(--accent)]/70 rounded-full transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -252,13 +264,13 @@ export default function ModuloTranscripcion() {
       </div>
 
       <div className="flex-1 overflow-y-auto pr-2">
-        <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[#71717a] mb-3">
+        <div className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
           Transcripcion
         </div>
 
         {transcript.length === 0 && !isTranscribing ? (
-          <div className="border border-white/5 rounded-lg p-8 text-center">
-            <div className="text-[#52525b] text-xs">
+          <div className="border border-[var(--border-subtle)] rounded-lg p-8 text-center">
+            <div className="text-[var(--text-muted)] text-xs">
               {selectedFile ? 'Presione "Iniciar Transcripcion" para comenzar' : 'Seleccione un archivo de audio'}
             </div>
           </div>
@@ -279,16 +291,17 @@ export default function ModuloTranscripcion() {
                 className={`
                   flex gap-3 px-3 py-2.5 rounded-md cursor-pointer
                   transition-all duration-200
+                  outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
                   ${hoveredLine === idx
-                    ? 'bg-white/[0.04] border border-white/[0.06]'
-                    : 'border border-transparent hover:bg-white/[0.02]'
+                    ? 'bg-[var(--glass-hover)] border border-[var(--border-subtle)]'
+                    : 'border border-transparent hover:bg-[var(--glass-bg)]'
                   }
                 `}
               >
-                <span className="text-[10px] text-[#52525b] tabular-nums flex-shrink-0 w-14 pt-0.5">
+                <span className="text-[10px] text-[var(--text-muted)] tabular-nums flex-shrink-0 w-14 pt-0.5 font-mono">
                   {line.t}
                 </span>
-                <span className="text-xs text-[#a1a1aa] leading-relaxed">
+                <span className="text-xs text-[var(--text-muted)] leading-relaxed">
                   {line.text}
                 </span>
               </div>
@@ -298,4 +311,6 @@ export default function ModuloTranscripcion() {
       </div>
     </div>
   );
-}
+});
+
+export default ModuloTranscripcion;

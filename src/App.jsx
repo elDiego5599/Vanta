@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import AppContext from './lib/AppContext';
 import LoginScreen from './components/app/LoginScreen';
 import ModuloIngesta from './components/app/ModuloIngesta';
@@ -11,8 +11,8 @@ const TABS = [
   { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' },
 ];
 
-function SidebarIcon({ type, active }) {
-  const color = active ? '#3b82f6' : '#71717a';
+const SidebarIcon = memo(function SidebarIcon({ type, active }) {
+  const color = active ? 'var(--accent)' : 'var(--text-muted)';
   const icons = {
     upload: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -34,7 +34,7 @@ function SidebarIcon({ type, active }) {
     ),
   };
   return icons[type] || null;
-}
+});
 
 function App() {
   const [user, setUser] = useState(null);
@@ -91,30 +91,32 @@ function App() {
       selectedFile, selectFileForTranscription,
       user,
     }}>
-      <div className="flex h-screen bg-[#09090b] text-white font-inter overflow-hidden">
-        <aside className="w-[220px] flex-shrink-0 bg-[#060606] border-r border-white/5 flex flex-col">
-          <div className="px-5 py-5 border-b border-white/5">
-            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-white/85">
+      <div className="flex h-screen bg-[var(--page-bg)] text-[var(--text-main)] font-sans overflow-hidden">
+        <aside className="w-[220px] flex-shrink-0 bg-[var(--card-bg)] border-r border-[var(--border-subtle)] flex flex-col">
+          <div className="px-5 py-5 border-b border-[var(--border-subtle)]">
+            <div className="text-[11px] font-bold tracking-[0.18em] uppercase text-[var(--text-main)]">
               VANTA
             </div>
-            <div className="text-[9px] text-[#71717a] mt-1 tracking-wide">
+            <div className="text-[9px] text-[var(--text-muted)] mt-1 tracking-wide">
               v0.1.0 — offline
             </div>
           </div>
 
-          <nav className="flex-1 py-3 px-2">
+          <nav className="flex-1 py-3 px-2" aria-label="Navegación principal">
             {TABS.map((tab) => {
               const active = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
+                  aria-current={active ? 'page' : undefined}
                   className={`
                     w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left
                     transition-all duration-200 mb-0.5
+                    outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
                     ${active
-                      ? 'bg-white/[0.06] text-white/90 border-l-2 border-white/70'
-                      : 'text-[#71717a] hover:text-white/70 hover:bg-white/[0.03] border-l-2 border-transparent'
+                      ? 'bg-[var(--glass-bg)] text-[var(--text-main)] border-l-2 border-[var(--accent)]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] border-l-2 border-transparent'
                     }
                   `}
                 >
@@ -125,27 +127,27 @@ function App() {
             })}
           </nav>
 
-          <div className="px-4 py-3 border-t border-white/5">
+          <div className="px-4 py-3 border-t border-[var(--border-subtle)]">
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-7 h-7 rounded-full bg-blue-500/10 border border-white/10 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-blue-400">
+              <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center">
+                <span className="text-[10px] font-bold text-[var(--accent-text)]">
                   {user.usuario.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] text-white/70 truncate">{user.usuario}</div>
+                <div className="text-[11px] text-[var(--text-main)] truncate">{user.usuario}</div>
               </div>
             </div>
             <button
               onClick={handleLogout}
-              className="w-full py-1.5 text-[10px] text-[#71717a] hover:text-white/60 border border-white/5 hover:border-white/10 rounded-md transition-colors"
+              className="w-full py-1.5 text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] rounded-md transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
             >
               Cerrar Sesion
             </button>
           </div>
         </aside>
 
-        <main className="flex-1 overflow-hidden bg-[#09090b]">
+        <main className="flex-1 overflow-hidden bg-[var(--page-bg)]">
           {renderModule()}
         </main>
       </div>

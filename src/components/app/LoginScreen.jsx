@@ -1,76 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 
-const STYLE_TAG = `
-  :root {
-    --page-bg: #030303;
-    --card-bg: #050505;
-    --text-main: #ffffff;
-    --text-muted: #71717a;
-    --border-subtle: rgba(255,255,255,0.05);
-    --border-strong: rgba(255,255,255,0.08);
-    --btn-bg: #ffffff;
-    --btn-text: #000000;
-    --input-bg: #0a0a0a;
-    --chrome-1: #52525b;
-    --chrome-2: #a1a1aa;
-    --glow-edge: rgba(255,255,255,0.4);
-    --grid-line: rgba(255,255,255,0.02);
-    --glass-bg: rgba(255,255,255,0.03);
-    --glass-hover: rgba(255,255,255,0.06);
-  }
-
-  .light-mode {
-    --page-bg: #f4f4f5;
-    --card-bg: #ffffff;
-    --text-main: #09090b;
-    --text-muted: #52525b;
-    --border-subtle: rgba(0,0,0,0.05);
-    --border-strong: rgba(0,0,0,0.1);
-    --btn-bg: #09090b;
-    --btn-text: #ffffff;
-    --input-bg: #f4f4f5;
-    --chrome-1: #a1a1aa;
-    --chrome-2: #52525b;
-    --glow-edge: rgba(0,0,0,0.25);
-    --grid-line: rgba(0,0,0,0.03);
-    --glass-bg: rgba(0,0,0,0.03);
-    --glass-hover: rgba(0,0,0,0.06);
-  }
-
-  @keyframes chrome-sweep {
-    0%, 100% { background-position: 0% center; }
-    50%      { background-position: 200% center; }
-  }
-
-  .chrome-text {
-    background: linear-gradient(90deg, var(--chrome-1) 0%, var(--chrome-2) 18%, var(--text-main) 50%, var(--chrome-2) 82%, var(--chrome-1) 100%);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: chrome-sweep 6s ease-in-out infinite;
-  }
-
-  input:-webkit-autofill,
-  input:-webkit-autofill:hover, 
-  input:-webkit-autofill:focus, 
-  input:-webkit-autofill:active {
-      -webkit-box-shadow: 0 0 0 30px var(--input-bg) inset !important;
-      -webkit-text-fill-color: var(--text-main) !important;
-      transition: background-color 5000s ease-in-out 0s;
-  }
-`;
-
-function injectStyles() {
-  if (typeof document === 'undefined') return;
-  if (document.getElementById('vanta-login-styles')) return;
-  const s = document.createElement('style');
-  s.id = 'vanta-login-styles';
-  s.textContent = STYLE_TAG;
-  document.head.appendChild(s);
-}
-
 const ULTRA_EASE = [0.16, 1, 0.3, 1];
 
 function VantaLogo({ className = "w-8 h-8" }) {
@@ -169,8 +99,6 @@ function ThemeToggle({ theme, setTheme }) {
 }
 
 export default function LoginScreen({ onLogin }) {
-  injectStyles();
-
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
