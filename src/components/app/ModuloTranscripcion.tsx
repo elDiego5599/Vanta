@@ -241,8 +241,8 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         </div>
       )}
 
-      <PremiumEdgeWrapper rounded="rounded-lg" className="mb-6">
-        <div className="p-4">
+      <PremiumEdgeWrapper rounded="rounded-xl" className="mb-6">
+        <div className="py-4 px-5">
           <audio
             ref={audioRef}
             src={audioUrl ?? undefined}
@@ -359,19 +359,18 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                     }
                   }}
                   className={`
-                    flex gap-3 px-3 py-2.5 rounded-md cursor-pointer
-                    transition-all duration-200
-                    outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
+                    text-left flex gap-4 py-2 border-b border-white/[0.03] transition-colors
+                    px-2 -mx-2 rounded outline-none focus-visible:bg-white/[0.05]
                     ${hoveredLine === idx
-                      ? 'bg-[var(--glass-hover)] border border-[var(--border-subtle)]'
-                      : 'border border-transparent hover:bg-[var(--glass-bg)]'
+                      ? 'bg-white/[0.02]'
+                      : ''
                     }
                   `}
                 >
-                  <span className="text-[10px] text-[var(--text-muted)] tabular-nums flex-shrink-0 w-14 pt-0.5 font-mono">
+                  <span className="text-[11px] text-zinc-600 font-mono w-[55px] mt-0.5 flex-shrink-0">
                     {line.t}
                   </span>
-                  <span className="text-xs text-[var(--text-muted)] leading-relaxed">
+                  <span className="text-xs text-white/80 leading-relaxed">
                     {line.text}
                   </span>
                 </motion.div>

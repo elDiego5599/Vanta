@@ -157,7 +157,7 @@ function AppShell() {
 
   return (
     <AppContext.Provider value={contextValue}>
-      <div className="flex h-screen bg-[var(--card-bg)] text-[var(--text-main)] font-sans overflow-hidden relative">
+      <div className="flex h-screen bg-[var(--page-bg)] items-center justify-center p-4 md:p-6 overflow-hidden relative">
         <CSSGrid />
 
         <a
@@ -175,182 +175,175 @@ function AppShell() {
           />
         )}
 
-        <aside
-          className={`
-            fixed inset-y-0 left-0 z-40 md:relative md:z-auto
-            flex flex-col bg-[#000000] border-r border-[var(--border-subtle)]
-            transition-all duration-300 ease-in-out
-            ${sidebarOpen ? 'w-[220px] translate-x-0' : '-translate-x-full md:translate-x-0 md:w-[56px]'}
-            ${sidebarOpen ? '' : 'md:shadow-none'}
-          `}
-        >
-          <div className={`
-            flex items-center border-b border-[var(--border-subtle)] flex-shrink-0
-            ${sidebarOpen ? 'h-auto px-5 py-5 flex-col items-start' : 'h-12 justify-center'}
-          `}>
-            <div className={`${sidebarOpen ? '' : 'hidden'}`}>
-              <div className="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2">
+        <div className="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05] shadow-[0_0_80px_rgba(0,0,0,0.8)] relative">
+          <aside
+            className={`
+              ${sidebarOpen
+                ? 'w-[150px] md:w-[200px] xl:w-[240px]'
+                : '-translate-x-full md:translate-x-0 md:w-[56px]'
+              }
+              shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col
+              transition-all duration-300 ease-in-out
+              ${sidebarOpen ? '' : '-translate-x-full md:translate-x-0'}
+            `}
+          >
+            <div className={`
+              flex border-b border-white/[0.05] flex-shrink-0
+              ${sidebarOpen ? 'flex-col items-start px-5 py-5' : 'h-12 justify-center'}
+            `}>
+              <div className={`${sidebarOpen ? '' : 'hidden'}`}>
+                <div className="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2">
+                  <VantaMiniLogo className="w-4 h-4" />
+                  VANTA
+                </div>
+                <div className="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono">
+                  v0.1.0 — offline
+                </div>
+                <div className="flex items-center gap-1 mt-3">
+                  <ThemeToggle theme={theme} setTheme={setTheme} />
+                  <button
+                    onClick={toggleSidebar}
+                    className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                    aria-label="Contraer barra lateral"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className={`${sidebarOpen ? 'hidden' : 'flex flex-col items-center gap-1'}`}>
                 <VantaMiniLogo className="w-4 h-4" />
-                VANTA
-              </div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-[4px] tracking-[0.06em] font-mono">
-                v0.1.0 — offline
-              </div>
-              <div className="flex items-center gap-1 mt-3">
-                <ThemeToggle theme={theme} setTheme={setTheme} />
                 <button
                   onClick={toggleSidebar}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                  aria-label="Contraer barra lateral"
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                  aria-label="Expandir barra lateral"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 18 9 12 15 6" />
+                    <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </button>
               </div>
             </div>
-            <div className={`${sidebarOpen ? 'hidden' : 'flex flex-col items-center gap-1'}`}>
-              <VantaMiniLogo className="w-4 h-4" />
+
+            <nav className="flex-1 py-2 overflow-y-auto" aria-label="Navegación principal">
+              <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-0">
+                {TABS.map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      id={`tab-${tab.id}`}
+                      role="tab"
+                      aria-selected={active}
+                      aria-controls={`panel-${tab.id}`}
+                      tabIndex={active ? 0 : -1}
+                      onClick={() => handleTabClick(tab.id)}
+                      onKeyDown={handleTabKeyDown}
+                      className={`
+                        outline-none focus-visible:bg-white/[0.05] transition-colors
+                        ${sidebarOpen
+                          ? 'w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 flex items-center gap-3'
+                          : 'w-full py-2.5 justify-center flex items-center'
+                        }
+                        ${active
+                          ? sidebarOpen
+                            ? 'font-semibold text-white/90 bg-white/[0.06] border-white/75'
+                            : 'text-white/90 bg-white/[0.06]'
+                          : sidebarOpen
+                            ? 'font-normal text-zinc-600 border-transparent hover:bg-white/[0.02]'
+                            : 'text-zinc-600 hover:bg-white/[0.02]'
+                        }
+                      `}
+                      title={tab.label}
+                    >
+                      <SidebarIcon type={tab.icon} active={active} />
+                      <span className={`whitespace-nowrap ${sidebarOpen ? '' : 'hidden'}`}>
+                        {tab.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </nav>
+
+            <div className={`
+              border-t border-white/[0.05] flex-shrink-0
+              ${sidebarOpen ? 'px-5 py-3' : 'px-1 py-2'}
+            `}>
+              <div className={`flex items-center ${sidebarOpen ? 'gap-2' : 'gap-0 justify-center'}`}>
+                <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-white/[0.05] flex items-center justify-center flex-shrink-0">
+                  <span className="text-[10px] font-bold text-[var(--accent-text)]">
+                    {user.usuario.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <div className={`flex-1 min-w-0 ${sidebarOpen ? '' : 'hidden'}`}>
+                  <div className="text-[11px] text-zinc-400 truncate font-mono">{user.usuario}</div>
+                  <button
+                    onClick={handleLogout}
+                    className="text-[9px] text-zinc-600 hover:text-white/60 transition-colors font-mono tracking-wide"
+                    title="Cerrar Sesion"
+                    aria-label="Cerrar Sesion"
+                  >
+                    cerrar sesion
+                  </button>
+                </div>
+              </div>
+            </div>
+          </aside>
+
+          <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative" tabIndex={-1}>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--text-main)] opacity-[0.03] blur-[120px] rounded-full pointer-events-none z-0" />
+
+            <div className="md:hidden absolute top-3 left-3 z-20">
               <button
-                onClick={toggleSidebar}
-                className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                aria-label="Expandir barra lateral"
+                onClick={() => setSidebarOpen(true)}
+                className="w-8 h-8 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
+                aria-label="Abrir barra lateral"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               </button>
             </div>
-          </div>
 
-          <nav className="flex-1 py-2 overflow-y-auto" aria-label="Navegación principal">
-            <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-0">
-              {TABS.map((tab) => {
-                const active = activeTab === tab.id;
-                return (
-                  <button
-                    key={tab.id}
-                    id={`tab-${tab.id}`}
-                    role="tab"
-                    aria-selected={active}
-                    aria-controls={`panel-${tab.id}`}
-                    tabIndex={active ? 0 : -1}
-                    onClick={() => handleTabClick(tab.id)}
-                    onKeyDown={handleTabKeyDown}
-                    className={`
-                      outline-none focus-visible:bg-white/[0.05] transition-colors
-                      ${sidebarOpen
-                        ? 'w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 flex items-center gap-3'
-                        : 'w-full py-2.5 justify-center flex items-center'
-                      }
-                      ${active
-                        ? sidebarOpen
-                          ? 'font-semibold text-white/90 bg-white/[0.06] border-white/75'
-                          : 'text-white/90 bg-white/[0.06]'
-                        : sidebarOpen
-                          ? 'font-normal text-zinc-600 border-transparent hover:bg-white/[0.02]'
-                          : 'text-zinc-600 hover:bg-white/[0.02]'
-                      }
-                    `}
-                    title={tab.label}
-                  >
-                    <SidebarIcon type={tab.icon} active={active} />
-                    <span className={`whitespace-nowrap ${sidebarOpen ? '' : 'hidden'}`}>
-                      {tab.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </nav>
-
-          <div className={`
-            border-t border-[var(--border-subtle)] flex-shrink-0
-            ${sidebarOpen ? 'px-5 py-3' : 'px-1 py-2'}
-          `}>
-            <div className={`flex items-center ${sidebarOpen ? 'gap-2 mb-3' : 'gap-0 mb-2 justify-center'}`}>
-              <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-[var(--accent-text)]">
-                  {user.usuario.charAt(0).toUpperCase()}
+            <div className="z-10 flex items-center justify-between px-6 pt-6 pb-0">
+              <div className="text-[14px] font-bold text-white/90 tracking-[-0.01em]">
+                {MODULE_TITLES[activeTab]}
+              </div>
+              <div className="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-white/[0.05]">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
+                <span className="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase">
+                  Offline Local
                 </span>
               </div>
-              <div className={`flex-1 min-w-0 ${sidebarOpen ? '' : 'hidden'}`}>
-                <div className="text-[11px] text-[var(--text-main)] truncate">{user.usuario}</div>
-              </div>
             </div>
-            <button
-              onClick={handleLogout}
-              className={`
-                text-[10px] text-[var(--text-muted)] hover:text-[var(--text-main)]
-                border border-[var(--border-subtle)] hover:border-[var(--border-strong)]
-                rounded-md transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
-                ${sidebarOpen ? 'w-full py-1.5' : 'w-full py-1.5 flex items-center justify-center'}
-              `}
-              title="Cerrar Sesion"
-              aria-label="Cerrar Sesion"
-            >
-              {sidebarOpen ? 'Cerrar Sesion' : (
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </aside>
 
-        <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative" tabIndex={-1}>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--text-main)] opacity-[0.03] blur-[120px] rounded-full pointer-events-none z-0" />
-
-          <div className="md:hidden absolute top-3 left-3 z-20">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-              aria-label="Abrir barra lateral"
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            </button>
-          </div>
-
-          <div className="z-10 flex items-center justify-between px-6 pt-6 pb-0">
-            <div className="text-[14px] font-bold text-[var(--text-main)] tracking-[-0.01em]">
-              {MODULE_TITLES[activeTab]}
+            <div className="flex-1 overflow-hidden z-10">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  variants={fadeIn}
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  transition={transition}
+                  className="h-full"
+                >
+                  <ErrorBoundary>
+                    <Suspense fallback={<SkeletonSection className="h-full" />}>
+                      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+                        <ActiveModule />
+                      </div>
+                    </Suspense>
+                  </ErrorBoundary>
+                </motion.div>
+              </AnimatePresence>
             </div>
-            <div className="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-white/[0.03] border border-[var(--border-subtle)]">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
-              <span className="text-[10px] text-zinc-400 tracking-[0.08em] font-mono uppercase">
-                Offline Local
-              </span>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-hidden z-10">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                variants={fadeIn}
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                transition={transition}
-                className="h-full"
-              >
-                <ErrorBoundary>
-                  <Suspense fallback={<SkeletonSection className="h-full" />}>
-                    <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-                      <ActiveModule />
-                    </div>
-                  </Suspense>
-                </ErrorBoundary>
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </main>
+          </main>
+        </div>
       </div>
     </AppContext.Provider>
   );
