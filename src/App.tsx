@@ -182,31 +182,32 @@ function AppShell() {
                 ? 'w-[150px] md:w-[200px] xl:w-[240px]'
                 : '-translate-x-full md:translate-x-0 md:w-[56px]'
               }
-              shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col
+              shrink-0 bg-black/60 backdrop-blur-xl border-r border-white/[0.06] flex flex-col
               transition-all duration-300 ease-in-out
               ${sidebarOpen ? '' : '-translate-x-full md:translate-x-0'}
             `}
           >
             <div className={`
-              flex border-b border-white/[0.05] flex-shrink-0
-              ${sidebarOpen ? 'flex-col items-start px-5 py-5' : 'h-12 justify-center'}
+              flex border-b border-white/[0.06] flex-shrink-0
+              ${sidebarOpen ? 'px-5 py-5' : 'h-14 justify-center'}
             `}>
-            <div className={`${sidebarOpen ? '' : 'hidden'}`}>
-              <div className="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2">
-                <VantaMiniLogo className="w-4 h-4" />
-                VANTA
-              </div>
-              <div className="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono">
-                v0.1.0 — offline
-              </div>
-            </div>
-              <div className={`${sidebarOpen ? 'hidden' : 'flex flex-col items-center gap-2'}`}>
-                <VantaMiniLogo className="w-4 h-4" />
-              </div>
+              {sidebarOpen ? (
+                <div className="w-full">
+                  <div className="text-[13px] tracking-[0.16em] uppercase text-white/90 font-bold flex items-center gap-2.5">
+                    <VantaMiniLogo className="w-[18px] h-[18px] text-white/80" />
+                    VANTA
+                  </div>
+                  <div className="text-[10px] text-zinc-500 mt-1.5 tracking-[0.06em] font-mono">
+                    v0.1.0 — offline
+                  </div>
+                </div>
+              ) : (
+                <VantaMiniLogo className="w-[18px] h-[18px] text-white/60" />
+              )}
             </div>
 
-            <nav className="flex-1 py-2 overflow-y-auto" aria-label="Navegación principal">
-              <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-0">
+            <nav className="flex-1 py-3 overflow-y-auto" aria-label="Navegación principal">
+              <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-0.5 px-2">
                 {TABS.map((tab) => {
                   const active = activeTab === tab.id;
                   return (
@@ -220,18 +221,18 @@ function AppShell() {
                       onClick={() => handleTabClick(tab.id)}
                       onKeyDown={handleTabKeyDown}
                       className={`
-                        outline-none focus-visible:bg-white/[0.05] transition-colors
+                        outline-none focus-visible:bg-white/[0.05] transition-all duration-200
                         ${sidebarOpen
-                          ? 'w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 flex items-center gap-3'
-                          : 'w-full py-2.5 justify-center flex items-center'
+                          ? 'w-full text-left px-3 py-2 text-[12px] tracking-[0.03em] border-l-2 flex items-center gap-2.5 rounded-r-md'
+                          : 'w-full py-2.5 justify-center flex items-center rounded-md'
                         }
                         ${active
                           ? sidebarOpen
-                            ? 'font-semibold text-white/90 bg-white/[0.06] border-white/75'
-                            : 'text-white/90 bg-white/[0.06]'
+                            ? 'font-medium text-white/90 bg-white/[0.07] border-l-white/60'
+                            : 'text-white/90 bg-white/[0.07]'
                           : sidebarOpen
-                            ? 'font-normal text-zinc-600 border-transparent hover:bg-white/[0.02]'
-                            : 'text-zinc-600 hover:bg-white/[0.02]'
+                            ? 'font-normal text-zinc-500 border-l-transparent hover:text-zinc-300 hover:bg-white/[0.03]'
+                            : 'text-zinc-600 hover:text-zinc-400 hover:bg-white/[0.03]'
                         }
                       `}
                       title={tab.label}
@@ -246,50 +247,47 @@ function AppShell() {
               </div>
             </nav>
 
-          <div className={`
-            border-t border-white/[0.05] flex-shrink-0
-            ${sidebarOpen ? 'px-4 py-3' : 'px-1 py-2'}
-          `}>
-            <div className={`flex items-center ${sidebarOpen ? 'gap-2 mb-3' : 'justify-center mb-2'}`}>
-              <div className="w-7 h-7 rounded-full bg-[var(--accent-subtle)] border border-white/[0.05] flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-[var(--accent-text)]">
-                  {user.usuario.charAt(0).toUpperCase()}
-                </span>
-              </div>
-              {sidebarOpen && (
-                <div className="flex-1 min-w-0">
-                  <div className="text-[11px] text-zinc-400 truncate font-mono">{user.usuario}</div>
+            <div className="border-t border-white/[0.06] flex-shrink-0 p-3">
+              <div className={`flex items-center ${sidebarOpen ? 'gap-2.5 mb-3' : 'justify-center mb-2'}`}>
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[11px] font-bold text-blue-400">
+                    {user.usuario.charAt(0).toUpperCase()}
+                  </span>
                 </div>
-              )}
-            </div>
-            <div className={`flex items-center ${sidebarOpen ? 'gap-1' : 'flex-col gap-1'}`}>
-              <button
-                onClick={toggleSidebar}
-                className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-white/90 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
-                title={sidebarOpen ? 'Contraer' : 'Expandir'}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                  className={`transition-transform duration-200 ${sidebarOpen ? '' : 'rotate-180'}`}
+                {sidebarOpen && (
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[11px] text-zinc-300 truncate font-medium">{user.usuario}</div>
+                  </div>
+                )}
+              </div>
+              <div className={`flex items-center gap-1 ${sidebarOpen ? '' : 'flex-col'}`}>
+                <button
+                  onClick={toggleSidebar}
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-500 hover:text-white/80 hover:bg-white/[0.06] transition-colors outline-none"
+                  aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
+                  title={sidebarOpen ? 'Contraer' : 'Expandir'}
                 >
-                  <polyline points="15 18 9 12 15 6" />
-                </svg>
-              </button>
-              <ThemeToggle theme={theme} setTheme={setTheme} />
-              <button
-                onClick={handleLogout}
-                className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-600 hover:text-red-400 hover:bg-white/[0.04] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                title="Cerrar Sesion"
-                aria-label="Cerrar Sesion"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                  <polyline points="16 17 21 12 16 7" />
-                  <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-              </button>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                    className={`transition-transform duration-200 ${sidebarOpen ? '' : 'rotate-180'}`}
+                  >
+                    <polyline points="15 18 9 12 15 6" />
+                  </svg>
+                </button>
+                <ThemeToggle theme={theme} setTheme={setTheme} />
+                <button
+                  onClick={handleLogout}
+                  className="w-7 h-7 flex items-center justify-center rounded-md text-zinc-500 hover:text-red-400 hover:bg-white/[0.06] transition-colors outline-none"
+                  title="Cerrar Sesion"
+                  aria-label="Cerrar Sesion"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </button>
+              </div>
             </div>
-          </div>
           </aside>
 
           <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[radial-gradient(ellipse_at_top_right,_rgba(255,255,255,0.03),_transparent_50%)] relative" tabIndex={-1}>

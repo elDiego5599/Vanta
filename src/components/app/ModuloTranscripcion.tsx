@@ -176,22 +176,17 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     if (audioRef.current) {
       audioRef.current.pause();
     }
-    audioRef.current = null;
-    const timer = setTimeout(() => {
-      setAudioUrl(url);
-      setTranscript([]);
-      setIsTranscribing(false);
-      setProgress(0);
-      setStatusText('');
-      setPlayProgress(0);
-      setCurrentTime('00:00:00');
-      setDuration('00:00:00');
-      setError(null);
-    }, 0);
-    return () => {
-      clearTimeout(timer);
-      URL.revokeObjectURL(url);
-    };
+    setAudioUrl(url);
+    setTranscript([]);
+    setIsTranscribing(false);
+    setProgress(0);
+    setStatusText('');
+    setPlayProgress(0);
+    setIsPlaying(false);
+    setCurrentTime('00:00:00');
+    setDuration('00:00:00');
+    setError(null);
+    return () => URL.revokeObjectURL(url);
   }, [selectedFile]);
 
   const handleTimeUpdate = useCallback(() => {
@@ -368,14 +363,21 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
           <div className="flex items-center gap-4">
             <button
-              onClick={() => {
-                if (!audioRef.current) return;
-                if (isPlaying) {
-                  audioRef.current.pause();
-                } else {
-                  audioRef.current.play();
+              onClick={async () => {
+                const audio = audioRef.current;
+                if (!audio) return;
+                try {
+                  if (isPlaying) {
+                    audio.pause();
+                    setIsPlaying(false);
+                  } else {
+                    await audio.play();
+                    setIsPlaying(true);
+                  }
+                } catch (e) {
+                  console.error('Audio play error:', e);
+                  setIsPlaying(false);
                 }
-                setIsPlaying(!isPlaying);
               }}
               aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
               className="w-8 h-8 rounded-full border border-[var(--border-strong)] flex items-center justify-center hover:bg-[var(--glass-hover)] transition-colors text-[var(--text-main)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"

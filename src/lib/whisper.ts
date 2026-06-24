@@ -119,6 +119,8 @@ export async function transcribeProgressive(
     const segment = audio.slice(offset, end);
     const offsetSeconds = offset / sampleRate;
 
+    await new Promise((r) => setTimeout(r, 0));
+
     let raw: Record<string, unknown>;
     try {
       raw = (await model(segment, {
