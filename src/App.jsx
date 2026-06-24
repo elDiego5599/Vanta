@@ -1,14 +1,17 @@
-import { useState, memo } from 'react';
+import { useState, memo, lazy, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
 import { ThemeProvider } from './lib/theme';
 import { ThemeToggle } from './components/landing/Primitives';
 import { useTheme } from './lib/use-theme';
 import { transition } from './lib/motion';
+import ErrorBoundary from './components/landing/ErrorBoundary';
+import { SkeletonSection } from './components/landing/SkeletonSection';
 import LoginScreen from './components/app/LoginScreen';
-import ModuloIngesta from './components/app/ModuloIngesta';
-import ModuloTranscripcion from './components/app/ModuloTranscripcion';
-import ModuloBusqueda from './components/app/ModuloBusqueda';
+
+const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'));
+const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripcion'));
+const ModuloBusqueda = lazy(() => import('./components/app/ModuloBusqueda'));
 
 const TABS = [
   { id: 'ingesta', label: 'Evidencias', icon: 'upload' },
@@ -20,6 +23,12 @@ const pageVariants = {
   initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
   exit: { opacity: 0, y: -12 },
+};
+
+const MODULE_MAP = {
+  ingesta: ModuloIngesta,
+  transcripcion: ModuloTranscripcion,
+  busqueda: ModuloBusqueda,
 };
 
 const SidebarIcon = memo(function SidebarIcon({ type, active }) {
@@ -84,18 +93,27 @@ function AppShell() {
     setSelectedFile(null);
   };
 
+  const handleTabKeyDown = (e) => {
+    const idx = TABS.findIndex((t) => t.id === activeTab);
+    let nextIdx = idx;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+      e.preventDefault();
+      nextIdx = (idx + 1) % TABS.length;
+    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+      e.preventDefault();
+      nextIdx = (idx - 1 + TABS.length) % TABS.length;
+    }
+    if (nextIdx !== idx) {
+      setActiveTab(TABS[nextIdx].id);
+      document.getElementById(`tab-${TABS[nextIdx].id}`)?.focus();
+    }
+  };
+
   if (!user) {
     return <LoginScreen onLogin={setUser} />;
   }
 
-  const renderModule = () => {
-    switch (activeTab) {
-      case 'ingesta': return <ModuloIngesta />;
-      case 'transcripcion': return <ModuloTranscripcion />;
-      case 'busqueda': return <ModuloBusqueda />;
-      default: return <ModuloIngesta />;
-    }
-  };
+  const ActiveModule = MODULE_MAP[activeTab] || ModuloIngesta;
 
   return (
     <AppContext.Provider value={{
@@ -104,6 +122,13 @@ function AppShell() {
       user,
     }}>
       <div className="flex h-screen bg-[var(--page-bg)] text-[var(--text-main)] font-sans overflow-hidden">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--card-bg)] focus:text-[var(--text-main)] focus:border focus:border-[var(--border-strong)] focus:rounded-md focus:text-xs focus:font-semibold focus:outline-none"
+        >
+          Saltar al contenido
+        </a>
+
         <aside className="w-[220px] flex-shrink-0 bg-[var(--card-bg)]/80 backdrop-blur-[24px] border-r border-[var(--border-subtle)] flex flex-col">
           <div className="relative px-5 py-5 border-b border-[var(--border-subtle)] flex items-center justify-between overflow-hidden">
             <div className="absolute -inset-x-20 -top-20 w-[300px] h-[300px] bg-[var(--text-main)] opacity-[0.02] blur-[80px] rounded-full pointer-events-none" />
@@ -121,28 +146,35 @@ function AppShell() {
           </div>
 
           <nav className="flex-1 py-3 px-2" aria-label="Navegación principal">
-            {TABS.map((tab) => {
-              const active = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  aria-current={active ? 'page' : undefined}
-                  className={`
-                    w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left
-                    transition-all duration-200 mb-0.5
-                    outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
-                    ${active
-                      ? 'bg-[var(--glass-bg)] text-[var(--text-main)] border-l-2 border-[var(--accent)]'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] border-l-2 border-transparent'
-                    }
-                  `}
-                >
-                  <SidebarIcon type={tab.icon} active={active} />
-                  <span className="text-[12px] tracking-wide">{tab.label}</span>
-                </button>
-              );
-            })}
+            <div role="tablist" aria-orientation="vertical">
+              {TABS.map((tab) => {
+                const active = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    id={`tab-${tab.id}`}
+                    role="tab"
+                    aria-selected={active}
+                    aria-controls={`panel-${tab.id}`}
+                    tabIndex={active ? 0 : -1}
+                    onClick={() => setActiveTab(tab.id)}
+                    onKeyDown={handleTabKeyDown}
+                    className={`
+                      w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-left
+                      transition-all duration-200 mb-0.5
+                      outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50
+                      ${active
+                        ? 'bg-[var(--glass-bg)] text-[var(--text-main)] border-l-2 border-[var(--accent)]'
+                        : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] border-l-2 border-transparent'
+                      }
+                    `}
+                  >
+                    <SidebarIcon type={tab.icon} active={active} />
+                    <span className="text-[12px] tracking-wide">{tab.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </nav>
 
           <div className="px-4 py-3 border-t border-[var(--border-subtle)]">
@@ -165,7 +197,7 @@ function AppShell() {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-hidden bg-[var(--page-bg)]">
+        <main id="main-content" className="flex-1 overflow-hidden bg-[var(--page-bg)]" tabIndex={-1}>
           <AnimatePresence mode="wait">
             <motion.div
               key={activeTab}
@@ -176,7 +208,13 @@ function AppShell() {
               transition={transition}
               className="h-full"
             >
-              {renderModule()}
+              <ErrorBoundary>
+                <Suspense fallback={<SkeletonSection className="h-full" />}>
+                  <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+                    <ActiveModule />
+                  </div>
+                </Suspense>
+              </ErrorBoundary>
             </motion.div>
           </AnimatePresence>
         </main>
