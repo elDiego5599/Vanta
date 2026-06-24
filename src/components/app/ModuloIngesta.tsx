@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, DragEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
 import { PremiumEdgeWrapper } from '../landing/Primitives';
@@ -10,7 +10,7 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 16, scale: 0.98 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
 const UploadIcon = memo(() => (
@@ -33,7 +33,7 @@ const ModuloIngesta = memo(function ModuloIngesta() {
   const { evidenceQueue, addEvidence, selectFileForTranscription } = useAppContext();
   const [isDragging, setIsDragging] = useState(false);
 
-  const handleDragOver = useCallback((e) => {
+  const handleDragOver = useCallback((e: DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
   }, []);
@@ -42,7 +42,7 @@ const ModuloIngesta = memo(function ModuloIngesta() {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e) => {
+  const handleDrop = useCallback((e: DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
@@ -53,8 +53,8 @@ const ModuloIngesta = memo(function ModuloIngesta() {
     }
   }, [addEvidence]);
 
-  const handleFileInput = useCallback((e) => {
-    const files = Array.from(e.target.files);
+  const handleFileInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
     for (const file of files) {
       addEvidence(file);
     }

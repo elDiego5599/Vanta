@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback, memo, lazy, Suspense, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
+import type { AppContextType, EvidenceItem } from './lib/AppContext';
 import { ThemeProvider } from './lib/theme';
 import { ThemeToggle } from './components/landing/Primitives';
 import { useTheme } from './lib/use-theme';
@@ -14,10 +15,12 @@ const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripc
 const ModuloBusqueda = lazy(() => import('./components/app/ModuloBusqueda'));
 
 const TABS = [
-  { id: 'ingesta', label: 'Evidencias', icon: 'upload' },
-  { id: 'transcripcion', label: 'Transcripcion', icon: 'waveform' },
-  { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' },
+  { id: 'ingesta', label: 'Evidencias', icon: 'upload' as const },
+  { id: 'transcripcion', label: 'Transcripcion', icon: 'waveform' as const },
+  { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' as const },
 ];
+
+type TabId = (typeof TABS)[number]['id'];
 
 const pageVariants = {
   initial: { opacity: 0, y: 12 },
@@ -25,15 +28,20 @@ const pageVariants = {
   exit: { opacity: 0, y: -12 },
 };
 
-const MODULE_MAP = {
+const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   ingesta: ModuloIngesta,
   transcripcion: ModuloTranscripcion,
   busqueda: ModuloBusqueda,
 };
 
-const SidebarIcon = memo(function SidebarIcon({ type, active }) {
+interface SidebarIconProps {
+  type: string;
+  active: boolean;
+}
+
+const SidebarIcon = memo(function SidebarIcon({ type, active }: SidebarIconProps) {
   const color = active ? 'var(--accent)' : 'var(--text-muted)';
-  const icons = {
+  const icons: Record<string, React.ReactNode> = {
     upload: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -53,27 +61,27 @@ const SidebarIcon = memo(function SidebarIcon({ type, active }) {
       </svg>
     ),
   };
-  return icons[type] || null;
+  return icons[type] ?? null;
 });
 
 function AppShell() {
   const { theme, setTheme } = useTheme();
-  const [user, setUser] = useState(null);
-  const [activeTab, setActiveTab] = useState('ingesta');
-  const [evidenceQueue, setEvidenceQueue] = useState([]);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [user, setUser] = useState<{ usuario: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<TabId>('ingesta');
+  const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>([]);
+  const [selectedFile, setSelectedFile] = useState<EvidenceItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((p) => !p), []);
 
-  const handleTabClick = useCallback((id) => {
+  const handleTabClick = useCallback((id: TabId) => {
     setActiveTab(id);
     if (window.matchMedia('(max-width: 767px)').matches) {
       setSidebarOpen(false);
     }
   }, []);
 
-  const handleKeyDownEsc = useCallback((e) => {
+  const handleKeyDownEsc = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') setSidebarOpen(false);
   }, []);
 
@@ -84,14 +92,14 @@ function AppShell() {
     }
   }, [sidebarOpen, handleKeyDownEsc]);
 
-  const selectFileForTranscription = useCallback((file) => {
+  const selectFileForTranscription = useCallback((file: EvidenceItem) => {
     setSelectedFile(file);
     setActiveTab('transcripcion');
   }, []);
 
-  const addEvidence = useCallback((file) => {
+  const addEvidence = useCallback((file: File) => {
     const id = `ev-${Date.now()}`;
-    const item = {
+    const item: EvidenceItem = {
       id,
       file,
       nombre: file.name,
@@ -102,7 +110,7 @@ function AppShell() {
     setEvidenceQueue((prev) => [item, ...prev]);
   }, []);
 
-  const updateEvidence = useCallback((id, updates) => {
+  const updateEvidence = useCallback((id: string, updates: Partial<EvidenceItem>) => {
     setEvidenceQueue((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
     );
@@ -114,7 +122,7 @@ function AppShell() {
     setSelectedFile(null);
   }, []);
 
-  const handleTabKeyDown = useCallback((e) => {
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
     const idx = TABS.findIndex((t) => t.id === activeTab);
     let nextIdx = idx;
     if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
@@ -125,12 +133,15 @@ function AppShell() {
       nextIdx = (idx - 1 + TABS.length) % TABS.length;
     }
     if (nextIdx !== idx) {
-      setActiveTab(TABS[nextIdx].id);
-      document.getElementById(`tab-${TABS[nextIdx].id}`)?.focus();
+      const tab = TABS[nextIdx];
+      if (tab) {
+        setActiveTab(tab.id);
+        document.getElementById(`tab-${tab.id}`)?.focus();
+      }
     }
   }, [activeTab]);
 
-  const contextValue = useMemo(() => ({
+  const contextValue: AppContextType = useMemo(() => ({
     evidenceQueue, addEvidence, updateEvidence,
     selectedFile, selectFileForTranscription,
     user,
@@ -140,7 +151,7 @@ function AppShell() {
     return <LoginScreen onLogin={setUser} />;
   }
 
-  const ActiveModule = MODULE_MAP[activeTab] || ModuloIngesta;
+  const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta;
 
   return (
     <AppContext.Provider value={contextValue}>
@@ -313,7 +324,7 @@ export default function App() {
   );
 }
 
-function formatSize(bytes) {
+function formatSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
   return (bytes / 1048576).toFixed(1) + ' MB';

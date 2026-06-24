@@ -1,28 +1,47 @@
 import { pipeline, env } from '@xenova/transformers';
 
-env.allowLocalModels = false;
+(env as Record<string, unknown>).allowLocalModels = false;
 if (env.backends?.onnx?.wasm) {
   env.backends.onnx.wasm.wasmPaths = '/';
 }
 
-let transcriber = null;
+type Transcriber = Awaited<ReturnType<typeof pipeline>>;
 
-async function ensureModel(onProgress) {
+let transcriber: Transcriber | null = null;
+
+interface ProgressData {
+  status: string;
+  file: string;
+  progress: number;
+}
+
+type ProgressCallback = (data: ProgressData) => void;
+
+interface Chunk {
+  text: string;
+  timestamp: [number, number];
+}
+
+interface TranscriptionResult {
+  text: string;
+  chunks: Chunk[];
+}
+
+async function ensureModel(onProgress?: ProgressCallback): Promise<Transcriber> {
   if (transcriber) return transcriber;
 
-  transcriber = await pipeline(
+  transcriber = (await pipeline(
     'automatic-speech-recognition',
     'Xenova/whisper-medium',
-    {
-      progress_callback: onProgress,
-    },
-  );
+    onProgress ? { progress_callback: onProgress } : undefined,
+  )) as unknown as Transcriber;
 
   return transcriber;
 }
 
-async function decodeAudio(arrayBuffer) {
-  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+async function decodeAudio(arrayBuffer: ArrayBuffer): Promise<Float32Array> {
+  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+  const audioCtx = new AudioCtx();
   try {
     const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
     const rawData = audioBuffer.getChannelData(0);
@@ -38,17 +57,19 @@ async function decodeAudio(arrayBuffer) {
       const srcIdx = i * ratio;
       const idx = Math.floor(srcIdx);
       const frac = srcIdx - idx;
-      resampled[i] = rawData[idx] * (1 - frac) + (rawData[idx + 1] || 0) * frac;
+      resampled[i] = (rawData[idx] ?? 0) * (1 - frac) + (rawData[idx + 1] ?? 0) * frac;
     }
     return resampled;
   } finally {
-    await audioCtx.close();
+    if (audioCtx) await audioCtx.close();
   }
 }
 
-export async function transcribeAudio(arrayBuffer, onProgress) {
+export async function transcribeAudio(
+  arrayBuffer: ArrayBuffer,
+  onProgress?: ProgressCallback,
+): Promise<TranscriptionResult> {
   const model = await ensureModel(onProgress);
-
   const audioData = await decodeAudio(arrayBuffer);
 
   const result = await model(audioData, {
@@ -60,10 +81,10 @@ export async function transcribeAudio(arrayBuffer, onProgress) {
     progress_callback: onProgress,
   });
 
-  return result;
+  return result as unknown as TranscriptionResult;
 }
 
-export function formatTimestamp(seconds) {
+export function formatTimestamp(seconds: number | null | undefined): string {
   if (seconds == null || isNaN(seconds)) return '00:00:00';
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -71,10 +92,10 @@ export function formatTimestamp(seconds) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-export async function fileToArrayBuffer(file) {
+export async function fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
+    reader.onload = () => resolve(reader.result as ArrayBuffer);
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });

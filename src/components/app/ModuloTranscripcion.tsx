@@ -4,12 +4,19 @@ import { useAppContext } from '../../lib/AppContext';
 import { transcribeAudio, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
 import { PremiumEdgeWrapper } from '../landing/Primitives';
 
+interface TranscriptLine {
+  t: string;
+  text: string;
+  start: number;
+  end: number;
+}
+
 const lineVariants = {
   hidden: { opacity: 0, x: -12 },
-  visible: (i) => ({
+  visible: (i: number) => ({
     opacity: 1,
     x: 0,
-    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1], delay: i * 0.04 },
+    transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const, delay: i * 0.04 },
   }),
 };
 
@@ -62,19 +69,21 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
-  const [transcript, setTranscript] = useState([]);
-  const [audioUrl, setAudioUrl] = useState(null);
+  const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState('00:00:00');
   const [duration, setDuration] = useState('00:00:00');
   const [playProgress, setPlayProgress] = useState(0);
-  const [hoveredLine, setHoveredLine] = useState(null);
-  const audioRef = useRef(null);
+  const [hoveredLine, setHoveredLine] = useState<number | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!selectedFile?.file) return;
     const url = URL.createObjectURL(selectedFile.file);
-    audioRef.current?.pause();
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
     audioRef.current = null;
     const timer = setTimeout(() => {
       setAudioUrl(url);
@@ -149,7 +158,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       }
     } catch (err) {
       console.error('Error en transcripcion:', err);
-      setStatusText('Error: ' + err.message);
+      setStatusText('Error: ' + (err instanceof Error ? err.message : String(err)));
       if (selectedFile.id) {
         updateEvidence(selectedFile.id, { estado: 'error', progreso: 0 });
       }
@@ -199,7 +208,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         <div className="p-4">
           <audio
             ref={audioRef}
-            src={audioUrl}
+            src={audioUrl ?? undefined}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={() => setIsPlaying(false)}

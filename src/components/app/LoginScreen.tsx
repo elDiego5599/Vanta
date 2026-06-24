@@ -1,20 +1,24 @@
-import { useState, memo } from 'react';
+import { useState, memo, FormEvent, ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
 import { MagneticButton, PremiumEdgeWrapper, ThemeToggle } from '../landing/Primitives';
 import { VantaLogo } from '../landing/Icons';
 import { CSSGrid } from '../landing/CSSGrid';
 import { useTheme } from '../../lib/use-theme';
 
-const ULTRA_EASE = [0.16, 1, 0.3, 1];
+const ULTRA_EASE = [0.16, 1, 0.3, 1] as const;
 
-const LoginScreen = memo(function LoginScreen({ onLogin }) {
+interface LoginScreenProps {
+  onLogin: (user: { usuario: string }) => void;
+}
+
+const LoginScreen = memo(function LoginScreen({ onLogin }: LoginScreenProps) {
   const { theme, setTheme } = useTheme();
   const [usuario, setUsuario] = useState('');
   const [contrasena, setContrasena] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -71,7 +75,7 @@ const LoginScreen = memo(function LoginScreen({ onLogin }) {
                   <input
                     type="text"
                     value={usuario}
-                    onChange={(e) => setUsuario(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setUsuario(e.target.value)}
                     placeholder="ID de Agente"
                     className="w-full px-4 py-3.5 bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-xl text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] placeholder:opacity-50 focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--glass-bg)] transition-all"
                     autoFocus
@@ -85,7 +89,7 @@ const LoginScreen = memo(function LoginScreen({ onLogin }) {
                   <input
                     type="password"
                     value={contrasena}
-                    onChange={(e) => setContrasena(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => setContrasena(e.target.value)}
                     placeholder="Clave de Acceso"
                     className="w-full px-4 py-3.5 bg-[var(--input-bg)] border border-[var(--border-strong)] rounded-xl text-sm text-[var(--text-main)] placeholder-[var(--text-muted)] placeholder:opacity-50 focus:outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--glass-bg)] transition-all"
                     disabled={cargando}

@@ -1,20 +1,28 @@
-import { useState, useCallback, memo } from 'react';
+import { useState, useCallback, memo, KeyboardEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumEdgeWrapper } from '../landing/Primitives';
 
+interface SearchResult {
+  archivo: string;
+  fragmento: string;
+  hablante: string;
+  timestamp: string;
+  etiquetas?: string[];
+}
+
 const resultVariants = {
   hidden: { opacity: 0, y: 16 },
-  visible: (i) => ({
+  visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1], delay: i * 0.06 },
+    transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const, delay: i * 0.06 },
   }),
 };
 
 const ModuloBusqueda = memo(function ModuloBusqueda() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState<SearchResult[]>([]);
 
   const handleSearch = useCallback(() => {
     if (!query.trim()) return;
@@ -24,6 +32,10 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
       setLoading(false);
     }, 800);
   }, [query]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') handleSearch();
+  }, [handleSearch]);
 
   return (
     <div className="h-full flex flex-col p-6">
@@ -36,8 +48,8 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           placeholder="Buscar en transcripciones..."
           className="flex-1 px-4 py-3 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-main)] placeholder-[var(--text-muted)]/50 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--glass-hover)] transition-all"
         />
