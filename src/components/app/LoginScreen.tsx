@@ -107,7 +107,7 @@ const LoginScreen = memo(function LoginScreen({ onLogin }: LoginScreenProps) {
                 <button
                   type="submit"
                   disabled={cargando}
-                  className="w-full py-4 bg-[var(--btn-bg)] text-[var(--btn-text)] rounded-xl text-xs font-bold tracking-widest uppercase transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_var(--border-strong)] disabled:opacity-70 disabled:hover:scale-100 flex items-center justify-center gap-3 relative overflow-hidden"
+                  className="w-full py-4 bg-[var(--btn-bg)] text-[var(--btn-text)] rounded-xl text-xs font-bold tracking-widest uppercase transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_30px_var(--border-strong)] disabled:opacity-70 disabled:hover:scale-100 flex items-center justify-center gap-3 relative overflow-hidden outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card-bg)]"
                 >
                   {cargando ? (
                     <>
@@ -120,13 +120,6 @@ const LoginScreen = memo(function LoginScreen({ onLogin }: LoginScreenProps) {
                 </button>
               </MagneticButton>
             </form>
-
-            <div className="text-center mt-8 w-full border-t border-[var(--border-subtle)] pt-6">
-              <div className="flex items-center justify-center gap-2 text-[9px] text-[var(--text-muted)] tracking-widest font-mono uppercase">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)] animate-pulse" />
-                v3.0.0 — Offline
-              </div>
-            </div>
 
           </div>
         </PremiumEdgeWrapper>

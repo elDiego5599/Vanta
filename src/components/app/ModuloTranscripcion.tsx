@@ -1,9 +1,12 @@
-import { useState, useRef, useEffect, useCallback, memo, useImperativeHandle, forwardRef } from 'react';
+import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
-import { loadModel, decodeAudioToF32, transcribeProgressive, fileToArrayBuffer, formatTimestamp } from '../../lib/whisper';
+import { loadModel, decodeAudioToF32, transcribeProgressive, formatTimestamp } from '../../lib/whisper';
 import type { ChunkResult } from '../../lib/whisper';
-import { PremiumEdgeWrapper } from '../landing/Primitives';
+import * as db from '../../lib/db';
+import { PremiumEdgeWrapper, MagneticButton } from '../landing/Primitives';
+import WaveSurferWaveform from './WaveSurferWaveform';
+import type { WaveSurferHandle } from './WaveSurferWaveform';
 
 interface TranscriptLine {
   t: string;
@@ -20,152 +23,6 @@ const lineVariants = {
     transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] as const, delay: i * 0.04 },
   }),
 };
-
-const BAR_COUNT = 120;
-const HALF = BAR_COUNT / 2;
-
-function staticWaveform(): number[] {
-  const out: number[] = [];
-  for (let i = 0; i < BAR_COUNT; i++) {
-    const norm = i / BAR_COUNT;
-    const envelope = Math.sin(norm * Math.PI);
-    const wave = Math.sin(i * 0.3) * 0.3 + Math.sin(i * 0.7) * 0.25 + Math.sin(i * 1.4) * 0.2 + Math.sin(i * 2.8) * 0.1;
-    out.push(4 + envelope * (14 + wave * 12));
-  }
-  return out;
-}
-
-const STATIC_BARS = staticWaveform();
-
-interface LiveWaveformProps {
-  audioRef: React.RefObject<HTMLAudioElement | null>;
-  isPlaying: boolean;
-}
-
-const LiveWaveform = memo(forwardRef(function LiveWaveform({ audioRef, isPlaying }: LiveWaveformProps, ref) {
-  const [bars, setBars] = useState<number[]>(() => [...STATIC_BARS]);
-  const ctxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
-  const rafRef = useRef<number>(0);
-  const smoothedRef = useRef<number[]>([...STATIC_BARS]);
-
-  const initAudioChain = useCallback(() => {
-    if (sourceRef.current) return;
-
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const ctx = new AudioContext();
-    ctxRef.current = ctx;
-
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.75;
-    analyserRef.current = analyser;
-
-    const source = ctx.createMediaElementSource(audio);
-    source.connect(analyser);
-    analyser.connect(ctx.destination);
-    sourceRef.current = source;
-  }, [audioRef]);
-
-  useImperativeHandle(ref, () => ({
-    initAudioChain,
-  }));
-
-  useEffect(() => {
-    const analyser = analyserRef.current;
-    const ctx = ctxRef.current;
-
-    if (!isPlaying || !analyser || !ctx) {
-      cancelAnimationFrame(rafRef.current);
-      return;
-    }
-
-    if (ctx.state === 'suspended') {
-      ctx.resume();
-    }
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const smoothed = smoothedRef.current;
-    const binCount = analyser.frequencyBinCount;
-    const step = Math.max(1, Math.floor(binCount / HALF));
-
-    const tick = () => {
-      analyser.getByteFrequencyData(dataArray);
-
-      for (let i = 0; i < HALF; i++) {
-        let sum = 0;
-        for (let j = 0; j < step; j++) {
-          sum += dataArray[Math.min(i * step + j, binCount - 1)] ?? 0;
-        }
-        const raw = (sum / step) / 255;
-        const target = 4 + raw * 50;
-        const prev = smoothed[i] ?? 4;
-        smoothed[i] = prev * 0.4 + target * 0.6;
-        smoothed[BAR_COUNT - 1 - i] = smoothed[i] ?? 4;
-      }
-
-      setBars([...smoothed]);
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    rafRef.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [isPlaying]);
-
-  useEffect(() => {
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      sourceRef.current?.disconnect();
-      analyserRef.current?.disconnect();
-      ctxRef.current?.close();
-      ctxRef.current = null;
-      analyserRef.current = null;
-      sourceRef.current = null;
-    };
-  }, []);
-
-  return (
-    <div
-      className="flex items-center w-full overflow-hidden cursor-pointer"
-      style={{ gap: '2px', height: '64px' }}
-      onClick={() => {
-        const audio = audioRef.current;
-        if (!audio) return;
-        initAudioChain();
-        if (ctxRef.current?.state === 'suspended') {
-          ctxRef.current.resume();
-        }
-        if (audio.paused) {
-          audio.play().catch(() => {});
-        } else {
-          audio.pause();
-        }
-      }}
-    >
-      {bars.map((h, i) => {
-        const norm = i / BAR_COUNT;
-        const edgeFade = norm < 0.08 ? norm / 0.08 : norm > 0.92 ? (1 - norm) / 0.08 : 1;
-
-        return (
-          <div
-            key={i}
-            className="flex-shrink-0 rounded-full"
-            style={{
-              width: '3px',
-              height: `${Math.max(4, h * edgeFade)}px`,
-              backgroundColor: 'var(--accent)',
-              opacity: isPlaying ? 0.85 : 0.4,
-              transition: isPlaying ? 'none' : 'height 0.5s cubic-bezier(0.16,1,0.3,1)',
-            }}
-          />
-        );
-      })}
-    </div>
-  );
-}));
 
 const PauseIcon = memo(() => (
   <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
@@ -188,6 +45,12 @@ const MusicIcon = memo(() => (
   </svg>
 ));
 
+const CheckIcon = memo(() => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+));
+
 const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const { selectedFile, updateEvidence } = useAppContext();
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -201,17 +64,27 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [playProgress, setPlayProgress] = useState(0);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const waveformRef = useRef<{ initAudioChain: () => void } | null>(null);
+  const [saveAfterTx, setSaveAfterTx] = useState(true);
+  const [savedTx, setSavedTx] = useState(false);
+  const waveformRef = useRef<WaveSurferHandle | null>(null);
+  const durationRef = useRef(0);
 
   useEffect(() => {
-    if (!selectedFile?.file) return;
-    const url = URL.createObjectURL(selectedFile.file);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
+    if (!selectedFile?.id) {
+      setAudioUrl(null);
+      return;
     }
-    setAudioUrl(url);
+
+    let cancelled = false;
+    let url: string | null = null;
+
+    db.getEvidenceFile(selectedFile.id).then(data => {
+      if (cancelled) return;
+      const blob = new Blob([data]);
+      url = URL.createObjectURL(blob);
+      setAudioUrl(url);
+    }).catch(console.error);
+
     setTranscript([]);
     setIsTranscribing(false);
     setProgress(0);
@@ -221,43 +94,44 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     setCurrentTime('00:00:00');
     setDuration('00:00:00');
     setError(null);
-    return () => URL.revokeObjectURL(url);
+    setSavedTx(false);
+
+    db.getTranscriptionByEvidence(selectedFile.id).then(saved => {
+      if (saved && saved.saved) {
+        setTranscript(saved.lines);
+        setSavedTx(true);
+        setStatusText('Guardado');
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      if (url) URL.revokeObjectURL(url);
+    };
   }, [selectedFile]);
 
-  const handleTimeUpdate = useCallback(() => {
-    if (audioRef.current) {
-      setCurrentTime(formatTimestamp(audioRef.current.currentTime));
-      const pct = (audioRef.current.currentTime / audioRef.current.duration) * 100;
-      setPlayProgress(isNaN(pct) ? 0 : pct);
+  const handleReady = useCallback((d: number) => {
+    durationRef.current = d;
+    setDuration(formatTimestamp(d));
+  }, []);
+
+  const handleTimeUpdate = useCallback((current: number) => {
+    setCurrentTime(formatTimestamp(current));
+    if (durationRef.current > 0) {
+      setPlayProgress((current / durationRef.current) * 100);
     }
   }, []);
 
-  const handleLoadedMetadata = useCallback(() => {
-    if (audioRef.current) {
-      setDuration(formatTimestamp(audioRef.current.duration));
-    }
+  const handlePlayState = useCallback((playing: boolean) => {
+    setIsPlaying(playing);
   }, []);
 
-  const togglePlay = useCallback(async () => {
-    waveformRef.current?.initAudioChain();
-    const audio = audioRef.current;
-    if (!audio) return;
-    try {
-      if (isPlaying) {
-        audio.pause();
-        setIsPlaying(false);
-      } else {
-        await audio.play();
-        setIsPlaying(true);
-      }
-    } catch (e) {
-      console.error('Audio play error:', e);
-      setIsPlaying(false);
-    }
-  }, [isPlaying]);
+  const togglePlay = useCallback(() => {
+    waveformRef.current?.playPause();
+  }, []);
 
   const startTranscription = useCallback(async () => {
-    if (!selectedFile?.file) return;
+    if (!selectedFile) return;
 
     setError(null);
     setIsTranscribing(true);
@@ -278,7 +152,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       setProgress(10);
       setStatusText('Leyendo archivo de audio...');
 
-      const arrayBuffer = await fileToArrayBuffer(selectedFile.file);
+      const arrayBuffer = await db.getEvidenceFile(selectedFile.id);
 
       setProgress(15);
       setStatusText('Decodificando audio...');
@@ -311,6 +185,11 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       setProgress(100);
       setStatusText('Completado');
 
+      if (saveAfterTx) {
+        await db.saveTranscription(selectedFile.id, selectedFile.caseId, allLines);
+        setSavedTx(true);
+      }
+
       if (selectedFile.id) {
         updateEvidence(selectedFile.id, { estado: 'listo', progreso: 100 });
       }
@@ -325,7 +204,12 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [selectedFile, updateEvidence]);
+  }, [selectedFile, updateEvidence, saveAfterTx]);
+
+  const handleTranscriptClick = useCallback((start: number) => {
+    waveformRef.current?.seekTo(start);
+    waveformRef.current?.play();
+  }, []);
 
   if (!selectedFile) {
     return (
@@ -360,25 +244,28 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           </p>
         </div>
         {!isTranscribing && transcript.length === 0 && !error && (
-          <button
-            onClick={startTranscription}
-            className="px-4 py-2 rounded-md text-xs transition-opacity outline-none"
-            style={{
-              backgroundColor: 'var(--accent-subtle)',
-              border: '1px solid var(--accent-subtle)',
-              color: 'var(--accent-text)',
-            }}
-          >
-            Iniciar Transcripcion
-          </button>
+          <MagneticButton>
+            <button
+              onClick={startTranscription}
+              className="px-4 py-2 rounded-md text-xs font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+              style={{
+                backgroundColor: 'var(--accent)',
+                color: '#fff',
+              }}
+            >
+              Iniciar Transcripcion
+            </button>
+          </MagneticButton>
         )}
         {error && (
-          <button
-            onClick={startTranscription}
-            className="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-md text-xs text-red-500 hover:bg-red-500/20 transition-colors outline-none"
-          >
-            Reintentar
-          </button>
+          <MagneticButton>
+            <button
+              onClick={startTranscription}
+              className="px-4 py-2 bg-red-500/10 border border-red-500/30 rounded-md text-xs text-red-500 hover:bg-red-500/20 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+            >
+              Reintentar
+            </button>
+          </MagneticButton>
         )}
       </div>
 
@@ -390,14 +277,6 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
       <PremiumEdgeWrapper rounded="rounded-xl" className="mb-6">
         <div className="py-4 px-5">
-          <audio
-            ref={audioRef}
-            src={audioUrl ?? undefined}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onEnded={() => setIsPlaying(false)}
-          />
-
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div
@@ -420,44 +299,71 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             </div>
           </div>
 
-          <div
-            className="mb-3 rounded-lg overflow-hidden"
+          <motion.div
+            className="mb-3 rounded-xl overflow-hidden"
             style={{
               backgroundColor: '#0c0f14',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: isTranscribing ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(59,130,246,0.12)',
+              boxShadow: isTranscribing
+                ? '0 0 40px -8px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.04)'
+                : '0 0 40px -8px rgba(59,130,246,0.08), inset 0 1px 0 rgba(255,255,255,0.04)',
             }}
+            animate={isTranscribing ? {
+              borderColor: ['rgba(59,130,246,0.3)', 'rgba(59,130,246,0.15)', 'rgba(59,130,246,0.3)'],
+              boxShadow: [
+                '0 0 40px -8px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
+                '0 0 40px -8px rgba(59,130,246,0.06), inset 0 1px 0 rgba(255,255,255,0.04)',
+                '0 0 40px -8px rgba(59,130,246,0.15), inset 0 1px 0 rgba(255,255,255,0.04)',
+              ],
+            } : {}}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <div className="px-4 pt-3 pb-1">
-              <div className="text-[10px] font-mono tracking-wider uppercase" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                {selectedFile.nombre}
-              </div>
+            <div className="px-5 py-3">
+              <WaveSurferWaveform
+                ref={waveformRef}
+                url={audioUrl}
+                onReady={handleReady}
+                onTimeUpdate={handleTimeUpdate}
+                onPlayStateChange={handlePlayState}
+              />
             </div>
-            <div className="px-3 pb-3">
-              <LiveWaveform ref={waveformRef} audioRef={audioRef} isPlaying={isPlaying} />
-            </div>
-          </div>
+          </motion.div>
 
           <div className="flex items-center gap-4">
-            <button
-              onClick={togglePlay}
-              aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
-              className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-opacity outline-none"
-              style={{
-                color: 'var(--text-main)',
-                border: '1px solid var(--border-strong)',
-              }}
-            >
-              {isPlaying ? <PauseIcon /> : <PlayIcon />}
-            </button>
+            <MagneticButton>
+              <button
+                onClick={togglePlay}
+                aria-label={isPlaying ? 'Pausar' : 'Reproducir'}
+                className="w-8 h-8 rounded-full flex items-center justify-center hover:opacity-80 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                style={{
+                  color: 'var(--text-main)',
+                  border: '1px solid var(--border-strong)',
+                }}
+              >
+                {isPlaying ? <PauseIcon /> : <PlayIcon />}
+              </button>
+            </MagneticButton>
             <div className="flex-1">
-              <div className="w-full h-1 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--glass-bg)' }}>
+              <div className="w-full h-1 rounded-full overflow-hidden relative" style={{ backgroundColor: 'var(--glass-bg)' }}>
                 <div
-                  className="h-full rounded-full transition-all duration-300"
+                  className="h-full rounded-full relative overflow-hidden"
                   style={{
                     width: `${playProgress}%`,
-                    backgroundColor: 'color-mix(in srgb, var(--accent) 70%, transparent)',
+                    backgroundColor: 'var(--accent)',
+                    opacity: 0.7,
+                    transition: 'width 0.3s ease',
                   }}
-                />
+                >
+                  {playProgress > 0 && playProgress < 100 && (
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                        animation: 'shimmer 1.5s ease-in-out infinite',
+                      }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
             <div className="text-[10px] tabular-nums" style={{ color: 'var(--text-muted)' }}>
@@ -466,6 +372,23 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
               <span>{duration}</span>
             </div>
           </div>
+
+          {!isTranscribing && transcript.length === 0 && !error && (
+            <div className="mt-3 flex items-center gap-2">
+              <button
+                onClick={() => setSaveAfterTx(!saveAfterTx)}
+                className={`w-3.5 h-3.5 rounded flex items-center justify-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
+                  saveAfterTx ? 'bg-[var(--accent)]' : 'border border-[var(--border-strong)]'
+                }`}
+                aria-label={saveAfterTx ? 'Guardar transcripcion activado' : 'Guardar transcripcion desactivado'}
+              >
+                {saveAfterTx && <CheckIcon />}
+              </button>
+              <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                Guardar transcripcion al completar
+              </span>
+            </div>
+          )}
 
           {isTranscribing && (
             <div className="mt-4 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
@@ -487,14 +410,33 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         </div>
       </PremiumEdgeWrapper>
 
-      <div className="flex-1 overflow-y-auto pr-2">
-        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase mb-3" style={{ color: 'var(--text-muted)' }}>
-          Transcripcion {transcript.length > 0 && `(${transcript.length})`}
-        </h2>
+      <div className="flex-1 overflow-y-auto pr-2 scroll-fade">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase" style={{ color: 'var(--text-muted)' }}>
+            Transcripcion {transcript.length > 0 && `(${transcript.length})`}
+          </h2>
+          {savedTx && (
+            <div className="flex items-center gap-1 text-[9px] tracking-wider uppercase" style={{ color: 'var(--accent-text)' }}>
+              <CheckIcon />
+              Guardado
+            </div>
+          )}
+        </div>
 
         {transcript.length === 0 && !isTranscribing ? (
           <PremiumEdgeWrapper rounded="rounded-lg">
-            <div className="px-8 py-10 text-center">
+            <div className="px-8 py-10 text-center relative">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'var(--accent)', opacity: 0.06 }} />
+              <motion.div
+                className="w-10 h-10 rounded-lg border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: 'var(--glass-bg)' }}
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 12h2l3-9 4 18 4-18 3 9h4" />
+                </svg>
+              </motion.div>
               <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {error
                   ? 'Ocurrio un error durante la transcripcion. Presione Reintentar.'
@@ -514,17 +456,11 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                   variants={lineVariants}
                   initial="hidden"
                   animate="visible"
+                  whileHover={{ x: 2, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
                   onMouseEnter={() => setHoveredLine(idx)}
                   onMouseLeave={() => setHoveredLine(null)}
-                  onClick={() => {
-                    if (audioRef.current && line.start != null) {
-                      waveformRef.current?.initAudioChain();
-                      audioRef.current.currentTime = line.start;
-                      audioRef.current.play();
-                      setIsPlaying(true);
-                    }
-                  }}
-                  className="text-left flex gap-4 py-2.5 transition-colors px-2 -mx-2 rounded cursor-pointer"
+                  onClick={() => handleTranscriptClick(line.start)}
+                  className="text-left flex gap-4 py-2.5 transition-all duration-200 px-2 -mx-2 rounded cursor-pointer"
                   style={{
                     borderBottom: '1px solid var(--border-subtle)',
                     backgroundColor: hoveredLine === idx ? 'var(--glass-hover)' : 'transparent',

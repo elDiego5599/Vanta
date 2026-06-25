@@ -1,6 +1,6 @@
 import { useState, useCallback, memo, KeyboardEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PremiumEdgeWrapper } from '../landing/Primitives';
+import { PremiumEdgeWrapper, MagneticButton } from '../landing/Primitives';
 
 interface SearchResult {
   archivo: string;
@@ -52,14 +52,16 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
           placeholder="Buscar en transcripciones..."
           className="flex-1 px-4 py-3 bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-lg text-sm text-[var(--text-main)] placeholder-[var(--text-muted)]/50 outline-none focus:border-[var(--accent)]/50 focus:bg-[var(--glass-hover)] transition-all"
         />
-        <button
-          onClick={handleSearch}
-          disabled={loading}
-          className="px-6 py-3 bg-[var(--btn-bg)] text-[var(--btn-text)] rounded-lg text-xs font-bold tracking-wider uppercase hover:opacity-90 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 disabled:opacity-50"
-          aria-label="Buscar"
-        >
-          {loading ? 'Buscando...' : 'Buscar Concepto'}
-        </button>
+        <MagneticButton>
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            className="px-6 py-3 bg-[var(--btn-bg)] text-[var(--btn-text)] rounded-lg text-xs font-bold tracking-wider uppercase hover:opacity-90 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 disabled:opacity-50"
+            aria-label="Buscar"
+          >
+            {loading ? 'Buscando...' : 'Buscar Concepto'}
+          </button>
+        </MagneticButton>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -69,9 +71,21 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
 
         {results.length === 0 && !loading ? (
           <PremiumEdgeWrapper rounded="rounded-lg">
-            <div className="px-12 py-14 text-center">
-              <div className="text-[var(--text-muted)] text-xs">Sin resultados</div>
-              <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Realice una busqueda para ver resultados</div>
+            <div className="px-12 py-14 text-center relative">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'var(--accent)', opacity: 0.06 }} />
+              <motion.div
+                className="w-10 h-10 rounded-lg border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4"
+                style={{ backgroundColor: 'var(--glass-bg)' }}
+                animate={{ y: [0, -3, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+              </motion.div>
+              <div className="chrome-text text-xs font-semibold mb-1">Sin resultados</div>
+              <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Realice una busqueda para ver resultados</div>
             </div>
           </PremiumEdgeWrapper>
         ) : (
@@ -86,8 +100,18 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
                   key={idx}
                   custom={idx}
                   variants={resultVariants}
+                  whileHover={{ y: -2, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
                   exit={{ opacity: 0, y: -12, transition: { duration: 0.2 } }}
+                  className="relative"
                 >
+                  <div
+                    className="absolute -inset-2 z-[-1] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none"
+                    style={{
+                      background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.06) 0%, transparent 70%)',
+                      filter: 'blur(16px)',
+                    }}
+                  />
+                  <div className="group">
                   <PremiumEdgeWrapper rounded="rounded-lg">
                     <div className="p-4 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 cursor-pointer">
                       <div className="text-xs text-[var(--text-muted)] mb-2">{r.archivo}</div>
@@ -107,6 +131,7 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
                       </div>
                     </div>
                   </PremiumEdgeWrapper>
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>

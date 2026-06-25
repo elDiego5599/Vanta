@@ -21,9 +21,7 @@ async function patchFetchForHuggingFace() {
       }
       return originalFetch(input, init);
     };
-  } catch {
-    // Not running in Tauri, use browser fetch (CORS may block some requests)
-  }
+  } catch { void 0 }
 }
 
 await patchFetchForHuggingFace();

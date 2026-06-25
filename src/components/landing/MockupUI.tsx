@@ -122,12 +122,9 @@ export default function DetailedMockupUI({ activeIndex = 0 }: DetailedMockupUIPr
     <div className="flex w-full h-full bg-[#050505] rounded-[22px] overflow-hidden border border-white/[0.05]">
       <div className="w-[150px] md:w-[200px] xl:w-[240px] shrink-0 bg-[#000000] border-r border-white/[0.05] flex flex-col py-5 gap-0.5">
         <div className="px-5 pb-5 border-b border-white/[0.05] mb-2.5">
-          <div className="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2">
-            <VantaMiniLogo className="w-4 h-4 text-white" />
-            VANTA
-          </div>
-          <div className="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono">
-            v3.0.0 — offline
+          <div className="flex items-center gap-2 select-none">
+            <VantaMiniLogo className="w-4 h-4" />
+            <span className="chrome-text text-[12px] tracking-[0.14em] uppercase font-bold">VANTA</span>
           </div>
         </div>
         {sidebarItems.map((item, i) => (

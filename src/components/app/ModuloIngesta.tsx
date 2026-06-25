@@ -1,7 +1,7 @@
 import { useState, useCallback, memo, DragEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
-import { PremiumEdgeWrapper } from '../landing/Primitives';
+import { PremiumEdgeWrapper, MagneticButton } from '../landing/Primitives';
 
 const containerVariants = {
   hidden: {},
@@ -30,7 +30,7 @@ const AudioIcon = memo(() => (
 ));
 
 const ModuloIngesta = memo(function ModuloIngesta() {
-  const { evidenceQueue, addEvidence, selectFileForTranscription } = useAppContext();
+  const { evidenceQueue, addEvidence, selectFileForTranscription, activeCase } = useAppContext();
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDragOver = useCallback((e: DragEvent) => {
@@ -45,21 +45,23 @@ const ModuloIngesta = memo(function ModuloIngesta() {
   const handleDrop = useCallback((e: DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    if (!activeCase) return;
     const files = Array.from(e.dataTransfer.files);
     for (const file of files) {
       if (file.type.startsWith('audio/') || file.name.match(/\.(wav|mp3|ogg|flac|m4a|opus|wma|aac|mp4|webm)$/i)) {
-        addEvidence(file);
+        addEvidence(file, activeCase.id);
       }
     }
-  }, [addEvidence]);
+  }, [addEvidence, activeCase]);
 
   const handleFileInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    if (!activeCase) return;
     const files = Array.from(e.target.files ?? []);
     for (const file of files) {
-      addEvidence(file);
+      addEvidence(file, activeCase.id);
     }
     e.target.value = '';
-  }, [addEvidence]);
+  }, [addEvidence, activeCase]);
 
   return (
     <div className="h-full flex flex-col p-6">
@@ -101,16 +103,24 @@ const ModuloIngesta = memo(function ModuloIngesta() {
         </div>
       </PremiumEdgeWrapper>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto scroll-fade">
         <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
           Archivos Cargados
         </h2>
 
         {evidenceQueue.length === 0 ? (
           <PremiumEdgeWrapper rounded="rounded-lg">
-            <div className="px-12 py-14 text-center">
-              <div className="text-[var(--text-muted)] text-xs">No hay archivos</div>
-              <div className="text-[var(--text-muted)]/50 text-[10px] mt-1">Arrastre o seleccione archivos de audio</div>
+            <div className="px-12 py-14 text-center relative">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'var(--accent)', opacity: 0.08 }} />
+              <motion.div
+                className="w-12 h-12 rounded-lg border border-[var(--border-subtle)] flex items-center justify-center mx-auto mb-4"
+                animate={{ y: [0, -4, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              >
+                <UploadIcon />
+              </motion.div>
+              <div className="chrome-text text-xs font-semibold mb-1">No hay archivos</div>
+              <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Arrastre o seleccione archivos de audio</div>
             </div>
           </PremiumEdgeWrapper>
         ) : (
@@ -126,22 +136,79 @@ const ModuloIngesta = memo(function ModuloIngesta() {
                   key={item.id}
                   layout
                   variants={itemVariants}
+                  whileHover={{ y: -2, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
                   exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
-                  className="flex items-center gap-4 p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-colors"
+                  className="flex items-center gap-4 p-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] transition-all duration-200"
+                  style={{
+                    boxShadow: 'inset 0 1px 1px var(--border-subtle)',
+                    ...(item.estado === 'transcribiendo' ? { borderColor: 'var(--accent)' } : {}),
+                    ...(item.estado === 'error' ? { borderColor: 'rgba(239,68,68,0.3)' } : {}),
+                  }}
                 >
-                  <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-md bg-[var(--accent-subtle)] flex items-center justify-center flex-shrink-0 relative">
                     <AudioIcon />
+                    {item.estado === 'transcribiendo' && (
+                      <motion.div
+                        className="absolute inset-0 rounded-md border-2"
+                        style={{ borderColor: 'var(--accent)', opacity: 0.5 }}
+                        animate={{ opacity: [0.3, 0.8, 0.3] }}
+                        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut' }}
+                      />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium text-[var(--text-main)] truncate">{item.nombre}</div>
-                    <div className="text-[10px] text-[var(--text-muted)]">{item.tamano}</div>
+                    <div className="text-xs font-medium text-[var(--text-main)] truncate flex items-center gap-2">
+                      {item.nombre}
+                      {item.estado === 'transcribiendo' && (
+                        <span className="flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider" style={{ color: 'var(--accent)' }}>
+                          <motion.span
+                            className="w-1 h-1 rounded-full inline-block"
+                            style={{ backgroundColor: 'var(--accent)' }}
+                            animate={{ scale: [1, 1.6, 1] }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                          />
+                          Transcribiendo
+                        </span>
+                      )}
+                      {item.estado === 'error' && (
+                        <span className="text-[9px] font-mono uppercase tracking-wider" style={{ color: '#ef4444' }}>Error</span>
+                      )}
+                      {item.progreso === 100 && item.estado === 'listo' && (
+                        <span className="flex items-center gap-1 text-[9px] font-mono uppercase tracking-wider" style={{ color: '#22c55e' }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Completado
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)]">
+                      {item.tamano}
+                      {item.progreso > 0 && item.estado === 'transcribiendo' && (
+                        <span className="ml-2 font-mono">{item.progreso}%</span>
+                      )}
+                    </div>
                   </div>
-                  <button
-                    onClick={() => selectFileForTranscription(item)}
-                    className="px-3 py-1.5 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-[10px] font-medium text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors flex-shrink-0"
-                  >
-                    Transcribir
-                  </button>
+                  {item.estado !== 'transcribiendo' && (!item.estado || item.estado === 'listo') && (
+                    <MagneticButton>
+                    <button
+                      onClick={() => selectFileForTranscription(item)}
+                      className="px-3 py-1.5 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-[10px] font-medium text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                    >
+                      {item.progreso === 100 ? 'Ver' : 'Transcribir'}
+                    </button>
+                  </MagneticButton>
+                  )}
+                  {item.estado === 'error' && (
+                    <MagneticButton>
+                      <button
+                        onClick={() => selectFileForTranscription(item)}
+                        className="px-3 py-1.5 bg-red-500/10 border border-red-500/30 rounded-md text-[10px] font-medium text-red-500 hover:bg-red-500/20 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                      >
+                        Reintentar
+                      </button>
+                    </MagneticButton>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>

@@ -5,9 +5,7 @@ function getStoredTheme(): Theme {
   try {
     const stored = localStorage.getItem('vanta-theme')
     if (stored === 'dark' || stored === 'light' || stored === 'system') return stored
-  } catch {
-    /* not in browser */
-  }
+  } catch { void 0 }
   return 'system'
 }
 
@@ -31,9 +29,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = (next: Theme) => {
     setThemeState(next)
-    try { localStorage.setItem('vanta-theme', next) } catch {
-      /* localStorage unavailable */
-    }
+    try { localStorage.setItem('vanta-theme', next) } catch { void 0 }
   }
 
   useEffect(() => {

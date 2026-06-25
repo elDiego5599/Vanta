@@ -1,21 +1,34 @@
-import { useState, useMemo, useCallback, memo, lazy, Suspense, useEffect } from 'react';
+import { useState, useMemo, useCallback, memo, lazy, Suspense, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
-import type { AppContextType, EvidenceItem } from './lib/AppContext';
+import type { AppContextType, EvidenceItem, CaseData } from './lib/AppContext';
+import * as db from './lib/db';
 import { ThemeProvider } from './lib/theme';
 import { useTheme } from './lib/use-theme';
-import { fadeIn, transition } from './lib/motion';
+import { fadeIn } from './lib/motion';
 import ErrorBoundary from './components/landing/ErrorBoundary';
+import { MagneticButton } from './components/landing/Primitives';
 import { SkeletonSection } from './components/landing/SkeletonSection';
+
+const GLOW_COLORS: Record<TabId, string> = {
+  casos: '#f59e0b',
+  ingesta: '#3b82f6',
+  transcripcion: '#10b981',
+  busqueda: '#a855f7',
+};
+
+const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion', 'busqueda']);
 import { CSSGrid } from './components/landing/CSSGrid';
 import { VantaMiniLogo } from './components/landing/Icons';
 import LoginScreen from './components/app/LoginScreen';
 
+const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'));
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'));
 const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripcion'));
 const ModuloBusqueda = lazy(() => import('./components/app/ModuloBusqueda'));
 
 const TABS = [
+  { id: 'casos', label: 'Casos', icon: 'folder' as const },
   { id: 'ingesta', label: 'Evidencias', icon: 'upload' as const },
   { id: 'transcripcion', label: 'Transcripcion', icon: 'waveform' as const },
   { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' as const },
@@ -24,12 +37,14 @@ const TABS = [
 type TabId = (typeof TABS)[number]['id'];
 
 const MODULE_TITLES: Record<TabId, string> = {
+  casos: 'Casos',
   ingesta: 'Ingesta de Evidencia',
   transcripcion: 'Linea de Tiempo',
   busqueda: 'Busqueda Semantica',
 };
 
 const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
+  casos: ModuloCasos,
   ingesta: ModuloIngesta,
   transcripcion: ModuloTranscripcion,
   busqueda: ModuloBusqueda,
@@ -43,6 +58,11 @@ interface SidebarIconProps {
 const SidebarIcon = memo(function SidebarIcon({ type, active }: SidebarIconProps) {
   const color = active ? 'var(--accent)' : 'var(--text-muted)';
   const icons: Record<string, React.ReactNode> = {
+    folder: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
     upload: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -93,11 +113,57 @@ const ThemeIcon = memo(function ThemeIcon({ theme }: { theme: string }) {
 
 function AppShell() {
   const { theme, setTheme } = useTheme();
-  const [user, setUser] = useState<{ usuario: string } | null>(null);
+  const [user, setUser] = useState<{ usuario: string } | null>(() => {
+    const saved = localStorage.getItem('vanta_user');
+    return saved ? JSON.parse(saved) : null;
+  });
   const [activeTab, setActiveTab] = useState<TabId>('ingesta');
   const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>([]);
   const [selectedFile, setSelectedFile] = useState<EvidenceItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [cases, setCases] = useState<CaseData[]>([]);
+  const [activeCase, setActiveCase] = useState<CaseData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const loadedRef = useRef(false);
+
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+    (async () => {
+      try {
+        const storedCases = await db.getCases();
+        setCases(storedCases);
+        if (storedCases.length > 0) {
+          const first = storedCases[0]!;
+          setActiveCase(first);
+          const evs = await db.getEvidenceByCase(first.id);
+          setEvidenceQueue(evs.map(e => ({
+            id: e.id, caseId: e.caseId, nombre: e.nombre,
+            estado: e.estado, progreso: e.progreso, tamano: e.tamano,
+          })));
+        }
+      } catch (e) {
+        console.error('Failed to restore state:', e);
+      }
+      setIsLoading(false);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!activeCase || !loadedRef.current) return;
+    (async () => {
+      try {
+        const evs = await db.getEvidenceByCase(activeCase.id);
+        setEvidenceQueue(evs.map(e => ({
+          id: e.id, caseId: e.caseId, nombre: e.nombre,
+          estado: e.estado, progreso: e.progreso, tamano: e.tamano,
+        })));
+        setSelectedFile(null);
+      } catch (e) {
+        console.error('Failed to load evidence:', e);
+      }
+    })();
+  }, [activeCase]);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((p) => !p), []);
 
@@ -124,16 +190,12 @@ function AppShell() {
     setActiveTab('transcripcion');
   }, []);
 
-  const addEvidence = useCallback((file: File) => {
+  const addEvidence = useCallback(async (file: File, caseId: string) => {
     const id = `ev-${Date.now()}`;
-    const item: EvidenceItem = {
-      id,
-      file,
-      nombre: file.name,
-      estado: 'listo',
-      progreso: 0,
-      tamano: formatSize(file.size),
-    };
+    const tamano = formatSize(file.size);
+    const arrayBuffer = await file.arrayBuffer();
+    await db.saveEvidence(id, caseId, file.name, tamano, arrayBuffer);
+    const item: EvidenceItem = { id, caseId, nombre: file.name, estado: 'listo', progreso: 0, tamano };
     setEvidenceQueue((prev) => [item, ...prev]);
   }, []);
 
@@ -141,10 +203,54 @@ function AppShell() {
     setEvidenceQueue((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
     );
+    if (updates.estado !== undefined || updates.progreso !== undefined) {
+      db.updateEvidenceStatus(id, updates.estado ?? 'listo', updates.progreso ?? 0);
+    }
+  }, []);
+
+  const createCase = useCallback(async (name: string, description: string): Promise<string> => {
+    const id = await db.createCase(name, description);
+    const newCase: CaseData = { id, name, description, createdAt: Date.now(), updatedAt: Date.now() };
+    setCases(prev => [...prev, newCase]);
+    setActiveCase(newCase);
+    setEvidenceQueue([]);
+    setSelectedFile(null);
+    return id;
+  }, []);
+
+  const handleDeleteCase = useCallback(async (id: string) => {
+    await db.deleteCase(id);
+    setCases(prev => prev.filter(c => c.id !== id));
+    if (activeCase?.id === id) {
+      setActiveCase(null);
+      setEvidenceQueue([]);
+      setSelectedFile(null);
+    }
+  }, [activeCase]);
+
+  const refreshCases = useCallback(async () => {
+    const storedCases = await db.getCases();
+    setCases(storedCases);
+  }, []);
+
+  const refreshEvidence = useCallback(async () => {
+    if (!activeCase) return;
+    const evs = await db.getEvidenceByCase(activeCase.id);
+    setEvidenceQueue(evs.map(e => ({
+      id: e.id, caseId: e.caseId, nombre: e.nombre,
+      estado: e.estado, progreso: e.progreso, tamano: e.tamano,
+    })));
+  }, [activeCase]);
+
+  const handleLogin = useCallback((u: { usuario: string } | null) => {
+    setUser(u);
+    if (u) localStorage.setItem('vanta_user', JSON.stringify(u));
+    else localStorage.removeItem('vanta_user');
   }, []);
 
   const handleLogout = useCallback(() => {
     setUser(null);
+    localStorage.removeItem('vanta_user');
     setActiveTab('ingesta');
     setSelectedFile(null);
   }, []);
@@ -172,10 +278,25 @@ function AppShell() {
     evidenceQueue, addEvidence, updateEvidence,
     selectedFile, selectFileForTranscription,
     user,
-  }), [evidenceQueue, addEvidence, updateEvidence, selectedFile, selectFileForTranscription, user]);
+    cases, activeCase, setActiveCase,
+    createCase, deleteCase: handleDeleteCase,
+    refreshCases, refreshEvidence,
+    isLoading,
+    activeTab, setActiveTab,
+  }), [evidenceQueue, addEvidence, updateEvidence, selectedFile, selectFileForTranscription,
+      user, cases, activeCase, createCase, handleDeleteCase,
+      refreshCases, refreshEvidence, isLoading, activeTab, setActiveTab]);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-[var(--page-bg)] items-center justify-center">
+        <div className="text-xs text-[var(--text-muted)] animate-pulse">Cargando...</div>
+      </div>
+    );
+  }
 
   if (!user) {
-    return <LoginScreen onLogin={setUser} />;
+    return <LoginScreen onLogin={handleLogin} />;
   }
 
   const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta;
@@ -203,14 +324,12 @@ function AppShell() {
         <div className="flex w-full h-full bg-[var(--card-bg)] rounded-[22px] overflow-hidden border border-[var(--border-subtle)] shadow-[0_8px_60px_-12px_rgba(0,0,0,0.3)] relative">
           <aside
             className={`
-              ${sidebarOpen
-                ? 'w-[150px] md:w-[200px] xl:w-[240px]'
-                : '-translate-x-full md:translate-x-0 md:w-[56px]'
-              }
+              ${sidebarOpen ? 'w-[150px] md:w-[200px] xl:w-[240px]' : 'md:w-[56px]'}
+              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
               shrink-0 flex flex-col
-              transition-all duration-300 ease-in-out
-              ${sidebarOpen ? '' : '-translate-x-full md:translate-x-0'}
+              transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
               bg-[var(--card-bg)] border-r border-[var(--border-subtle)]
+              overflow-hidden
             `}
           >
             <div className={`
@@ -219,12 +338,9 @@ function AppShell() {
             `}>
               {sidebarOpen ? (
                 <div className="w-full">
-                  <div className="text-[13px] tracking-[0.16em] uppercase text-[var(--text-main)] font-bold flex items-center gap-2.5">
+                  <div className="flex items-center gap-2.5 select-none">
                     <VantaMiniLogo className="w-[18px] h-[18px]" />
-                    VANTA
-                  </div>
-                  <div className="text-[10px] text-[var(--text-muted)] mt-1.5 tracking-[0.06em] font-mono">
-                    v0.1.0 — offline
+                    <span className="chrome-text text-[13px] tracking-[0.16em] uppercase font-bold">VANTA</span>
                   </div>
                 </div>
               ) : (
@@ -232,8 +348,15 @@ function AppShell() {
               )}
             </div>
 
-            <nav className="flex-1 py-3 overflow-y-auto" aria-label="Navegación principal">
-              <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-0.5 px-2">
+            <nav className="flex-1 overflow-y-auto py-4 scroll-fade" aria-label="Navegacion principal">
+              {sidebarOpen && activeCase && (
+                <div className="px-5 mb-4 flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 6px var(--accent)' }} />
+                  <div className="text-[11px] font-medium truncate" style={{ color: 'var(--text-main)' }}>{activeCase.name}</div>
+                </div>
+              )}
+
+              <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-1 px-3">
                 {TABS.map((tab) => {
                   const active = activeTab === tab.id;
                   return (
@@ -247,10 +370,10 @@ function AppShell() {
                       onClick={() => handleTabClick(tab.id)}
                       onKeyDown={handleTabKeyDown}
                       className={`
-                        outline-none focus-visible:bg-[var(--glass-hover)] transition-all duration-200
+                        outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card-bg)] transition-all duration-200
                         ${sidebarOpen
-                          ? 'w-full text-left px-3 py-2 text-[12px] tracking-[0.03em] border-l-2 flex items-center gap-2.5 rounded-r-md'
-                          : 'w-full py-2.5 justify-center flex items-center rounded-md'
+                          ? 'w-full text-left px-4 py-3 text-[12px] tracking-[0.04em] border-l-2 flex items-center gap-3 rounded-r-md hover:translate-x-[2px]'
+                          : 'w-full py-3 justify-center flex items-center rounded-md'
                         }
                         ${active
                           ? sidebarOpen
@@ -264,16 +387,27 @@ function AppShell() {
                       title={tab.label}
                     >
                       <SidebarIcon type={tab.icon} active={active} />
-                      <span className={`whitespace-nowrap ${sidebarOpen ? '' : 'hidden'}`}>
-                        {tab.label}
-                      </span>
+                      <AnimatePresence initial={false}>
+                        {sidebarOpen && (
+                          <motion.span
+                            key="label"
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: 'auto' }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                            className="whitespace-nowrap overflow-hidden"
+                          >
+                            {tab.label}
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
                     </button>
                   );
                 })}
               </div>
             </nav>
 
-            <div className="border-t border-[var(--border-subtle)] flex-shrink-0 p-3">
+            <div className="border-t border-[var(--border-subtle)] flex-shrink-0 p-4">
               <div className={`flex items-center ${sidebarOpen ? 'gap-2.5 mb-3' : 'justify-center mb-2'}`}>
                 <div className="w-8 h-8 rounded-full bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
                   <span className="text-[11px] font-bold text-[var(--accent-text)]">
@@ -286,10 +420,10 @@ function AppShell() {
                   </div>
                 )}
               </div>
-              <div className={`flex items-center gap-1 ${sidebarOpen ? '' : 'flex-col'}`}>
+              <div className={`flex items-center gap-2 ${sidebarOpen ? '' : 'flex-col'}`}>
                 <button
                   onClick={toggleSidebar}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none"
+                  className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] hover:scale-110 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
                   aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
                   title={sidebarOpen ? 'Contraer' : 'Expandir'}
                 >
@@ -305,7 +439,7 @@ function AppShell() {
                     else if (theme === 'light') setTheme('system');
                     else setTheme('dark');
                   }}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none"
+                  className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] hover:scale-110 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
                   aria-label="Cambiar Tema"
                   title="Cambiar Tema"
                 >
@@ -313,7 +447,7 @@ function AppShell() {
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--glass-hover)] transition-colors outline-none"
+                  className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--glass-hover)] hover:scale-110 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
                   title="Cerrar Sesion"
                   aria-label="Cerrar Sesion"
                 >
@@ -328,12 +462,15 @@ function AppShell() {
           </aside>
 
           <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[var(--page-bg)] relative" tabIndex={-1}>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[var(--accent)] opacity-[0.04] blur-[120px] rounded-full pointer-events-none z-0" />
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-[0.04] blur-[120px] rounded-full pointer-events-none z-0 transition-colors duration-700"
+              style={{ backgroundColor: GLOW_COLORS[activeTab] }}
+            />
 
             <div className="md:hidden absolute top-3 left-3 z-20">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none"
+                className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card-bg)]"
                 aria-label="Abrir barra lateral"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -345,37 +482,57 @@ function AppShell() {
             </div>
 
             <div className="z-10 flex items-center justify-between px-6 pt-6 pb-0">
-              <div className="text-[14px] font-bold text-[var(--text-main)] tracking-[-0.01em]">
-                {MODULE_TITLES[activeTab]}
-              </div>
-              <div className="flex gap-1.5 items-center px-3 py-1.5 rounded-md bg-[var(--glass-bg)] border border-[var(--border-subtle)]">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_6px_rgba(34,197,94,0.8)]" />
-                <span className="text-[10px] text-[var(--text-muted)] tracking-[0.08em] font-mono uppercase">
-                  Offline Local
-                </span>
+              <div className="text-[14px] font-bold tracking-[-0.01em] chrome-text select-none">
+                {activeCase ? `${activeCase.name} / ` : ''}{MODULE_TITLES[activeTab]}
               </div>
             </div>
 
             <div className="flex-1 overflow-hidden z-10">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  variants={fadeIn}
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  transition={transition}
-                  className="h-full"
-                >
-                  <ErrorBoundary>
-                    <Suspense fallback={<SkeletonSection className="h-full" />}>
-                      <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-                        <ActiveModule />
-                      </div>
-                    </Suspense>
-                  </ErrorBoundary>
-                </motion.div>
-              </AnimatePresence>
+              {!activeCase && CASE_DEPENDENT_TABS.has(activeTab) ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center max-w-xs">
+                    <div
+                      className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+                      style={{ backgroundColor: 'var(--glass-bg)', border: '1px solid var(--border-subtle)' }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                      </svg>
+                    </div>
+                    <div className="text-xs font-medium mb-1" style={{ color: 'var(--text-main)' }}>Ningun caso seleccionado</div>
+                    <div className="text-[10px] font-mono mb-6 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                      Seleccione o cree un caso para acceder a esta seccion
+                    </div>
+                    <MagneticButton>
+                      <button
+                        onClick={() => setActiveTab('casos')}
+                        className="px-5 py-2 rounded-lg text-[11px] font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                        style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
+                      >
+                        Ir a Casos
+                      </button>
+                    </MagneticButton>
+                  </div>
+                </div>
+              ) : (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTab}
+                    variants={fadeIn}
+                    initial="hidden"
+                    animate="visible"
+                    className="h-full"
+                  >
+                    <ErrorBoundary>
+                      <Suspense fallback={<SkeletonSection className="h-full" />}>
+                        <div role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
+                          <ActiveModule />
+                        </div>
+                      </Suspense>
+                    </ErrorBoundary>
+                  </motion.div>
+                </AnimatePresence>
+              )}
             </div>
           </main>
         </div>

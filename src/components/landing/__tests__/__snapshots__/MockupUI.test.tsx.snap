@@ -11,31 +11,88 @@ exports[`MockupUI > renders chain view (activeIndex=2) 1`] = `
       class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
     >
       <div
-        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+        class="flex items-center gap-2 select-none"
       >
         <svg
-          class="w-4 h-4 text-white"
-          fill="currentColor"
+          class="w-4 h-4"
+          fill="none"
           viewBox="0 0 100 100"
         >
+          <defs>
+            <lineargradient
+              id="_r_2_"
+              x1="-100%"
+              x2="0%"
+              y1="-100%"
+              y2="0%"
+            >
+              <stop
+                offset="0%"
+                stop-color="var(--chrome-1)"
+              />
+              <stop
+                offset="30%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="50%"
+                stop-color="var(--text-main)"
+              />
+              <stop
+                offset="70%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="100%"
+                stop-color="var(--chrome-1)"
+              />
+              <animate
+                attributeName="x1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="y1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="x2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+              <animate
+                attributeName="y2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+            </lineargradient>
+          </defs>
           <polygon
+            fill="url(#_r_2_)"
+            opacity="0.95"
             points="10,25 40,85 55,85 25,25"
           />
           <polygon
-            opacity="0.6"
+            fill="url(#_r_2_)"
+            opacity="0.75"
             points="90,25 60,85 45,85 75,25"
           />
           <polygon
-            opacity="0.8"
+            fill="url(#_r_2_)"
+            opacity="0.85"
             points="35,25 65,25 50,55"
           />
         </svg>
-        VANTA
-      </div>
-      <div
-        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
-      >
-        v3.0.0 — offline
+        <span
+          class="chrome-text text-[12px] tracking-[0.14em] uppercase font-bold"
+        >
+          VANTA
+        </span>
       </div>
     </div>
     <button
@@ -343,31 +400,88 @@ exports[`MockupUI > renders crypto view (activeIndex=3) 1`] = `
       class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
     >
       <div
-        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+        class="flex items-center gap-2 select-none"
       >
         <svg
-          class="w-4 h-4 text-white"
-          fill="currentColor"
+          class="w-4 h-4"
+          fill="none"
           viewBox="0 0 100 100"
         >
+          <defs>
+            <lineargradient
+              id="_r_3_"
+              x1="-100%"
+              x2="0%"
+              y1="-100%"
+              y2="0%"
+            >
+              <stop
+                offset="0%"
+                stop-color="var(--chrome-1)"
+              />
+              <stop
+                offset="30%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="50%"
+                stop-color="var(--text-main)"
+              />
+              <stop
+                offset="70%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="100%"
+                stop-color="var(--chrome-1)"
+              />
+              <animate
+                attributeName="x1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="y1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="x2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+              <animate
+                attributeName="y2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+            </lineargradient>
+          </defs>
           <polygon
+            fill="url(#_r_3_)"
+            opacity="0.95"
             points="10,25 40,85 55,85 25,25"
           />
           <polygon
-            opacity="0.6"
+            fill="url(#_r_3_)"
+            opacity="0.75"
             points="90,25 60,85 45,85 75,25"
           />
           <polygon
-            opacity="0.8"
+            fill="url(#_r_3_)"
+            opacity="0.85"
             points="35,25 65,25 50,55"
           />
         </svg>
-        VANTA
-      </div>
-      <div
-        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
-      >
-        v3.0.0 — offline
+        <span
+          class="chrome-text text-[12px] tracking-[0.14em] uppercase font-bold"
+        >
+          VANTA
+        </span>
       </div>
     </div>
     <button
@@ -497,31 +611,88 @@ exports[`MockupUI > renders status view (activeIndex=0) 1`] = `
       class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
     >
       <div
-        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+        class="flex items-center gap-2 select-none"
       >
         <svg
-          class="w-4 h-4 text-white"
-          fill="currentColor"
+          class="w-4 h-4"
+          fill="none"
           viewBox="0 0 100 100"
         >
+          <defs>
+            <lineargradient
+              id="_r_0_"
+              x1="-100%"
+              x2="0%"
+              y1="-100%"
+              y2="0%"
+            >
+              <stop
+                offset="0%"
+                stop-color="var(--chrome-1)"
+              />
+              <stop
+                offset="30%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="50%"
+                stop-color="var(--text-main)"
+              />
+              <stop
+                offset="70%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="100%"
+                stop-color="var(--chrome-1)"
+              />
+              <animate
+                attributeName="x1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="y1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="x2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+              <animate
+                attributeName="y2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+            </lineargradient>
+          </defs>
           <polygon
+            fill="url(#_r_0_)"
+            opacity="0.95"
             points="10,25 40,85 55,85 25,25"
           />
           <polygon
-            opacity="0.6"
+            fill="url(#_r_0_)"
+            opacity="0.75"
             points="90,25 60,85 45,85 75,25"
           />
           <polygon
-            opacity="0.8"
+            fill="url(#_r_0_)"
+            opacity="0.85"
             points="35,25 65,25 50,55"
           />
         </svg>
-        VANTA
-      </div>
-      <div
-        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
-      >
-        v3.0.0 — offline
+        <span
+          class="chrome-text text-[12px] tracking-[0.14em] uppercase font-bold"
+        >
+          VANTA
+        </span>
       </div>
     </div>
     <button
@@ -656,31 +827,88 @@ exports[`MockupUI > renders transcription view (activeIndex=1) 1`] = `
       class="px-5 pb-5 border-b border-white/[0.05] mb-2.5"
     >
       <div
-        class="text-[12px] tracking-[0.14em] uppercase text-white/90 font-bold flex items-center gap-2"
+        class="flex items-center gap-2 select-none"
       >
         <svg
-          class="w-4 h-4 text-white"
-          fill="currentColor"
+          class="w-4 h-4"
+          fill="none"
           viewBox="0 0 100 100"
         >
+          <defs>
+            <lineargradient
+              id="_r_1_"
+              x1="-100%"
+              x2="0%"
+              y1="-100%"
+              y2="0%"
+            >
+              <stop
+                offset="0%"
+                stop-color="var(--chrome-1)"
+              />
+              <stop
+                offset="30%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="50%"
+                stop-color="var(--text-main)"
+              />
+              <stop
+                offset="70%"
+                stop-color="var(--chrome-2)"
+              />
+              <stop
+                offset="100%"
+                stop-color="var(--chrome-1)"
+              />
+              <animate
+                attributeName="x1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="y1"
+                dur="6s"
+                repeatCount="indefinite"
+                values="-100%;200%;-100%"
+              />
+              <animate
+                attributeName="x2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+              <animate
+                attributeName="y2"
+                dur="6s"
+                repeatCount="indefinite"
+                values="0%;300%;0%"
+              />
+            </lineargradient>
+          </defs>
           <polygon
+            fill="url(#_r_1_)"
+            opacity="0.95"
             points="10,25 40,85 55,85 25,25"
           />
           <polygon
-            opacity="0.6"
+            fill="url(#_r_1_)"
+            opacity="0.75"
             points="90,25 60,85 45,85 75,25"
           />
           <polygon
-            opacity="0.8"
+            fill="url(#_r_1_)"
+            opacity="0.85"
             points="35,25 65,25 50,55"
           />
         </svg>
-        VANTA
-      </div>
-      <div
-        class="text-[10px] text-zinc-600 mt-[4px] tracking-[0.06em] font-mono"
-      >
-        v3.0.0 — offline
+        <span
+          class="chrome-text text-[12px] tracking-[0.14em] uppercase font-bold"
+        >
+          VANTA
+        </span>
       </div>
     </div>
     <button
