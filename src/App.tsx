@@ -284,8 +284,8 @@ function AppShell() {
     isLoading,
     activeTab, setActiveTab,
   }), [evidenceQueue, addEvidence, updateEvidence, selectedFile, selectFileForTranscription,
-      user, cases, activeCase, createCase, handleDeleteCase,
-      refreshCases, refreshEvidence, isLoading, activeTab, setActiveTab]);
+    user, cases, activeCase, createCase, handleDeleteCase,
+    refreshCases, refreshEvidence, isLoading, activeTab, setActiveTab]);
 
   if (isLoading) {
     return (
@@ -482,7 +482,7 @@ function AppShell() {
             </div>
 
             <div className="z-10 flex items-center justify-between px-6 pt-6 pb-0">
-              <div className="text-[14px] font-bold tracking-[-0.01em] chrome-text select-none">
+              <div className="text-[14px] font-bold tracking-[-0.01em] select-none" style={{ color: 'var(--text-main)' }}>
                 {activeCase ? `${activeCase.name} / ` : ''}{MODULE_TITLES[activeTab]}
               </div>
             </div>

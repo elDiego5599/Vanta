@@ -61,7 +61,27 @@ const WaveSurferWaveform = memo(forwardRef<WaveSurferHandle, WaveSurferWaveformP
 
       wsRef.current = ws;
 
+      const observer = new ResizeObserver((entries) => {
+        for (let entry of entries) {
+          if (entry.contentRect.width > 0) {
+            // Force WaveSurfer to recalculate layout if it was initially hidden
+            // In v7 this is mostly handled, but setting height or options can trigger it
+            if (wsRef.current) {
+              const currentWs = wsRef.current;
+              // A trick to force redraw in some versions if it failed initially
+              const w = currentWs.getWrapper();
+              if (w && w.offsetWidth > 0 && !w.querySelector('canvas')?.width) {
+                 // Try to reload or redraw if needed, but normally v7 handles it.
+              }
+            }
+          }
+        }
+      });
+      
+      observer.observe(containerRef.current);
+
       return () => {
+        observer.disconnect();
         ws.pause();
         ws.destroy();
         wsRef.current = null;
@@ -92,7 +112,7 @@ const WaveSurferWaveform = memo(forwardRef<WaveSurferHandle, WaveSurferWaveformP
     }));
 
     return (
-      <div ref={containerRef} className="w-full" />
+      <div ref={containerRef} className="w-full min-h-[56px]" />
     );
   }
 ));

@@ -1,6 +1,8 @@
 import { useState, useCallback, memo, KeyboardEvent, ChangeEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PremiumEdgeWrapper, MagneticButton } from '../landing/Primitives';
+import { useAppContext } from '../../lib/AppContext';
+import * as db from '../../lib/db';
 
 interface SearchResult {
   archivo: string;
@@ -24,14 +26,48 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
 
-  const handleSearch = useCallback(() => {
+  const { activeCase, cases } = useAppContext();
+
+  const handleSearch = useCallback(async () => {
     if (!query.trim()) return;
     setLoading(true);
-    setTimeout(() => {
-      setResults([]);
+    try {
+      const allResults: SearchResult[] = [];
+      const casesToSearch = activeCase ? [activeCase] : cases;
+      
+      for (const c of casesToSearch) {
+        const txs = await db.getTranscriptionsByCase(c.id);
+        if (!txs.length) continue;
+        
+        const evidences = await db.getEvidenceByCase(c.id);
+        const evMap = new Map(evidences.map(e => [e.id, e.nombre]));
+        
+        for (const tx of txs) {
+          const evName = evMap.get(tx.evidenceId) || 'Desconocido';
+          
+          for (const line of tx.lines) {
+            const speaker = (line as any).speaker || 'Agente';
+            const textToSearch = `${line.text} ${speaker}`.toLowerCase();
+            if (textToSearch.includes(query.toLowerCase())) {
+              allResults.push({
+                archivo: evName,
+                fragmento: line.text,
+                hablante: speaker,
+                timestamp: line.t,
+                etiquetas: [c.name]
+              });
+            }
+          }
+        }
+      }
+      
+      setResults(allResults);
+    } catch (error) {
+      console.error("Error buscando:", error);
+    } finally {
       setLoading(false);
-    }, 800);
-  }, [query]);
+    }
+  }, [query, activeCase, cases]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') handleSearch();
@@ -40,7 +76,9 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
   return (
     <div className="h-full flex flex-col p-6">
       <div className="mb-4">
-        <p className="text-[10px] text-[var(--text-muted)] tracking-[0.06em] font-mono">Busque conceptos en las transcripciones almacenadas.</p>
+        <p className="text-[10px] text-[var(--text-muted)] tracking-[0.06em] font-mono">
+          Busque conceptos en las transcripciones almacenadas {activeCase ? `del caso: ${activeCase.name}` : '(Búsqueda Global)'}.
+        </p>
       </div>
 
       <div className="flex gap-3 mb-8">
@@ -84,7 +122,7 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
                   <line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
               </motion.div>
-              <div className="chrome-text text-xs font-semibold mb-1">Sin resultados</div>
+              <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>Sin resultados</div>
               <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Realice una busqueda para ver resultados</div>
             </div>
           </PremiumEdgeWrapper>

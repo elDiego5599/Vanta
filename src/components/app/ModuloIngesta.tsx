@@ -13,21 +13,7 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 };
 
-const UploadIcon = memo(() => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" y1="3" x2="12" y2="15" />
-  </svg>
-));
-
-const AudioIcon = memo(() => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18V5l12-2v13" />
-    <circle cx="6" cy="18" r="3" />
-    <circle cx="18" cy="16" r="3" />
-  </svg>
-));
+import { UploadAppIcon as UploadIcon, AudioIcon } from '../landing/Icons';
 
 const ModuloIngesta = memo(function ModuloIngesta() {
   const { evidenceQueue, addEvidence, selectFileForTranscription, activeCase } = useAppContext();
@@ -104,9 +90,12 @@ const ModuloIngesta = memo(function ModuloIngesta() {
       </PremiumEdgeWrapper>
 
       <div className="flex-1 overflow-y-auto scroll-fade">
-        <h2 className="text-[10px] font-semibold tracking-[0.12em] uppercase text-[var(--text-muted)] mb-3">
+        <div 
+          className="text-[10px] font-bold tracking-[0.15em] uppercase mb-3 text-zinc-500" 
+          style={{ background: 'none', WebkitTextFillColor: 'currentColor' }}
+        >
           Archivos Cargados
-        </h2>
+        </div>
 
         {evidenceQueue.length === 0 ? (
           <PremiumEdgeWrapper rounded="rounded-lg">
@@ -119,7 +108,7 @@ const ModuloIngesta = memo(function ModuloIngesta() {
               >
                 <UploadIcon />
               </motion.div>
-              <div className="chrome-text text-xs font-semibold mb-1">No hay archivos</div>
+              <div className="text-xs font-semibold mb-1" style={{ color: 'var(--text-muted)' }}>No hay archivos</div>
               <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Arrastre o seleccione archivos de audio</div>
             </div>
           </PremiumEdgeWrapper>
@@ -191,13 +180,13 @@ const ModuloIngesta = memo(function ModuloIngesta() {
                   </div>
                   {item.estado !== 'transcribiendo' && (!item.estado || item.estado === 'listo') && (
                     <MagneticButton>
-                    <button
-                      onClick={() => selectFileForTranscription(item)}
-                      className="px-3 py-1.5 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-[10px] font-medium text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                    >
-                      {item.progreso === 100 ? 'Ver' : 'Transcribir'}
-                    </button>
-                  </MagneticButton>
+                      <button
+                        onClick={() => selectFileForTranscription(item)}
+                        className="px-3 py-1.5 bg-[var(--accent-subtle)] border border-[var(--accent)]/30 rounded-md text-[10px] font-medium text-[var(--accent-text)] hover:bg-[var(--accent)]/30 transition-colors flex-shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                      >
+                        {item.progreso === 100 ? 'Ver' : 'Transcribir'}
+                      </button>
+                    </MagneticButton>
                   )}
                   {item.estado === 'error' && (
                     <MagneticButton>

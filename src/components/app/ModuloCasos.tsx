@@ -1,15 +1,19 @@
 import { useState, useCallback, memo, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAppContext, CaseData } from '../../lib/AppContext';
 import { MagneticButton } from '../landing/Primitives';
+import { FolderIcon, TrashIcon, ArrowIcon, PlusIcon } from '../landing/Icons';
 
+// ==========================================
+// 1. CONSTANTES Y FUNCIONES PURAS
+// ==========================================
 const CASE_COLORS = [
-  { bg: 'rgba(59,130,246,0.12)', icon: '#60a5fa' },
+  { bg: 'rgba(59,130,246,0.12)', icon: '#3b82f6' },
   { bg: 'rgba(168,85,247,0.12)', icon: '#a855f7' },
-  { bg: 'rgba(34,197,94,0.12)', icon: '#4ade80' },
-  { bg: 'rgba(249,115,22,0.12)', icon: '#fb923c' },
-  { bg: 'rgba(236,72,153,0.12)', icon: '#f472b6' },
-  { bg: 'rgba(20,184,166,0.12)', icon: '#2dd4bf' },
+  { bg: 'rgba(34,197,94,0.12)', icon: '#22c55e' },
+  { bg: 'rgba(249,115,22,0.12)', icon: '#f97316' },
+  { bg: 'rgba(236,72,153,0.12)', icon: '#ec4899' },
+  { bg: 'rgba(20,184,166,0.12)', icon: '#14b8a6' },
 ];
 
 function getCaseColor(id: string) {
@@ -20,293 +24,378 @@ function getCaseColor(id: string) {
   return CASE_COLORS[Math.abs(hash) % CASE_COLORS.length]!;
 }
 
-const FolderIcon = memo(({ color }: { color: string }) => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-  </svg>
-));
-
-const TrashIcon = memo(() => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-  </svg>
-));
-
-const ArrowIcon = memo(() => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="5" y1="12" x2="19" y2="12" />
-    <polyline points="12 5 19 12 12 19" />
-  </svg>
-));
-
-const PlusIcon = memo(() => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-));
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 12 },
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20, scale: 0.95 },
   visible: (i: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] as const, delay: i * 0.05 },
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+      delay: i * 0.05
+    },
   }),
+  exit: {
+    opacity: 0,
+    scale: 0.9,
+    transition: { duration: 0.2 }
+  }
 };
 
-function CaseCard({
-  c,
-  isActive,
-  colors,
-  onSelect,
-  onNavigate,
-  onDelete,
-  index,
-}: {
-  c: CaseData;
-  isActive: boolean;
-  colors: typeof CASE_COLORS[number];
-  onSelect: (c: CaseData) => void;
-  onNavigate: (e: React.MouseEvent, c: CaseData) => void;
-  onDelete: (id: string, e: React.MouseEvent) => void;
-  index: number;
-}) {
+// ==========================================
+// 2. MODAL PREMIUM DE CONFIRMACIÓN
+// ==========================================
+function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, caseName: string }) {
   return (
-      <motion.div
-        custom={index}
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
-        whileHover={{ y: -3, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
-        className="relative p-[1px] group"
-      >
-      <div
-        className="absolute -inset-3 z-[-1] opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.06) 0%, transparent 70%)',
-          filter: 'blur(16px)',
-        }}
-      />
-
-      <div
-        className="absolute inset-0 rounded-xl overflow-hidden z-0 transition-opacity duration-500 pointer-events-none"
-        style={{ opacity: isActive ? 1 : 0 }}
-      >
-        <div
-          className="absolute top-1/2 left-1/2 w-[150%] aspect-square animate-rotate-gradient rounded-full"
-          style={{
-            background: 'conic-gradient(from 0deg, transparent 0%, transparent 35%, rgba(59,130,246,0.5) 45%, rgba(96,165,250,0.6) 50%, rgba(59,130,246,0.5) 55%, transparent 65%, transparent 100%)',
-            filter: 'blur(10px)',
-            transform: 'translate(-50%, -50%)',
-          }}
-        />
-      </div>
-
-      {!isActive && (
-        <div className="absolute inset-0 rounded-xl overflow-hidden z-0 pointer-events-none opacity-0 group-hover:opacity-40 transition-opacity duration-500">
-          <div
-            className="absolute top-1/2 left-1/2 w-[150%] aspect-square rounded-full"
-            style={{
-              background: 'conic-gradient(from 0deg, transparent 0%, transparent 30%, rgba(255,255,255,0.08) 42%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.08) 58%, transparent 70%, transparent 100%)',
-              filter: 'blur(8px)',
-              transform: 'translate(-50%, -50%)',
-            }}
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          {/* Fondo oscuro con Blur */}
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-[var(--page-bg)]/60 backdrop-blur-md cursor-pointer"
           />
+
+          {/* Caja del Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="relative w-full max-w-[400px] bg-[var(--card-bg)] border border-[var(--border-subtle)] rounded-3xl p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] overflow-hidden"
+          >
+            {/* Glow rojo sutil en el fondo del modal */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[50px] pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col items-center text-center">
+              {/* Contenedor del ícono (FIX TS: Color inyectado en el texto de un div padre) */}
+              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+                <TrashIcon w={22} h={22} />
+              </div>
+
+              <h3 className="text-xl font-extrabold text-[var(--text-main)] mb-3 tracking-tight">Destruir Expediente</h3>
+              <p className="text-[13px] font-mono text-[var(--text-muted)] mb-8 leading-relaxed">
+                Se eliminará permanentemente el caso <span className="text-[var(--text-main)] font-bold">"{caseName}"</span> y su cadena de custodia. Esta acción es <span className="text-red-500 font-bold">irreversible</span>.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-main)]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="flex-1 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500 shadow-sm transition-all outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </motion.div>
         </div>
       )}
+    </AnimatePresence>
+  );
+}
 
-      <div
-        className="absolute inset-[1px] rounded-xl z-10 transition-all duration-300 pointer-events-none"
-        style={{
-          backgroundColor: isActive ? 'var(--card-bg)' : 'var(--glass-bg)',
-          border: isActive ? 'none' : '1px solid var(--border-subtle)',
-          boxShadow: isActive
-            ? 'var(--card-bg) 0 0 0 0'
-            : 'inset 0 1px 1px var(--border-subtle)',
-        }}
-      />
+// ==========================================
+// 3. COMPONENTE DE TARJETA
+// ==========================================
+interface CaseCardProps {
+  c: CaseData;
+  isActive: boolean;
+  onSelect: (c: CaseData) => void;
+  onNavigate: (e: React.MouseEvent, c: CaseData) => void;
+  onDeleteRequest: (c: CaseData, e: React.MouseEvent) => void;
+  index: number;
+}
 
-      <div
-        onClick={() => onSelect(c)}
-        className="relative z-20 cursor-pointer rounded-xl p-5 outline-none flex flex-col h-full"
-        style={{ minHeight: '180px' }}
-      >
-        <div className="flex items-start justify-between mb-3">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: colors.bg }}
-          >
-            <FolderIcon color={colors.icon} />
-          </div>
-          {isActive && (
+const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onDeleteRequest, index }: CaseCardProps) {
+  const colors = getCaseColor(c.id);
+
+  return (
+    <motion.div
+      layout
+      custom={index}
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      whileHover={{ y: -2, transition: { duration: 0.2, ease: "easeOut" } }}
+      className="relative group h-[170px] flex flex-col"
+    >
+      <div className={`absolute inset-0 rounded-2xl transition-all duration-300 ${isActive ? 'shadow-[0_0_20px_color-mix(in_srgb,var(--accent)_20%,transparent)]' : 'shadow-sm hover:shadow-md'
+        }`}>
+
+        <div className="absolute inset-0 z-0 rounded-2xl bg-[var(--border-subtle)] transition-colors duration-300" />
+
+        {!isActive && (
+          <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500">
             <div
-              className="flex items-center gap-1.5 px-2 py-0.5 rounded-full"
-              style={{
-                backgroundColor: 'var(--accent-subtle)',
-                border: '1px solid color-mix(in srgb, var(--accent) 30%, transparent)',
-              }}
-            >
-              <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--accent)' }} />
-              <span
-                className="text-[8px] font-semibold tracking-[0.12em] uppercase"
-                style={{ color: 'var(--accent-text)' }}
-              >
-                Activo
-              </span>
-            </div>
-          )}
-        </div>
-
-        <div className="text-[12px] font-semibold mb-0.5 leading-snug" style={{ color: 'var(--text-main)' }}>
-          {c.name}
-        </div>
-        {c.description && (
-          <div className="text-[10px] leading-relaxed line-clamp-2 mt-1" style={{ color: 'var(--text-muted)' }}>
-            {c.description}
+              className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-rotate-gradient rounded-full"
+              style={{ background: `conic-gradient(from 0deg, transparent 0%, transparent 40%, var(--text-muted) 50%, transparent 60%, transparent 100%)` }}
+            />
           </div>
         )}
 
-        <div className="mt-auto pt-4 flex items-center justify-between">
+        {isActive && (
+          <div className="absolute inset-0 z-0 overflow-hidden rounded-2xl">
+            <div
+              className="absolute top-1/2 left-1/2 w-[200%] aspect-square animate-rotate-gradient rounded-full"
+              style={{ background: `conic-gradient(from 0deg, transparent 0%, transparent 40%, var(--accent) 50%, transparent 60%, transparent 100%)` }}
+            />
+          </div>
+        )}
+
+        <div className={`absolute z-10 rounded-[15px] bg-[var(--card-bg)] transition-all duration-300 ${isActive ? 'inset-[2px]' : 'inset-[1px] group-hover:inset-[2px]'}`} />
+
+        {isActive && (
+          <div className="absolute inset-[2px] z-11 rounded-[15px] bg-[var(--accent)]/[0.03] pointer-events-none" />
+        )}
+
+        <div className="relative z-20 flex flex-col h-full p-5">
+
           <button
-            onClick={(e) => onNavigate(e, c)}
-            className="flex items-center gap-1 text-[10px] font-medium transition-colors outline-none rounded-sm focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-            style={{ color: isActive ? 'var(--accent-text)' : 'var(--text-muted)' }}
-          >
-            {isActive ? 'Ver evidencias' : 'Seleccionar caso'}
-            <ArrowIcon />
-          </button>
-          <button
-            onClick={(e) => onDelete(c.id, e)}
-            className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent outline-none hover:text-red-400 hover:bg-red-500/10"
-            style={{ color: 'var(--text-muted)' }}
-            title="Eliminar caso"
-          >
-            <TrashIcon />
-          </button>
+            onClick={() => isActive ? onNavigate(null as any, c) : onSelect(c)}
+            className="absolute inset-0 w-full h-full rounded-[15px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)] z-10 cursor-pointer"
+            aria-label={isActive ? `Ver evidencias de ${c.name}` : `Seleccionar caso ${c.name}`}
+          />
+
+          <div className="flex-none flex items-start justify-between mb-3 pointer-events-none">
+            {/* FIX TS: El color del icono se inyecta por el estilo del div, no por la prop */}
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm"
+              style={{ backgroundColor: colors.bg, color: colors.icon }}
+            >
+              <FolderIcon w={20} h={20} />
+            </div>
+
+            {isActive && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[var(--border-strong)] bg-[var(--card-bg)] shadow-sm">
+                <div className="w-2 h-2 rounded-full bg-[var(--accent)] animate-pulse" />
+                <span className="text-[10px] font-bold tracking-widest uppercase text-[var(--accent)]">
+                  Activo
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-none pointer-events-none">
+            <div className="text-[15px] font-bold mb-0.5 leading-snug truncate text-[var(--text-main)]">
+              {c.name}
+            </div>
+            {c.description && (
+              <div className="text-[12px] leading-relaxed line-clamp-2 mt-1 font-mono text-[var(--text-muted)] transition-colors">
+                {c.description}
+              </div>
+            )}
+          </div>
+
+          <div className="flex-grow" />
+
+          <div className="flex-none flex items-center justify-between pointer-events-none pt-2 overflow-hidden h-[24px]">
+            <span className={`flex items-center gap-1.5 text-[11px] font-bold tracking-wider uppercase transition-all duration-300 transform ${isActive
+              ? 'text-[var(--accent)] translate-y-0 opacity-100'
+              : 'text-[var(--text-main)] translate-y-5 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
+              }`}>
+              {isActive ? 'Explorar caso' : 'Seleccionar'}
+              {/* FIX TS: La animación className se pasa a un envoltorio, no al ícono */}
+              <span className={`flex items-center transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3 group-hover:translate-x-0 group-hover:opacity-100'}`}>
+                <ArrowIcon w={13} h={13} />
+              </span>
+            </span>
+
+            <button
+              onClick={(e) => onDeleteRequest(c, e)}
+              className="pointer-events-auto relative z-30 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md outline-none hover:text-red-500 hover:bg-red-500/10 text-[var(--text-muted)] focus-visible:opacity-100"
+              title="Eliminar caso"
+              aria-label={`Eliminar caso ${c.name}`}
+            >
+              <TrashIcon w={15} h={15} />
+            </button>
+          </div>
+
         </div>
       </div>
     </motion.div>
   );
-}
+});
 
+// ==========================================
+// 4. MÓDULO PRINCIPAL DE CASOS
+// ==========================================
 const ModuloCasos = memo(function ModuloCasos() {
   const { cases, activeCase, setActiveCase, createCase, deleteCase, setActiveTab } = useAppContext();
+
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [caseToDelete, setCaseToDelete] = useState<CaseData | null>(null);
 
-  const colorMap = useMemo(() => {
-    const map: Record<string, typeof CASE_COLORS[number]> = {};
-    for (const c of cases) {
-      map[c.id] = getCaseColor(c.id);
-    }
-    return map;
-  }, [cases]);
+  const isDuplicateName = useMemo(() => {
+    const trimmed = newName.trim().toLowerCase();
+    if (!trimmed) return false;
+    return cases.some(c => c.name.toLowerCase() === trimmed);
+  }, [newName, cases]);
 
   const handleCreate = useCallback(async () => {
-    if (!newName.trim()) return;
-    await createCase(newName.trim(), newDesc.trim());
-    setNewName('');
-    setNewDesc('');
-    setShowCreate(false);
-  }, [newName, newDesc, createCase]);
+    if (!newName.trim() || isDuplicateName || isSubmitting) return;
+    setIsSubmitting(true);
+    try {
+      await createCase(newName.trim(), newDesc.trim());
+      setNewName('');
+      setNewDesc('');
+      setShowCreate(false);
+    } catch (error) {
+      console.error("Error al crear el caso:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [newName, newDesc, createCase, isDuplicateName, isSubmitting]);
 
-  const handleCardClick = useCallback((c: typeof cases[number]) => {
+  const handleCardClick = useCallback((c: CaseData) => {
     setActiveCase(c);
   }, [setActiveCase]);
 
-  const handleNavigate = useCallback((e: React.MouseEvent, c: typeof cases[number]) => {
+  const handleNavigate = useCallback((e: React.MouseEvent, c: CaseData) => {
     e.stopPropagation();
     setActiveCase(c);
     setActiveTab('ingesta');
   }, [setActiveCase, setActiveTab]);
 
-  const handleDelete = useCallback(async (id: string, e: React.MouseEvent) => {
+  const handleDeleteRequest = useCallback((c: CaseData, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (activeCase?.id === id) setActiveCase(null);
-    await deleteCase(id);
-  }, [activeCase, setActiveCase, deleteCase]);
+    setCaseToDelete(c);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!caseToDelete) return;
+    if (activeCase?.id === caseToDelete.id) setActiveCase(null);
+    try {
+      await deleteCase(caseToDelete.id);
+    } catch (error) {
+      console.error("Error al eliminar el caso:", error);
+    } finally {
+      setCaseToDelete(null);
+    }
+  }, [caseToDelete, activeCase, setActiveCase, deleteCase]);
 
   return (
-    <div className="h-full flex flex-col p-8">
-      <div className="mb-8 flex items-start justify-between">
+    <div className="absolute inset-0 flex flex-col p-6 lg:p-8 bg-[var(--page-bg)]">
+      {/* 
+        FIX DEL CURSOR Y SCROLLBAR:
+        - input { caret-color } asegura que el cursor parpadeante de texto se vea siempre.
+        - .custom-scrollbar asegura que el scroll sea hermoso en modo claro y oscuro sin depender de utilidades rotas.
+      */}
+      <style>{`
+        @keyframes rotate-gradient {
+          from { transform: translate(-50%, -50%) rotate(0deg); }
+          to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        .animate-rotate-gradient {
+          animation: rotate-gradient 4s linear infinite;
+        }
+        input {
+          caret-color: var(--text-main);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: var(--border-strong);
+          border-radius: 10px;
+          border: 2px solid var(--glass-bg);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: var(--text-muted);
+        }
+      `}</style>
+
+      {/* RENDER DEL MODAL */}
+      <ConfirmDeleteModal
+        isOpen={!!caseToDelete}
+        caseName={caseToDelete?.name || ''}
+        onClose={() => setCaseToDelete(null)}
+        onConfirm={confirmDelete}
+      />
+
+      {/* CABECERA */}
+      <div className="mb-6 flex items-start justify-between shrink-0">
         <div>
-          <div className="text-[13px] font-semibold tracking-[-0.01em]" style={{ color: 'var(--text-main)' }}>Casos</div>
-          <div className="text-[10px] mt-1 font-mono" style={{ color: 'var(--text-muted)' }}>
-            {cases.length} caso{cases.length !== 1 ? 's' : ''} registrado{cases.length !== 1 ? 's' : ''}
+          <div className="text-2xl font-extrabold tracking-tight text-[var(--text-main)]">Gestión de Casos</div>
+          <div className="text-[11px] mt-1 font-mono tracking-widest uppercase text-[var(--text-muted)]">
+            {cases.length} expediente{cases.length !== 1 ? 's' : ''} registrado{cases.length !== 1 ? 's' : ''}
           </div>
         </div>
         <MagneticButton>
           <button
             onClick={() => setShowCreate(!showCreate)}
-            className="px-3 py-1.5 rounded-lg text-[11px] flex items-center gap-1.5 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-            style={{
-              backgroundColor: 'var(--accent-subtle)',
-              color: 'var(--accent-text)',
-              border: '1px solid color-mix(in srgb, var(--accent) 20%, transparent)',
-            }}
+            className="px-4 py-2.5 rounded-xl text-[11px] font-bold tracking-wider uppercase flex items-center gap-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] hover:bg-blue-600 shadow-md"
+            style={{ backgroundColor: 'var(--accent)', color: '#ffffff' }}
           >
-            <PlusIcon />
+            {/* FIX TS: El color no se pasa directamente si no lo soporta */}
+            <div className="text-white"><PlusIcon w={16} h={16} /></div>
             Nuevo Caso
           </button>
         </MagneticButton>
       </div>
 
+      {/* FORMULARIO DE CREACIÓN */}
       <AnimatePresence>
         {showCreate && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="mb-6 overflow-hidden"
+            initial={{ height: 0, opacity: 0, y: -10 }}
+            animate={{ height: 'auto', opacity: 1, y: 0 }}
+            exit={{ height: 0, opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="mb-6 overflow-hidden shrink-0"
           >
-            <div
-              className="rounded-xl p-5"
-              style={{
-                backgroundColor: 'var(--glass-bg)',
-                border: '1px solid var(--border-subtle)',
-              }}
-            >
-              <div
-                className="text-[10px] font-semibold mb-4 uppercase tracking-[0.12em] font-mono"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                Crear nuevo caso
+            <div className="rounded-2xl bg-[var(--card-bg)] border border-[var(--border-subtle)] p-6 shadow-sm">
+              <div className="text-[10px] font-bold mb-4 uppercase tracking-[0.15em] font-mono text-[var(--text-muted)] flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)]" /> Apertura de Expediente
               </div>
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-                placeholder="Nombre del caso"
-                className="w-full bg-transparent text-[13px] outline-none mb-3 placeholder:text-[var(--text-muted)]"
-                style={{ color: 'var(--text-main)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+                placeholder="Nombre de la Operación / Caso"
+                className={`w-full bg-transparent text-[15px] font-semibold outline-none mb-1 placeholder:text-[var(--text-muted)] text-[var(--text-main)] border-b-2 pb-2.5 transition-colors ${isDuplicateName ? 'border-red-500 focus:border-red-500' : 'border-[var(--border-subtle)] focus:border-[var(--accent)]'}`}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !isDuplicateName) handleCreate(); }}
                 autoFocus
+                disabled={isSubmitting}
               />
+              {isDuplicateName && (
+                <div className="text-[10px] text-red-500 mt-1 mb-2 font-mono uppercase tracking-wider">Conflicto: Ya existe un caso con este nombre</div>
+              )}
+              {!isDuplicateName && <div className="mb-4" />}
+
               <input
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
-                placeholder="Descripcion (opcional)"
-                className="w-full bg-transparent text-[10px] outline-none mb-4 placeholder:text-[var(--text-muted)]"
-                style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px' }}
+                placeholder="Descripción o metadatos (opcional)"
+                className="w-full bg-transparent text-[12px] font-mono outline-none mb-6 placeholder:text-[var(--text-muted)] text-[var(--text-muted)] border-b border-[var(--border-subtle)] focus:border-[var(--text-main)] pb-2.5 transition-colors"
                 onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
+                disabled={isSubmitting}
               />
-              <div className="flex gap-2">
-                <MagneticButton>
-                  <button
-                    onClick={handleCreate}
-                    className="px-3.5 py-1.5 text-[10px] rounded-md font-medium outline-none focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                    style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
-                  >
-                    Crear Caso
-                  </button>
-                </MagneticButton>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCreate}
+                  disabled={isDuplicateName || !newName.trim() || isSubmitting}
+                  className="px-6 py-2.5 text-[11px] rounded-lg font-bold uppercase tracking-widest outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-main)] transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-[var(--accent)] text-white hover:bg-blue-600 shadow-sm"
+                >
+                  {isSubmitting ? 'Procesando...' : 'Registrar'}
+                </button>
                 <button
                   onClick={() => { setShowCreate(false); setNewName(''); setNewDesc(''); }}
-                  className="px-3.5 py-1.5 text-[10px] rounded-md outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
-                  style={{ color: 'var(--text-muted)' }}
+                  disabled={isSubmitting}
+                  className="px-6 py-2.5 text-[11px] rounded-lg font-bold uppercase tracking-widest outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-main)] transition-all text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-bg)] border border-transparent hover:border-[var(--border-subtle)]"
                 >
                   Cancelar
                 </button>
@@ -316,46 +405,41 @@ const ModuloCasos = memo(function ModuloCasos() {
         )}
       </AnimatePresence>
 
+      {/* ESTADO VACÍO O GRID CON SCROLL */}
       {cases.length === 0 && !showCreate ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center min-h-0 bg-[var(--glass-bg)] rounded-3xl border border-[var(--border-subtle)]">
           <div className="text-center relative">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full blur-3xl pointer-events-none" style={{ backgroundColor: 'var(--accent)', opacity: 0.08 }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full blur-[80px] pointer-events-none bg-[var(--accent)]/10" />
             <motion.div
-              className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
-              style={{
-                backgroundColor: 'var(--glass-bg)',
-                border: '1px solid var(--border-subtle)',
-              }}
-              animate={{ y: [0, -5, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-[var(--card-bg)] border border-[var(--border-subtle)] shadow-sm relative z-10 text-[var(--text-muted)]"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-              </svg>
+              <FolderIcon w={28} h={28} />
             </motion.div>
-            <div className="chrome-text text-xs font-semibold mb-1">Sin casos</div>
-            <div className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>Crea tu primer caso para comenzar</div>
+            <div className="text-lg font-extrabold mb-1 text-[var(--text-main)] tracking-tight relative z-10">Bóveda Vacía</div>
+            <div className="text-[11px] font-mono text-[var(--text-muted)] tracking-widest uppercase relative z-10">Crea un caso para comenzar</div>
           </div>
         </div>
       ) : (
-        <div className="flex-1 overflow-y-auto pr-2 scroll-fade">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 auto-rows-fr">
-            {cases.map((c, i) => {
-              const isActive = activeCase?.id === c.id;
-              const colors = colorMap[c.id] ?? CASE_COLORS[0]!;
-              return (
-                <CaseCard
-                  key={c.id}
-                  c={c}
-                  isActive={isActive}
-                  colors={colors}
-                  onSelect={handleCardClick}
-                  onNavigate={handleNavigate}
-                  onDelete={handleDelete}
-                  index={i}
-                />
-              );
-            })}
+        <div className="flex-1 min-h-0 relative rounded-3xl border border-[var(--border-subtle)] bg-[var(--glass-bg)] shadow-sm overflow-hidden">
+          {/* Añadimos la clase .custom-scrollbar que definimos arriba */}
+          <div className="h-full overflow-y-auto p-6 custom-scrollbar">
+            <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-max pb-10">
+              <AnimatePresence mode="popLayout">
+                {cases.map((c, i) => (
+                  <CaseCard
+                    key={c.id}
+                    c={c}
+                    isActive={activeCase?.id === c.id}
+                    onSelect={handleCardClick}
+                    onNavigate={handleNavigate}
+                    onDeleteRequest={handleDeleteRequest}
+                    index={i}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
           </div>
         </div>
       )}

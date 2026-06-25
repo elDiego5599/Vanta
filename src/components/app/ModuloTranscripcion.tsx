@@ -24,32 +24,7 @@ const lineVariants = {
   }),
 };
 
-const PauseIcon = memo(() => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <rect x="6" y="4" width="4" height="16" rx="1" />
-    <rect x="14" y="4" width="4" height="16" rx="1" />
-  </svg>
-));
-
-const PlayIcon = memo(() => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-    <polygon points="5,3 19,12 5,21" />
-  </svg>
-));
-
-const MusicIcon = memo(() => (
-  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 18V5l12-2v13" />
-    <circle cx="6" cy="18" r="3" />
-    <circle cx="18" cy="16" r="3" />
-  </svg>
-));
-
-const CheckIcon = memo(() => (
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-));
+import { PauseIcon, PlayIcon, AudioIcon as MusicIcon, CheckIcon } from '../landing/Icons';
 
 const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const { selectedFile, updateEvidence } = useAppContext();
@@ -214,15 +189,13 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   if (!selectedFile) {
     return (
       <div className="h-full flex items-center justify-center p-6">
-        <PremiumEdgeWrapper rounded="rounded-lg">
-          <div className="px-12 py-14 text-center">
-            <div className="w-16 h-16 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ border: '1px solid var(--border-subtle)' }}>
-              <MusicIcon />
-            </div>
-            <div className="text-xs mb-1" style={{ color: 'var(--text-muted)' }}>Sin archivo seleccionado</div>
-            <div className="text-[10px]" style={{ color: 'var(--text-muted)', opacity: 0.6 }}>Seleccione un archivo de evidencia para transcribir</div>
+        <div className="px-12 py-14 flex flex-col items-center text-center max-w-sm w-full bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-2xl shadow-sm">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5 bg-[var(--glass-hover)] border border-[var(--border-subtle)]">
+            <MusicIcon w={28} h={28} />
           </div>
-        </PremiumEdgeWrapper>
+          <div className="text-sm font-medium mb-1.5 text-[var(--text-main)]">Sin archivo seleccionado</div>
+          <div className="text-xs text-[var(--text-muted)]">Seleccione un archivo de evidencia para transcribir</div>
+        </div>
       </div>
     );
   }
@@ -377,9 +350,8 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             <div className="mt-3 flex items-center gap-2">
               <button
                 onClick={() => setSaveAfterTx(!saveAfterTx)}
-                className={`w-3.5 h-3.5 rounded flex items-center justify-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${
-                  saveAfterTx ? 'bg-[var(--accent)]' : 'border border-[var(--border-strong)]'
-                }`}
+                className={`w-3.5 h-3.5 rounded flex items-center justify-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent ${saveAfterTx ? 'bg-[var(--accent)]' : 'border border-[var(--border-strong)]'
+                  }`}
                 aria-label={saveAfterTx ? 'Guardar transcripcion activado' : 'Guardar transcripcion desactivado'}
               >
                 {saveAfterTx && <CheckIcon />}
@@ -449,45 +421,61 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         ) : (
           <div className="space-y-0">
             <AnimatePresence>
-              {transcript.map((line, idx) => (
-                <motion.div
-                  key={idx}
-                  custom={idx}
-                  variants={lineVariants}
-                  initial="hidden"
-                  animate="visible"
-                  whileHover={{ x: 2, transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] } }}
-                  onMouseEnter={() => setHoveredLine(idx)}
-                  onMouseLeave={() => setHoveredLine(null)}
-                  onClick={() => handleTranscriptClick(line.start)}
-                  className="text-left flex gap-4 py-2.5 transition-all duration-200 px-2 -mx-2 rounded cursor-pointer"
-                  style={{
-                    borderBottom: '1px solid var(--border-subtle)',
-                    backgroundColor: hoveredLine === idx ? 'var(--glass-hover)' : 'transparent',
-                  }}
-                >
-                  <span className="text-[11px] font-mono w-[55px] mt-0.5 flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
-                    {line.t}
-                  </span>
-                  <span className="text-xs leading-relaxed" style={{ color: 'var(--text-main)' }}>
-                    {line.text}
-                  </span>
-                </motion.div>
-              ))}
-              {isTranscribing && (
-                <motion.div
-                  key="loading"
-                  className="flex gap-3 px-3 py-2.5 rounded-md"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                >
-                  <span className="text-[10px] tabular-nums w-14 pt-0.5 font-mono" style={{ color: 'var(--text-muted)' }}>
-                    ...
-                  </span>
-                  <span className="text-xs italic" style={{ color: 'var(--text-muted)', opacity: 0.5 }}>
-                    Transcribiendo...
-                  </span>
-                </motion.div>
+              {transcript.length > 0 ? (
+                <div className="flex flex-col">
+                  {transcript.map((item, i) => (
+                    <motion.div
+                      key={i}
+                      custom={i}
+                      variants={lineVariants}
+                      initial="hidden"
+                      animate="visible"
+                      onMouseEnter={() => setHoveredLine(i)}
+                      onMouseLeave={() => setHoveredLine(null)}
+                      className={`group flex gap-4 text-[13px] leading-relaxed p-3 rounded-lg transition-colors border border-transparent cursor-pointer ${hoveredLine === i ? 'bg-[var(--glass-hover)] border-[var(--border-subtle)]' : ''}`}
+                      onClick={() => handleTranscriptClick(item.start)}
+                    >
+                      <div className="flex flex-col items-start gap-1.5 w-16 flex-shrink-0 pt-0.5">
+                        <div className="text-[10px] font-mono text-[var(--accent)] font-medium">
+                          {item.t}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const newT = [...transcript];
+                            const current = newT[i].speaker || 'Agente';
+                            newT[i].speaker = current === 'Agente' ? 'Testigo' : 'Agente';
+                            setTranscript(newT);
+                          }}
+                          className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded outline-none transition-colors ${
+                            (item.speaker || 'Agente') === 'Agente' 
+                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20 hover:bg-blue-500/20' 
+                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20'
+                          }`}
+                        >
+                          {item.speaker || 'Agente'}
+                        </button>
+                      </div>
+                      <div className="text-[var(--text-main)] flex-1">{item.text}</div>
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                isTranscribing && (
+                  <motion.div
+                    key="loading"
+                    className="flex gap-3 px-3 py-2.5 rounded-md"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
+                    <span className="text-[10px] tabular-nums w-14 pt-0.5 font-mono text-[var(--text-muted)]">
+                      ...
+                    </span>
+                    <span className="text-xs italic text-[var(--text-muted)] opacity-50">
+                      Transcribiendo...
+                    </span>
+                  </motion.div>
+                )
               )}
             </AnimatePresence>
           </div>

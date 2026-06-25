@@ -25,6 +25,7 @@
   --accent: #3b82f6;
   --accent-subtle: rgba(59, 130, 246, 0.2);
   --accent-text: #3b82f6;
+  --glow-hover: rgba(255, 255, 255, 0.08);
 }
 
 .light-mode {
@@ -50,6 +51,7 @@
   --accent: #3b82f6;
   --accent-subtle: rgba(59, 130, 246, 0.1);
   --accent-text: #3b82f6;
+  --glow-hover: rgba(0, 0, 0, 0.06);
 }
 
 @keyframes chrome-sweep {
