@@ -223,21 +223,20 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="group flex flex-col p-5 rounded-2xl bg-[#000000] border border-[var(--border-strong)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05)] hover:border-[var(--text-muted)] transition-colors duration-300"
+                        className="group flex flex-col p-5 rounded-2xl bg-[var(--card-bg)] border border-[var(--border-strong)] shadow-sm hover:border-[var(--text-muted)] transition-colors duration-300"
                       >
                         {/* Cabecera del Resultado (Archivo y Tiempo) */}
-                        <div className="flex items-center justify-between mb-3 pb-3 border-b border-white/[0.08]">
-                          <div className="flex items-center gap-2 text-[11px] font-bold text-white uppercase tracking-wider truncate">
+                        <div className="flex items-center justify-between mb-3 pb-3 border-b border-[var(--border-subtle)]">
+                          <div className="flex items-center gap-2 text-[11px] font-bold text-[var(--text-main)] uppercase tracking-wider truncate">
                             <FileTextIcon w={14} h={14} className="text-[var(--accent)]" />
                             {r.archivo}
                           </div>
-                          <div className="text-[10px] font-mono text-zinc-400 bg-white/5 px-2 py-1 rounded border border-white/10 shrink-0">
+                          <div className="text-[10px] font-mono text-[var(--text-muted)] bg-[var(--glass-bg)] px-2 py-1 rounded border border-[var(--border-subtle)] shrink-0">
                             {r.timestamp}
                           </div>
                         </div>
 
-                        {/* Texto del Fragmento Encontrado */}
-                        <div className="text-[14px] leading-relaxed text-zinc-300 mb-4 group-hover:text-white transition-colors">
+                        <div className="text-[14px] leading-relaxed text-[var(--text-muted)] mb-4 group-hover:text-[var(--text-main)] transition-colors">
                           "{r.fragmento}"
                         </div>
 
@@ -254,7 +253,7 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
 
                           {/* Etiquetas del Caso (Tags) */}
                           {r.etiquetas?.map((tag, ti) => (
-                            <div key={ti} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-mono text-zinc-400 bg-white/5 border border-white/10 uppercase tracking-widest truncate max-w-[200px]">
+                            <div key={ti} className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-mono text-[var(--text-muted)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] uppercase tracking-widest truncate max-w-[200px]">
                               <TagIcon w={10} h={10} />
                               {tag}
                             </div>
@@ -271,16 +270,16 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
             {loading && (
               <div className="flex flex-col gap-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex flex-col p-5 rounded-2xl bg-[#000000] border border-[var(--border-subtle)] opacity-50">
-                    <div className="flex justify-between mb-4 border-b border-white/[0.08] pb-3">
-                      <div className="w-32 h-3 bg-white/10 rounded animate-pulse" />
-                      <div className="w-16 h-3 bg-white/10 rounded animate-pulse" />
+                  <div key={i} className="flex flex-col p-5 rounded-2xl bg-[var(--card-bg)] border border-[var(--border-subtle)] opacity-50">
+                    <div className="flex justify-between mb-4 border-b border-[var(--border-subtle)] pb-3">
+                      <div className="w-32 h-3 bg-[var(--border-strong)] rounded animate-pulse" />
+                      <div className="w-16 h-3 bg-[var(--border-strong)] rounded animate-pulse" />
                     </div>
-                    <div className="w-full h-4 bg-white/10 rounded animate-pulse mb-2" />
-                    <div className="w-2/3 h-4 bg-white/10 rounded animate-pulse mb-4 delay-75" />
+                    <div className="w-full h-4 bg-[var(--border-strong)] rounded animate-pulse mb-2" />
+                    <div className="w-2/3 h-4 bg-[var(--border-strong)] rounded animate-pulse mb-4 delay-75" />
                     <div className="flex gap-2">
-                      <div className="w-16 h-5 bg-white/10 rounded animate-pulse delay-150" />
-                      <div className="w-24 h-5 bg-white/10 rounded animate-pulse delay-200" />
+                      <div className="w-16 h-5 bg-[var(--border-strong)] rounded animate-pulse delay-150" />
+                      <div className="w-24 h-5 bg-[var(--border-strong)] rounded animate-pulse delay-200" />
                     </div>
                   </div>
                 ))}
