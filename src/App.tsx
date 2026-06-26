@@ -13,26 +13,23 @@ const GLOW_COLORS: Record<TabId, string> = {
   casos: '#f59e0b',
   ingesta: '#3b82f6',
   transcripcion: '#10b981',
-  busqueda: '#a855f7',
 };
 
-const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion', 'busqueda']);
+const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion']);
 import { CSSGrid } from './components/landing/CSSGrid';
 import LoginScreen from './components/app/LoginScreen';
 
 const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'));
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'));
 const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripcion'));
-const ModuloBusqueda = lazy(() => import('./components/app/ModuloBusqueda'));
 const Sidebar = lazy(() => import('./components/app/Sidebar'));
 
-type TabId = 'casos' | 'ingesta' | 'transcripcion' | 'busqueda';
+type TabId = 'casos' | 'ingesta' | 'transcripcion';
 
 const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   casos: ModuloCasos,
   ingesta: ModuloIngesta,
   transcripcion: ModuloTranscripcion,
-  busqueda: ModuloBusqueda,
 };
 
 function AppShell() {
@@ -42,7 +39,7 @@ function AppShell() {
   });
   const [activeTab, setActiveTab] = useState<TabId>(() => {
     const saved = localStorage.getItem('vanta_active_tab');
-    if (saved && ['casos', 'ingesta', 'transcripcion', 'busqueda'].includes(saved)) return saved as TabId;
+    if (saved && ['casos', 'ingesta', 'transcripcion'].includes(saved)) return saved as TabId;
     return 'casos';
   });
   const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>([]);

@@ -18,7 +18,7 @@ export interface CaseData {
   updatedAt: number;
 }
 
-export type TabId = 'casos' | 'ingesta' | 'transcripcion' | 'busqueda';
+export type TabId = 'casos' | 'ingesta' | 'transcripcion';
 
 export interface AppContextType {
   evidenceQueue: EvidenceItem[];

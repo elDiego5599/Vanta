@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, memo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../../lib/AppContext';
 import { loadModel, decodeAudioToF32, transcribeProgressive, formatTimestamp } from '../../lib/whisper';
@@ -33,6 +33,20 @@ const AudioIcon = ({ w = 24, h = 24, color = "currentColor" }) => (
 const CheckIcon = ({ w = 24, h = 24 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
+
+const SearchIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+  </svg>
+);
+
+const CloseIcon = ({ w = 14, h = 14 }) => (
+  <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
 
@@ -81,9 +95,37 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [error, setError] = useState<string | null>(null);
   const [saveAfterTx, setSaveAfterTx] = useState(true);
   const [savedTx, setSavedTx] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const waveformRef = useRef<WaveSurferHandle | null>(null);
   const durationRef = useRef(0);
+
+  function HighlightMatch({ text }: { text: string }) {
+    if (!searchQuery.trim()) return <>{text}</>;
+    const escaped = searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, i) =>
+          part.toLowerCase() === searchQuery.toLowerCase() ? (
+            <span key={i} className="bg-[var(--accent)]/20 text-[var(--accent)] font-semibold rounded px-0.5">{part}</span>
+          ) : (
+            <span key={i}>{part}</span>
+          )
+        )}
+      </>
+    );
+  }
+
+  const filteredTranscript = useMemo(() => {
+    if (!searchQuery.trim()) return transcript;
+    const q = searchQuery.toLowerCase();
+    return transcript.filter(line =>
+      line.text.toLowerCase().includes(q) || (line.speaker || '').toLowerCase().includes(q)
+    );
+  }, [transcript, searchQuery]);
 
   // Inicialización del archivo de audio
   useEffect(() => {
@@ -160,13 +202,15 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     waveformRef.current?.play();
   }, []);
 
-  const toggleSpeaker = useCallback((index: number, e: React.MouseEvent) => {
+  const toggleSpeaker = useCallback((item: TranscriptLine, e: React.MouseEvent) => {
     e.stopPropagation();
     setTranscript(prev => {
+      const idx = prev.findIndex(l => l.start === item.start && l.text === item.text);
+      if (idx === -1) return prev;
       const newT = [...prev];
-      const line = newT[index]!;
+      const line = newT[idx]!;
       const current = line.speaker ?? 'Agente';
-      newT[index] = { ...line, speaker: current === 'Agente' ? 'Testigo' : 'Agente' };
+      newT[idx] = { ...line, speaker: current === 'Agente' ? 'Testigo' : 'Agente' };
       return newT;
     });
   }, []);
@@ -428,15 +472,70 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         <div className="flex-1 w-full lg:w-7/12 flex flex-col min-h-[400px] lg:min-h-0 bg-[var(--card-bg)] rounded-3xl border border-[var(--border-subtle)] shadow-sm overflow-hidden relative">
 
           {/* Header del panel derecho */}
-          <div className="flex-none p-5 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/80 backdrop-blur-md flex items-center justify-between z-10 rounded-t-3xl">
-            <h2 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--text-muted)]">
-              Registro del Interrogatorio {transcript.length > 0 && `(${transcript.length} líneas)`}
-            </h2>
-            {savedTx && (
-              <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase text-green-500 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20">
-                <CheckIcon w={12} h={12} /> Bóveda Asegurada
+          <div className="flex-none px-5 py-4 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 rounded-t-3xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <AnimatePresence mode="wait">
+                  {searchOpen ? (
+                    <motion.div
+                      key="search-bar"
+                      initial={{ opacity: 0, x: -12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -12 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="flex items-center gap-2 flex-1"
+                    >
+                      <SearchIcon />
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Buscar en el registro..."
+                        className="flex-1 bg-transparent text-[13px] text-[var(--text-main)] placeholder-[var(--text-muted)] outline-none border-none min-w-[120px]"
+                      />
+                      {searchQuery.trim() && (
+                        <span className="text-[10px] font-mono text-[var(--text-muted)] whitespace-nowrap shrink-0">
+                          {filteredTranscript.length} resultado{filteredTranscript.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                      <button
+                        onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
+                        className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors"
+                      >
+                        <CloseIcon />
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <motion.h2
+                      key="search-title"
+                      initial={{ opacity: 0, x: 12 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 12 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
+                      className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--text-muted)] whitespace-nowrap"
+                    >
+                      Registro del Interrogatorio{transcript.length > 0 && ` (${transcript.length} líneas)`}
+                    </motion.h2>
+                  )}
+                </AnimatePresence>
               </div>
-            )}
+              <div className="flex items-center gap-2 shrink-0">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => { setSearchOpen(v => !v); if (!searchOpen) setTimeout(() => searchInputRef.current?.focus(), 100); }}
+                  className={`p-1.5 rounded-lg transition-colors ${searchOpen ? 'bg-[var(--accent)]/15 text-[var(--accent)]' : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)]'}`}
+                >
+                  <SearchIcon />
+                </motion.button>
+                {savedTx && (
+                  <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase text-green-500 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20 whitespace-nowrap">
+                    <CheckIcon w={12} h={12} /> Bóveda Asegurada
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Área scrolleable de líneas */}
@@ -447,12 +546,18 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                 <div className="mt-4 text-[13px] font-bold text-[var(--text-main)]">Sin Registro</div>
                 <div className="mt-1 text-[11px] font-mono text-[var(--text-muted)]">Inicie el motor Whisper para generar el acta.</div>
               </div>
+            ) : searchQuery.trim() && filteredTranscript.length === 0 ? (
+              <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
+                <SearchIcon />
+                <div className="mt-4 text-[13px] font-bold text-[var(--text-main)]">Sin Resultados</div>
+                <div className="mt-1 text-[11px] font-mono text-[var(--text-muted)]">No hay coincidencias para "{searchQuery}".</div>
+              </div>
             ) : (
               <div className="space-y-1 pb-10">
                 <AnimatePresence>
-                  {transcript.map((item, i) => (
+                  {(searchQuery.trim() ? filteredTranscript : transcript).map((item, i) => (
                     <motion.div
-                      key={i}
+                      key={searchQuery ? `${i}-${searchQuery}` : i}
                       custom={i}
                       variants={lineVariants}
                       initial="hidden"
@@ -470,7 +575,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
                         {/* Botón de Orador (Diarización) */}
                         <button
-                          onClick={(e) => toggleSpeaker(i, e)}
+                          onClick={(e) => toggleSpeaker(item, e)}
                           className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-left ${(item.speaker || 'Agente') === 'Agente'
                             ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 hover:bg-[var(--accent)]/20'
                             : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20'
@@ -480,8 +585,8 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         </button>
                       </div>
 
-                      <div className={`flex-1 transition-colors ${hoveredLine === i ? 'text-[var(--text-main)]' : 'text-zinc-400'}`}>
-                        {item.text}
+                      <div className={`flex-1 transition-colors ${hoveredLine === i ? 'text-[var(--text-main)]' : 'text-[var(--text-muted)]'}`}>
+                        <HighlightMatch text={item.text} />
                       </div>
                     </motion.div>
                   ))}
