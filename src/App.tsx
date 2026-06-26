@@ -2,7 +2,6 @@ import { useState, useEffect, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { TabId } from './lib/types'
 import { useUIStore } from './lib/stores/uiStore'
-import { useAuthStore } from './lib/stores/authStore'
 import { useCaseStore } from './lib/stores/caseStore'
 import { useEvidenceStore } from './lib/stores/evidenceStore'
 import { ThemeProvider } from './lib/theme'
@@ -19,7 +18,6 @@ const GLOW_COLORS: Record<TabId, string> = {
 
 const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion'])
 import { CSSGrid } from './components/landing/CSSGrid'
-import LoginScreen from './components/app/LoginScreen'
 
 const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'))
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'))
@@ -33,9 +31,6 @@ const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>>
 }
 
 function AppShell() {
-  const user = useAuthStore((s) => s.user)
-  const login = useAuthStore((s) => s.login)
-
   const activeTab = useUIStore((s) => s.activeTab)
   const setActiveTab = useUIStore((s) => s.setActiveTab)
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
@@ -73,10 +68,6 @@ function AppShell() {
         <div className="text-xs text-[var(--text-muted)] animate-pulse">Cargando...</div>
       </div>
     )
-  }
-
-  if (!user) {
-    return <LoginScreen onLogin={login} />
   }
 
   const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta

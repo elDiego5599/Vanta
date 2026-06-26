@@ -31,12 +31,6 @@ const AudioIcon = ({ w = 24, h = 24, color = "currentColor" }) => (
   </svg>
 );
 
-const CheckIcon = ({ w = 24, h = 24 }) => (
-  <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
 const SearchIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="11" cy="11" r="8" />
@@ -96,7 +90,6 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [playProgress, setPlayProgress] = useState(0);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [saveAfterTx, setSaveAfterTx] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -270,9 +263,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       setProgress(100);
       setStatusText('Análisis Completado');
 
-      if (saveAfterTx) {
-        await db.saveTranscription(selectedFile.id, selectedFile.caseId, allLines);
-      }
+      await db.saveTranscription(selectedFile.id, selectedFile.caseId, allLines);
 
       if (selectedFile.id) {
         updateEvidence(selectedFile.id, { estado: 'listo', progreso: 100, isTranscribed: true });
@@ -288,7 +279,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     } finally {
       setIsTranscribing(false);
     }
-  }, [selectedFile, updateEvidence, saveAfterTx]);
+  }, [selectedFile, updateEvidence]);
 
   // ESTADO VACÍO (Sin archivo)
   if (!selectedFile) {
@@ -384,42 +375,43 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                 </div>
               </div>
 
-              {/* CONTENEDOR DEL WAVESURFER CON GLOW INTELIGENTE */}
-              <div className={`relative rounded-xl overflow-hidden mb-6 p-4 border transition-all duration-500 ${isTranscribing || isPlaying ? 'border-[var(--accent)]/40 shadow-[0_0_30px_color-mix(in_srgb,var(--accent)_15%,transparent)] bg-[var(--accent)]/[0.02]' : 'border-[var(--border-subtle)] bg-[var(--glass-bg)]'
+              {/* WAVEFORM + CONTROLES FUSIONADOS */}
+              <div className={`relative rounded-xl p-4 border transition-all duration-500 ${isTranscribing || isPlaying ? 'border-[var(--accent)]/40 shadow-[0_0_30px_color-mix(in_srgb,var(--accent)_15%,transparent)] bg-[var(--accent)]/[0.02]' : 'border-[var(--border-subtle)] bg-[var(--glass-bg)]'
                 }`}>
-                <WaveSurferWaveform
-                  ref={waveformRef}
-                  url={audioUrl}
-                  onReady={handleReady}
-                  onTimeUpdate={handleTimeUpdate}
-                  onPlayStateChange={handlePlayState}
-                />
-              </div>
-
-              {/* CONTROLES DE REPRODUCCIÓN */}
-              <div className="flex items-center gap-5 bg-[var(--glass-bg)] p-3 rounded-xl border border-[var(--border-subtle)]">
-                <button
-                  onClick={togglePlay}
-                  className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-[var(--text-main)] text-[var(--page-bg)] hover:scale-105 active:scale-95 shadow-md shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
-                >
-                  {isPlaying ? <PauseIcon w={20} h={20} /> : <PlayIcon w={20} h={20} />}
-                </button>
-
-                <div className="flex-1">
-                  <div className="w-full h-1.5 rounded-full bg-[var(--border-subtle)] overflow-hidden relative">
-                    <div
-                      className="h-full rounded-full bg-[var(--accent)] relative"
-                      style={{ width: `${playProgress}%` }}
-                    >
-                      {isPlaying && (
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_infinite]" />
-                      )}
-                    </div>
-                  </div>
+                <div className="mb-4">
+                  <WaveSurferWaveform
+                    ref={waveformRef}
+                    url={audioUrl}
+                    onReady={handleReady}
+                    onTimeUpdate={handleTimeUpdate}
+                    onPlayStateChange={handlePlayState}
+                  />
                 </div>
 
-                <div className="text-[10px] tabular-nums font-mono text-[var(--text-muted)] shrink-0">
-                  <span className="text-[var(--text-main)]">{currentTime}</span> / {duration}
+                <div className="flex items-center gap-5">
+                  <button
+                    onClick={togglePlay}
+                    className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-[var(--text-main)] text-[var(--page-bg)] hover:scale-105 active:scale-95 shadow-md shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                  >
+                    {isPlaying ? <PauseIcon w={20} h={20} /> : <PlayIcon w={20} h={20} />}
+                  </button>
+
+                  <div className="flex-1">
+                    <div className="w-full h-1.5 rounded-full bg-[var(--border-subtle)] overflow-hidden relative">
+                      <div
+                        className="h-full rounded-full bg-[var(--accent)] relative"
+                        style={{ width: `${playProgress}%` }}
+                      >
+                        {isPlaying && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_infinite]" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-[10px] tabular-nums font-mono text-[var(--text-muted)] shrink-0">
+                    <span className="text-[var(--text-main)]">{currentTime}</span> / {duration}
+                  </div>
                 </div>
               </div>
 
@@ -447,15 +439,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                     </div>
 
                     {!isTranscribing && transcript.length === 0 && !error && (
-                      <label className="flex items-center gap-3 cursor-pointer group">
-                        <div className="relative">
-                          <input type="checkbox" className="sr-only" checked={saveAfterTx} onChange={() => setSaveAfterTx(!saveAfterTx)} />
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${saveAfterTx ? 'bg-[var(--accent)] border-[var(--accent)] text-white' : 'bg-transparent border-[var(--border-strong)] text-transparent group-hover:border-[var(--text-muted)]'}`}>
-                            <CheckIcon w={14} h={14} />
-                          </div>
-                        </div>
-                        <span className="text-[11px] text-[var(--text-muted)] group-hover:text-[var(--text-main)] transition-colors">Guardar automáticamente en la base de datos</span>
-                      </label>
+                      <div className="text-[11px] text-[var(--text-muted)]">Presione "Iniciar Motor Whisper" para generar el acta</div>
                     )}
                   </div>
                 )}

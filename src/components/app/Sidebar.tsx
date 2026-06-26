@@ -2,7 +2,6 @@ import { memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useUIStore } from '../../lib/stores/uiStore'
 import { useCaseStore } from '../../lib/stores/caseStore'
-import { useAuthStore } from '../../lib/stores/authStore'
 import { useTheme } from '../../lib/use-theme'
 import { VantaMiniLogo } from '../landing/Icons'
 import type { TabId } from '../../lib/types'
@@ -55,14 +54,6 @@ const SystemIcon = ({ w = 18, h = 18 }) => (
   </svg>
 )
 
-const LogoutIcon = ({ w = 18, h = 18 }) => (
-  <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    <polyline points="16 17 21 12 16 7" />
-    <line x1="21" y1="12" x2="9" y2="12" />
-  </svg>
-)
-
 const CollapseIcon = ({ w = 18, h = 18 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="15 18 9 12 15 6" />
@@ -87,7 +78,6 @@ const Sidebar = memo(function Sidebar() {
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const activeCase = useCaseStore((s) => s.activeCase)
-  const logout = useAuthStore((s) => s.logout)
   const { theme, setTheme } = useTheme()
 
   return (
@@ -187,15 +177,6 @@ const Sidebar = memo(function Sidebar() {
 
       {/* FOOTER */}
       <div className="flex-none border-t border-[var(--border-subtle)] p-4">
-        {sidebarOpen && (
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-[var(--accent)]/10 border border-[var(--accent)]/0 flex items-center justify-center text-[12px] font-bold text-[var(--accent)]">
-              A
-            </div>
-            <span className="text-[13px] font-bold text-[var(--text-main)] truncate">admin</span>
-          </div>
-        )}
-
         <div className={`flex ${sidebarOpen ? 'items-center justify-between' : 'flex-col items-center gap-1'}`}>
           <button
             onClick={toggleSidebar}
@@ -218,13 +199,6 @@ const Sidebar = memo(function Sidebar() {
               {theme === 'dark' && <MoonIcon w={18} h={18} />}
               {theme === 'light' && <SunIcon w={18} h={18} />}
               {theme === 'system' && <SystemIcon w={18} h={18} />}
-            </button>
-            <button
-              onClick={logout}
-              className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors outline-none"
-              title="Cerrar Sesion"
-            >
-              <LogoutIcon w={18} h={18} />
             </button>
           </div>
         </div>

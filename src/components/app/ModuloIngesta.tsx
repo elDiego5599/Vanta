@@ -362,6 +362,17 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                 </h3>
               </div>
 
+              {stagedFiles.some(f => f.file.size > 50 * 1024 * 1024) && (
+                <div className="flex items-center gap-2 px-4 py-2.5 mb-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[11px] font-mono text-amber-600 dark:text-amber-400">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                  <span>Archivos mayores a 50 MB pueden tardar varios minutos en procesarse.</span>
+                </div>
+              )}
+
               <div className="flex flex-col gap-2">
                 <AnimatePresence mode="popLayout">
                   {stagedFiles.map((item) => (
