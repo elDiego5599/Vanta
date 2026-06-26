@@ -155,3 +155,14 @@ input:-webkit-autofill:active {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---- Premium Scrollbar ---- */
+.custom-scrollbar::-webkit-scrollbar { width: 5px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: none;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }

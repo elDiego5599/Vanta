@@ -275,16 +275,6 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-[var(--page-bg)]">
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: var(--border-strong);
-          border-radius: 10px;
-          border: 2px solid var(--card-bg);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: var(--text-muted); }
-      `}</style>
 
       {/* CABECERA */}
       <div className="flex-none flex items-center justify-between p-6 lg:px-10 lg:pt-10 lg:pb-6 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/50 backdrop-blur-md z-20">
@@ -438,7 +428,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         <div className="flex-1 w-full lg:w-7/12 flex flex-col min-h-[400px] lg:min-h-0 bg-[var(--card-bg)] rounded-3xl border border-[var(--border-subtle)] shadow-sm overflow-hidden relative">
 
           {/* Header del panel derecho */}
-          <div className="flex-none p-5 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/80 backdrop-blur-md flex items-center justify-between z-10">
+          <div className="flex-none p-5 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/80 backdrop-blur-md flex items-center justify-between z-10 rounded-t-3xl">
             <h2 className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--text-muted)]">
               Registro del Interrogatorio {transcript.length > 0 && `(${transcript.length} líneas)`}
             </h2>

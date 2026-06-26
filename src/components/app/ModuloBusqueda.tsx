@@ -122,17 +122,9 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
 
   return (
     <div className="absolute inset-0 flex flex-col bg-[var(--page-bg)]">
-      {/* Estilos globales inyectados (Scrollbar FAANG + Caret Color) */}
+      {/* Estilos globales inyectados (Caret Color) */}
       <style>{`
         input { caret-color: var(--text-main); }
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: var(--border-strong);
-          border-radius: 10px;
-          border: 2px solid var(--page-bg);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: var(--text-muted); }
       `}</style>
 
       {/* CABECERA */}

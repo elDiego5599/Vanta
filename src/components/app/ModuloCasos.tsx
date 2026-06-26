@@ -304,20 +304,6 @@ const ModuloCasos = memo(function ModuloCasos() {
         input {
           caret-color: var(--text-main);
         }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: var(--border-strong);
-          border-radius: 10px;
-          border: 2px solid var(--glass-bg);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: var(--text-muted);
-        }
       `}</style>
 
       {/* RENDER DEL MODAL */}
