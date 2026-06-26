@@ -532,15 +532,15 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         }`}
                       onClick={() => handleTranscriptClick(item.start)}
                     >
-                      <div className="flex flex-col items-start gap-2 w-20 flex-shrink-0 pt-1">
-                        <div className="text-[10px] font-mono text-[var(--text-muted)] bg-[var(--glass-bg)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
+                      <div className="flex flex-col items-stretch gap-2 w-20 flex-shrink-0 pt-1">
+                        <div className="text-[10px] font-mono text-center text-[var(--text-muted)] bg-[var(--glass-bg)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
                           {item.t}
                         </div>
 
                         {/* Botón de Orador (Diarización) */}
                         <button
                           onClick={(e) => toggleSpeaker(item, e)}
-                          className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-left ${(item.speaker || 'Agente') === 'Agente'
+                          className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-center ${(item.speaker || 'Agente') === 'Agente'
                             ? 'bg-[var(--accent)]/5 text-[var(--accent)] border border-[var(--accent)]/10 hover:bg-[var(--accent)]/10'
                             : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20'
                             }`}
