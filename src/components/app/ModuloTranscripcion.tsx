@@ -87,7 +87,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState('00:00:00');
   const [duration, setDuration] = useState('00:00:00');
-  const [playProgress, setPlayProgress] = useState(0);
+  const playProgressRef = useRef(0);
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -147,7 +147,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     setIsTranscribing(false);
     setProgress(0);
     setStatusText('');
-    setPlayProgress(0);
+    playProgressRef.current = 0;
     setIsPlaying(false);
     setCurrentTime('00:00:00');
     setDuration('00:00:00');
@@ -170,7 +170,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const handleReady = useCallback((d: number) => {
     durationRef.current = d;
     setDuration(formatTimestamp(d));
-    setPlayProgress(0);
+    playProgressRef.current = 0;
     setCurrentTime('00:00:00');
   }, []);
 
@@ -178,7 +178,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     setCurrentTime(formatTimestamp(current));
     const dur = durationRef.current;
     if (dur > 0 && current <= dur) {
-      setPlayProgress((current / dur) * 100);
+      playProgressRef.current = (current / dur) * 100;
     }
   }, []);
 
@@ -378,7 +378,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
               {/* WAVEFORM + CONTROLES FUSIONADOS */}
               <div className={`relative rounded-xl p-4 border transition-all duration-500 ${isTranscribing || isPlaying ? 'border-[var(--accent)]/40 shadow-[0_0_30px_color-mix(in_srgb,var(--accent)_15%,transparent)] bg-[var(--accent)]/[0.02]' : 'border-[var(--border-subtle)] bg-[var(--glass-bg)]'
                 }`}>
-                <div className="mb-4">
+                <div className="mb-3">
                   <WaveSurferWaveform
                     ref={waveformRef}
                     url={audioUrl}
@@ -388,7 +388,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                   />
                 </div>
 
-                <div className="flex items-center gap-5">
+                <div className="flex items-center justify-between">
                   <button
                     onClick={togglePlay}
                     className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-[var(--text-main)] text-[var(--page-bg)] hover:scale-105 active:scale-95 shadow-md shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
@@ -396,20 +396,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                     {isPlaying ? <PauseIcon w={20} h={20} /> : <PlayIcon w={20} h={20} />}
                   </button>
 
-                  <div className="flex-1">
-                    <div className="w-full h-1.5 rounded-full bg-[var(--border-subtle)] overflow-hidden relative">
-                      <div
-                        className="h-full rounded-full bg-[var(--accent)] relative"
-                        style={{ width: `${playProgress}%` }}
-                      >
-                        {isPlaying && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_infinite]" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-[10px] tabular-nums font-mono text-[var(--text-muted)] shrink-0">
+                  <div className="text-[10px] tabular-nums font-mono text-[var(--text-muted)]">
                     <span className="text-[var(--text-main)]">{currentTime}</span> / {duration}
                   </div>
                 </div>
@@ -555,7 +542,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         <button
                           onClick={(e) => toggleSpeaker(item, e)}
                           className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-left ${(item.speaker || 'Agente') === 'Agente'
-                            ? 'bg-[var(--accent)]/10 text-[var(--accent)] border border-[var(--accent)]/20 hover:bg-[var(--accent)]/20'
+                            ? 'bg-[var(--accent)]/5 text-[var(--accent)]/80 border border-[var(--accent)]/10 hover:bg-[var(--accent)]/10'
                             : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20'
                             }`}
                         >

@@ -18,6 +18,7 @@ const GLOW_COLORS: Record<TabId, string> = {
 
 const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion'])
 import { CSSGrid } from './components/landing/CSSGrid'
+import PinScreen from './components/app/PinScreen'
 
 const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'))
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'))
@@ -31,6 +32,8 @@ const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>>
 }
 
 function AppShell() {
+  const [unlocked, setUnlocked] = useState(false)
+
   const activeTab = useUIStore((s) => s.activeTab)
   const setActiveTab = useUIStore((s) => s.setActiveTab)
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
@@ -68,6 +71,10 @@ function AppShell() {
         <div className="text-xs text-[var(--text-muted)] animate-pulse">Cargando...</div>
       </div>
     )
+  }
+
+  if (!unlocked) {
+    return <PinScreen onUnlock={() => setUnlocked(true)} />
   }
 
   const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta

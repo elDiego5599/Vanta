@@ -95,7 +95,7 @@ const Sidebar = memo(function Sidebar() {
 
       {/* INDICADOR DE CASO ACTIVO */}
       {sidebarOpen && (
-        <div className="px-5 mb-6 mt-4 min-h-[56px] flex flex-col justify-center">
+        <div className="px-5 mt-4 min-h-[56px] flex flex-col justify-center border-b border-[var(--border-subtle)] pb-5 mb-4">
           <AnimatePresence mode="wait">
             {activeCase ? (
               <motion.div
