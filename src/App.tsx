@@ -1,10 +1,9 @@
-import { useState, useMemo, useCallback, memo, lazy, Suspense, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, lazy, Suspense, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import AppContext from './lib/AppContext';
 import type { AppContextType, EvidenceItem, CaseData } from './lib/AppContext';
 import * as db from './lib/db';
 import { ThemeProvider } from './lib/theme';
-import { useTheme } from './lib/use-theme';
 import { fadeIn } from './lib/motion';
 import ErrorBoundary from './components/landing/ErrorBoundary';
 import { MagneticButton } from './components/landing/Primitives';
@@ -19,13 +18,13 @@ const GLOW_COLORS: Record<TabId, string> = {
 
 const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion', 'busqueda']);
 import { CSSGrid } from './components/landing/CSSGrid';
-import { VantaMiniLogo } from './components/landing/Icons';
 import LoginScreen from './components/app/LoginScreen';
 
 const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'));
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'));
 const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripcion'));
 const ModuloBusqueda = lazy(() => import('./components/app/ModuloBusqueda'));
+const Sidebar = lazy(() => import('./components/app/Sidebar'));
 
 const TABS = [
   { id: 'casos', label: 'Casos', icon: 'folder' as const },
@@ -36,13 +35,6 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]['id'];
 
-const MODULE_TITLES: Record<TabId, string> = {
-  casos: 'Casos',
-  ingesta: 'Ingesta de Evidencia',
-  transcripcion: 'Linea de Tiempo',
-  busqueda: 'Busqueda Semantica',
-};
-
 const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   casos: ModuloCasos,
   ingesta: ModuloIngesta,
@@ -50,74 +42,16 @@ const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>>
   busqueda: ModuloBusqueda,
 };
 
-interface SidebarIconProps {
-  type: string;
-  active: boolean;
-}
-
-const SidebarIcon = memo(function SidebarIcon({ type, active }: SidebarIconProps) {
-  const color = active ? 'var(--accent)' : 'var(--text-muted)';
-  const icons: Record<string, React.ReactNode> = {
-    folder: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-      </svg>
-    ),
-    upload: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-        <polyline points="17 8 12 3 7 8" />
-        <line x1="12" y1="3" x2="12" y2="15" />
-      </svg>
-    ),
-    waveform: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 12h2l3-9 4 18 4-18 3 9h4" />
-      </svg>
-    ),
-    search: (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="11" cy="11" r="8" />
-        <line x1="21" y1="21" x2="16.65" y2="16.65" />
-      </svg>
-    ),
-  };
-  return icons[type] ?? null;
-});
-
-const ThemeIcon = memo(function ThemeIcon({ theme }: { theme: string }) {
-  const color = 'var(--text-muted)';
-  if (theme === 'light') {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="5" />
-        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-      </svg>
-    );
-  }
-  if (theme === 'dark') {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-      <line x1="8" y1="21" x2="16" y2="21" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-    </svg>
-  );
-});
-
 function AppShell() {
-  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<{ usuario: string } | null>(() => {
     const saved = localStorage.getItem('vanta_user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [activeTab, setActiveTab] = useState<TabId>('ingesta');
+  const [activeTab, setActiveTab] = useState<TabId>(() => {
+    const saved = localStorage.getItem('vanta_active_tab');
+    if (saved && ['casos', 'ingesta', 'transcripcion', 'busqueda'].includes(saved)) return saved as TabId;
+    return 'casos';
+  });
   const [evidenceQueue, setEvidenceQueue] = useState<EvidenceItem[]>([]);
   const [selectedFile, setSelectedFile] = useState<EvidenceItem | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -125,6 +59,8 @@ function AppShell() {
   const [activeCase, setActiveCase] = useState<CaseData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const loadedRef = useRef(false);
+  const prevActiveCaseId = useRef<string | null>(null);
+  const persistReady = useRef(false);
 
   useEffect(() => {
     if (loadedRef.current) return;
@@ -133,15 +69,44 @@ function AppShell() {
       try {
         const storedCases = await db.getCases();
         setCases(storedCases);
+
+        const savedCaseId = localStorage.getItem('vanta_active_case_id');
+        const savedFileRaw = localStorage.getItem('vanta_selected_file');
+
         if (storedCases.length > 0) {
-          const first = storedCases[0]!;
-          setActiveCase(first);
-          const evs = await db.getEvidenceByCase(first.id);
+          let targetCase: CaseData | undefined;
+          if (savedCaseId) {
+            targetCase = storedCases.find(c => c.id === savedCaseId);
+          }
+          if (!targetCase) {
+            targetCase = storedCases[0];
+          }
+          setActiveCase(targetCase!);
+          const evs = await db.getEvidenceByCaseWithStatus(targetCase!.id);
           setEvidenceQueue(evs.map(e => ({
             id: e.id, caseId: e.caseId, nombre: e.nombre,
             estado: e.estado, progreso: e.progreso, tamano: e.tamano,
+            isTranscribed: e.isTranscribed,
           })));
+
+          if (savedFileRaw) {
+            try {
+              const savedFile = JSON.parse(savedFileRaw);
+              const fileData = evs.find(e => e.id === savedFile.id);
+              if (fileData) {
+                setSelectedFile({
+                  id: fileData.id,
+                  caseId: fileData.caseId,
+                  nombre: fileData.nombre,
+                  estado: fileData.estado,
+                  progreso: fileData.progreso,
+                  tamano: fileData.tamano,
+                });
+              }
+            } catch {}
+          }
         }
+        persistReady.current = true;
       } catch (e) {
         console.error('Failed to restore state:', e);
       }
@@ -151,14 +116,19 @@ function AppShell() {
 
   useEffect(() => {
     if (!activeCase || !loadedRef.current) return;
+    const prevId = prevActiveCaseId.current;
+    prevActiveCaseId.current = activeCase.id;
     (async () => {
       try {
-        const evs = await db.getEvidenceByCase(activeCase.id);
+        const evs = await db.getEvidenceByCaseWithStatus(activeCase.id);
         setEvidenceQueue(evs.map(e => ({
           id: e.id, caseId: e.caseId, nombre: e.nombre,
           estado: e.estado, progreso: e.progreso, tamano: e.tamano,
+          isTranscribed: e.isTranscribed,
         })));
-        setSelectedFile(null);
+        if (prevId !== null && prevId !== activeCase.id) {
+          setSelectedFile(null);
+        }
       } catch (e) {
         console.error('Failed to load evidence:', e);
       }
@@ -166,13 +136,6 @@ function AppShell() {
   }, [activeCase]);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((p) => !p), []);
-
-  const handleTabClick = useCallback((id: TabId) => {
-    setActiveTab(id);
-    if (window.matchMedia('(max-width: 767px)').matches) {
-      setSidebarOpen(false);
-    }
-  }, []);
 
   const handleKeyDownEsc = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') setSidebarOpen(false);
@@ -184,6 +147,26 @@ function AppShell() {
       return () => document.removeEventListener('keydown', handleKeyDownEsc);
     }
   }, [sidebarOpen, handleKeyDownEsc]);
+
+  useEffect(() => {
+    localStorage.setItem('vanta_active_tab', activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeCase) {
+      localStorage.setItem('vanta_active_case_id', activeCase.id);
+    } else if (persistReady.current) {
+      localStorage.removeItem('vanta_active_case_id');
+    }
+  }, [activeCase]);
+
+  useEffect(() => {
+    if (selectedFile) {
+      localStorage.setItem('vanta_selected_file', JSON.stringify({ id: selectedFile.id, caseId: selectedFile.caseId }));
+    } else if (persistReady.current) {
+      localStorage.removeItem('vanta_selected_file');
+    }
+  }, [selectedFile]);
 
   const selectFileForTranscription = useCallback((file: EvidenceItem) => {
     setSelectedFile(file);
@@ -203,8 +186,8 @@ function AppShell() {
     setEvidenceQueue((prev) =>
       prev.map((item) => (item.id === id ? { ...item, ...updates } : item))
     );
-    if (updates.estado !== undefined || updates.progreso !== undefined) {
-      db.updateEvidenceStatus(id, updates.estado ?? 'listo', updates.progreso ?? 0);
+    if (updates.estado !== undefined || updates.progreso !== undefined || updates.isTranscribed !== undefined) {
+      db.updateEvidenceStatus(id, updates.estado ?? 'listo', updates.progreso ?? 0, updates.isTranscribed);
     }
   }, []);
 
@@ -235,10 +218,11 @@ function AppShell() {
 
   const refreshEvidence = useCallback(async () => {
     if (!activeCase) return;
-    const evs = await db.getEvidenceByCase(activeCase.id);
+    const evs = await db.getEvidenceByCaseWithStatus(activeCase.id);
     setEvidenceQueue(evs.map(e => ({
       id: e.id, caseId: e.caseId, nombre: e.nombre,
       estado: e.estado, progreso: e.progreso, tamano: e.tamano,
+      isTranscribed: e.isTranscribed,
     })));
   }, [activeCase]);
 
@@ -255,25 +239,6 @@ function AppShell() {
     setSelectedFile(null);
   }, []);
 
-  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
-    const idx = TABS.findIndex((t) => t.id === activeTab);
-    let nextIdx = idx;
-    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-      e.preventDefault();
-      nextIdx = (idx + 1) % TABS.length;
-    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-      e.preventDefault();
-      nextIdx = (idx - 1 + TABS.length) % TABS.length;
-    }
-    if (nextIdx !== idx) {
-      const tab = TABS[nextIdx];
-      if (tab) {
-        setActiveTab(tab.id);
-        document.getElementById(`tab-${tab.id}`)?.focus();
-      }
-    }
-  }, [activeTab]);
-
   const contextValue: AppContextType = useMemo(() => ({
     evidenceQueue, addEvidence, updateEvidence,
     selectedFile, selectFileForTranscription,
@@ -283,9 +248,12 @@ function AppShell() {
     refreshCases, refreshEvidence,
     isLoading,
     activeTab, setActiveTab,
+    sidebarOpen, toggleSidebar,
+    handleLogout,
   }), [evidenceQueue, addEvidence, updateEvidence, selectedFile, selectFileForTranscription,
     user, cases, activeCase, createCase, handleDeleteCase,
-    refreshCases, refreshEvidence, isLoading, activeTab, setActiveTab]);
+    refreshCases, refreshEvidence, isLoading, activeTab, setActiveTab,
+    sidebarOpen, toggleSidebar, handleLogout]);
 
   if (isLoading) {
     return (
@@ -322,144 +290,9 @@ function AppShell() {
         )}
 
         <div className="flex w-full h-full bg-[var(--card-bg)] rounded-[22px] overflow-hidden border border-[var(--border-subtle)] shadow-[0_8px_60px_-12px_rgba(0,0,0,0.3)] relative">
-          <aside
-            className={`
-              ${sidebarOpen ? 'w-[150px] md:w-[200px] xl:w-[240px]' : 'md:w-[56px]'}
-              ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-              shrink-0 flex flex-col
-              transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]
-              bg-[var(--card-bg)] border-r border-[var(--border-subtle)]
-              overflow-hidden
-            `}
-          >
-            <div className={`
-              flex border-b border-[var(--border-subtle)] flex-shrink-0
-              ${sidebarOpen ? 'px-5 py-4' : 'h-14 justify-center items-center'}
-            `}>
-              {sidebarOpen ? (
-                <div className="w-full">
-                  <div className="flex items-center gap-2.5 select-none">
-                    <VantaMiniLogo className="w-[18px] h-[18px]" />
-                    <span className="chrome-text text-[13px] tracking-[0.16em] uppercase font-bold">VANTA</span>
-                  </div>
-                </div>
-              ) : (
-                <VantaMiniLogo className="w-[20px] h-[20px]" />
-              )}
-            </div>
-
-            <nav className="flex-1 overflow-y-auto py-4 scroll-fade" aria-label="Navegacion principal">
-              {sidebarOpen && activeCase && (
-                <div className="px-5 mb-4 flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--accent)', boxShadow: '0 0 6px var(--accent)' }} />
-                  <div className="text-[11px] font-medium truncate" style={{ color: 'var(--text-main)' }}>{activeCase.name}</div>
-                </div>
-              )}
-
-              <div role="tablist" aria-orientation="vertical" className="flex flex-col items-stretch gap-1 px-3">
-                {TABS.map((tab) => {
-                  const active = activeTab === tab.id;
-                  return (
-                    <button
-                      key={tab.id}
-                      id={`tab-${tab.id}`}
-                      role="tab"
-                      aria-selected={active}
-                      aria-controls={`panel-${tab.id}`}
-                      tabIndex={active ? 0 : -1}
-                      onClick={() => handleTabClick(tab.id)}
-                      onKeyDown={handleTabKeyDown}
-                      className={`
-                        outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--card-bg)] transition-all duration-200
-                        ${sidebarOpen
-                          ? 'w-full text-left px-4 py-3 text-[12px] tracking-[0.04em] border-l-2 flex items-center gap-3 rounded-r-md hover:translate-x-[2px]'
-                          : 'w-full py-3 justify-center flex items-center rounded-md'
-                        }
-                        ${active
-                          ? sidebarOpen
-                            ? 'font-medium text-[var(--text-main)] bg-[var(--glass-bg)] border-l-[var(--accent)]'
-                            : 'text-[var(--text-main)] bg-[var(--glass-bg)]'
-                          : sidebarOpen
-                            ? 'font-normal text-[var(--text-muted)] border-l-transparent hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)]'
-                            : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)]'
-                        }
-                      `}
-                      title={tab.label}
-                    >
-                      <SidebarIcon type={tab.icon} active={active} />
-                      <AnimatePresence initial={false}>
-                        {sidebarOpen && (
-                          <motion.span
-                            key="label"
-                            initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: 'auto' }}
-                            exit={{ opacity: 0, width: 0 }}
-                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                            className="whitespace-nowrap overflow-hidden"
-                          >
-                            {tab.label}
-                          </motion.span>
-                        )}
-                      </AnimatePresence>
-                    </button>
-                  );
-                })}
-              </div>
-            </nav>
-
-            <div className="border-t border-[var(--border-subtle)] flex-shrink-0 p-4">
-              <div className={`flex items-center ${sidebarOpen ? 'gap-2.5 mb-3' : 'justify-center mb-2'}`}>
-                <div className="w-8 h-8 rounded-full bg-[var(--accent-subtle)] border border-[var(--border-subtle)] flex items-center justify-center flex-shrink-0">
-                  <span className="text-[11px] font-bold text-[var(--accent-text)]">
-                    {user.usuario.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                {sidebarOpen && (
-                  <div className="flex-1 min-w-0">
-                    <div className="text-[11px] text-[var(--text-main)] truncate font-medium">{user.usuario}</div>
-                  </div>
-                )}
-              </div>
-              <div className={`flex items-center gap-2 ${sidebarOpen ? '' : 'flex-col'}`}>
-                <button
-                  onClick={toggleSidebar}
-                  className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] hover:scale-110 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                  aria-label={sidebarOpen ? 'Contraer barra lateral' : 'Expandir barra lateral'}
-                  title={sidebarOpen ? 'Contraer' : 'Expandir'}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                    className={`transition-transform duration-200 ${sidebarOpen ? '' : 'rotate-180'}`}
-                  >
-                    <polyline points="15 18 9 12 15 6" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => {
-                    if (theme === 'dark') setTheme('light');
-                    else if (theme === 'light') setTheme('system');
-                    else setTheme('dark');
-                  }}
-                  className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] hover:scale-110 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]/50"
-                  aria-label="Cambiar Tema"
-                  title="Cambiar Tema"
-                >
-                  <ThemeIcon theme={theme} />
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-8 h-8 flex items-center justify-center rounded-md text-[var(--text-muted)] hover:text-red-400 hover:bg-[var(--glass-hover)] hover:scale-110 active:scale-95 transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] outline-none focus-visible:ring-2 focus-visible:ring-red-500/50"
-                  title="Cerrar Sesion"
-                  aria-label="Cerrar Sesion"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </aside>
+          <Suspense fallback={<div className="w-[280px] bg-[var(--card-bg)] border-r border-[var(--border-subtle)]" />}>
+            <Sidebar />
+          </Suspense>
 
           <main id="main-content" className="flex-1 flex flex-col overflow-hidden bg-[var(--page-bg)] relative" tabIndex={-1}>
             <div
@@ -479,12 +312,6 @@ function AppShell() {
                   <line x1="3" y1="18" x2="21" y2="18" />
                 </svg>
               </button>
-            </div>
-
-            <div className="z-10 flex items-center justify-between px-6 pt-6 pb-0">
-              <div className="text-[14px] font-bold tracking-[-0.01em] select-none" style={{ color: 'var(--text-main)' }}>
-                {activeCase ? `${activeCase.name} / ` : ''}{MODULE_TITLES[activeTab]}
-              </div>
             </div>
 
             <div className="flex-1 overflow-hidden z-10">

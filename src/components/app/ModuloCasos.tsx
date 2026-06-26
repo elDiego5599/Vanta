@@ -1,4 +1,5 @@
 import { useState, useCallback, memo, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useAppContext, CaseData } from '../../lib/AppContext';
 import { MagneticButton } from '../landing/Primitives';
@@ -47,7 +48,7 @@ const cardVariants: Variants = {
 // 2. MODAL PREMIUM DE CONFIRMACIÓN
 // ==========================================
 function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, caseName: string }) {
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -98,7 +99,8 @@ function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: 
           </motion.div>
         </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 
@@ -262,8 +264,7 @@ const ModuloCasos = memo(function ModuloCasos() {
     setActiveCase(c);
   }, [setActiveCase]);
 
-  const handleNavigate = useCallback((e: React.MouseEvent, c: CaseData) => {
-    e.stopPropagation();
+  const handleNavigate = useCallback((_e: React.MouseEvent, c: CaseData) => {
     setActiveCase(c);
     setActiveTab('ingesta');
   }, [setActiveCase, setActiveTab]);

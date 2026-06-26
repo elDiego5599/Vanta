@@ -20,6 +20,7 @@ interface DBSchema {
       tamano: string;
       estado: string;
       progreso: number;
+      isTranscribed: boolean;
       data: ArrayBuffer;
       uploadedAt: number;
     };
@@ -106,7 +107,7 @@ export async function saveEvidence(
   const db = await getDB();
   await db.add('evidence', {
     id, caseId, nombre, tamano,
-    estado: 'listo', progreso: 0,
+    estado: 'listo', progreso: 0, isTranscribed: false,
     data, uploadedAt: Date.now(),
   });
 }
@@ -114,6 +115,17 @@ export async function saveEvidence(
 export async function getEvidenceByCase(caseId: string): Promise<DBSchema['evidence']['value'][]> {
   const db = await getDB();
   return db.getAllFromIndex('evidence', 'caseId', caseId);
+}
+
+export async function getEvidenceByCaseWithStatus(caseId: string): Promise<DBSchema['evidence']['value'][]> {
+  const db = await getDB();
+  const evs = await db.getAllFromIndex('evidence', 'caseId', caseId);
+  const txs = await db.getAllFromIndex('transcriptions', 'caseId', caseId);
+  const transcribedIds = new Set(txs.map(t => t.evidenceId));
+  return evs.map(e => ({
+    ...e,
+    isTranscribed: e.isTranscribed || transcribedIds.has(e.id),
+  }));
 }
 
 export async function getEvidenceFile(id: string): Promise<ArrayBuffer> {
@@ -127,11 +139,12 @@ export async function updateEvidenceStatus(
   id: string,
   estado: string,
   progreso: number,
+  isTranscribed?: boolean,
 ): Promise<void> {
   const db = await getDB();
   const item = await db.get('evidence', id);
   if (!item) return;
-  await db.put('evidence', { ...item, estado, progreso });
+  await db.put('evidence', { ...item, estado, progreso, isTranscribed: isTranscribed ?? item.isTranscribed });
 }
 
 export async function deleteEvidence(id: string): Promise<void> {
