@@ -94,7 +94,6 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [hoveredLine, setHoveredLine] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saveAfterTx, setSaveAfterTx] = useState(true);
-  const [savedTx, setSavedTx] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -157,12 +156,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     setCurrentTime('00:00:00');
     setDuration('00:00:00');
     setError(null);
-    setSavedTx(false);
 
     db.getTranscriptionByEvidence(selectedFile.id).then(saved => {
       if (saved && saved.saved) {
         setTranscript(saved.lines);
-        setSavedTx(true);
         setStatusText('Análisis Recuperado');
       }
     });
@@ -272,7 +269,6 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
       if (saveAfterTx) {
         await db.saveTranscription(selectedFile.id, selectedFile.caseId, allLines);
-        setSavedTx(true);
       }
 
       if (selectedFile.id) {
@@ -473,8 +469,8 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
           {/* Header del panel derecho */}
           <div className="flex-none px-5 py-4 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 rounded-t-3xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
                 <AnimatePresence mode="wait">
                   {searchOpen ? (
                     <motion.div
@@ -492,7 +488,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Buscar en el registro..."
-                        className="flex-1 bg-transparent text-[13px] text-[var(--text-main)] placeholder-[var(--text-muted)] outline-none border-none min-w-[120px]"
+                        className="flex-1 bg-transparent text-[13px] text-[var(--text-main)] placeholder-[var(--text-muted)] outline-none border-none min-w-0"
                       />
                       {searchQuery.trim() && (
                         <span className="text-[10px] font-mono text-[var(--text-muted)] whitespace-nowrap shrink-0">
@@ -501,7 +497,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                       )}
                       <button
                         onClick={() => { setSearchOpen(false); setSearchQuery(''); }}
-                        className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors"
+                        className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors shrink-0"
                       >
                         <CloseIcon />
                       </button>
@@ -513,7 +509,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 12 }}
                       transition={{ duration: 0.2, ease: 'easeInOut' }}
-                      className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--text-muted)] whitespace-nowrap"
+                      className="text-[11px] font-bold tracking-[0.15em] uppercase text-[var(--text-muted)] truncate"
                     >
                       Registro del Interrogatorio{transcript.length > 0 && ` (${transcript.length} líneas)`}
                     </motion.h2>
@@ -529,11 +525,6 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                 >
                   <SearchIcon />
                 </motion.button>
-                {savedTx && (
-                  <div className="flex items-center gap-1.5 text-[9px] font-bold tracking-widest uppercase text-green-500 bg-green-500/10 px-2.5 py-1 rounded-md border border-green-500/20 whitespace-nowrap">
-                    <CheckIcon w={12} h={12} /> Bóveda Asegurada
-                  </div>
-                )}
               </div>
             </div>
           </div>
