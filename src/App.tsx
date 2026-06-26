@@ -26,14 +26,7 @@ const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripc
 const ModuloBusqueda = lazy(() => import('./components/app/ModuloBusqueda'));
 const Sidebar = lazy(() => import('./components/app/Sidebar'));
 
-const TABS = [
-  { id: 'casos', label: 'Casos', icon: 'folder' as const },
-  { id: 'ingesta', label: 'Evidencias', icon: 'upload' as const },
-  { id: 'transcripcion', label: 'Transcripcion', icon: 'waveform' as const },
-  { id: 'busqueda', label: 'Busqueda Semantica', icon: 'search' as const },
-];
-
-type TabId = (typeof TABS)[number]['id'];
+type TabId = 'casos' | 'ingesta' | 'transcripcion' | 'busqueda';
 
 const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   casos: ModuloCasos,
@@ -103,7 +96,7 @@ function AppShell() {
                   tamano: fileData.tamano,
                 });
               }
-            } catch {}
+            } catch { /* ignore */ }
           }
         }
         persistReady.current = true;

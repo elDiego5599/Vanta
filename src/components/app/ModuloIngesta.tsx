@@ -152,8 +152,9 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
       const stored = localStorage.getItem(`vanta_evidencia_${activeCase.id}`);
       if (stored) {
         try {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setUploadedFiles(JSON.parse(stored));
-        } catch (e) {
+        } catch {
           console.error("Error parseando evidencia local");
         }
       }
@@ -170,6 +171,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
   // Sincroniza estado de transcripción desde evidenceQueue
   useEffect(() => {
     if (evidenceQueue.length === 0 || uploadedFiles.length === 0) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUploadedFiles(prev => {
       let changed = false;
       const next = prev.map(pf => {

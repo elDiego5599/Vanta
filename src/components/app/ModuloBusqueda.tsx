@@ -90,7 +90,7 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
           const evName = evMap.get(tx.evidenceId) || 'Evidencia Desconocida';
 
           for (const line of tx.lines) {
-            const speaker = (line as any).speaker || 'Agente';
+            const speaker = (line as { speaker?: string }).speaker || 'Agente';
             const textToSearch = `${line.text} ${speaker}`.toLowerCase();
             if (textToSearch.includes(query.toLowerCase())) {
               allResults.push({

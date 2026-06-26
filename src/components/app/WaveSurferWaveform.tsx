@@ -62,7 +62,7 @@ const WaveSurferWaveform = memo(forwardRef<WaveSurferHandle, WaveSurferWaveformP
       wsRef.current = ws;
 
       const observer = new ResizeObserver((entries) => {
-        for (let entry of entries) {
+        for (const entry of entries) {
           if (entry.contentRect.width > 0) {
             // Force WaveSurfer to recalculate layout if it was initially hidden
             // In v7 this is mostly handled, but setting height or options can trigger it

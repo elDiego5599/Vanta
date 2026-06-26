@@ -162,7 +162,7 @@ const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onD
         <div className="relative z-20 flex flex-col h-full p-5">
 
           <button
-            onClick={() => isActive ? onNavigate(null as any, c) : onSelect(c)}
+            onClick={(e) => isActive ? onNavigate(e, c) : onSelect(c)}
             className="absolute inset-0 w-full h-full rounded-[15px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)] z-10 cursor-pointer"
             aria-label={isActive ? `Ver evidencias de ${c.name}` : `Seleccionar caso ${c.name}`}
           />

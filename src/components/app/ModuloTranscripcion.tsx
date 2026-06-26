@@ -88,6 +88,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   // Inicialización del archivo de audio
   useEffect(() => {
     if (!selectedFile?.id) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setAudioUrl(null);
       return;
     }
