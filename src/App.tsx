@@ -18,7 +18,7 @@ const GLOW_COLORS: Record<TabId, string> = {
 
 const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion'])
 import { CSSGrid } from './components/landing/CSSGrid'
-import PinScreen from './components/app/PinScreen'
+import PasswordScreen from './components/app/PasswordScreen'
 
 const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'))
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'))
@@ -33,6 +33,7 @@ const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>>
 
 function AppShell() {
   const [unlocked, setUnlocked] = useState(false)
+  const setLockFn = useUIStore((s) => s.setLockFn)
 
   const activeTab = useUIStore((s) => s.activeTab)
   const setActiveTab = useUIStore((s) => s.setActiveTab)
@@ -46,6 +47,11 @@ function AppShell() {
   const clearEvidence = useEvidenceStore((s) => s.clearEvidence)
 
   const [initDone, setInitDone] = useState(false)
+
+  useEffect(() => {
+    setLockFn(() => setUnlocked(false))
+    return () => setLockFn(null)
+  }, [setLockFn])
 
   useEffect(() => {
     initCases().then(() => {
@@ -74,7 +80,7 @@ function AppShell() {
   }
 
   if (!unlocked) {
-    return <PinScreen onUnlock={() => setUnlocked(true)} />
+    return <PasswordScreen onUnlock={() => setUnlocked(true)} />
   }
 
   const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta

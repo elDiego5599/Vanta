@@ -60,6 +60,13 @@ const CollapseIcon = ({ w = 18, h = 18 }) => (
   </svg>
 )
 
+const LockIcon = ({ w = 18, h = 18 }) => (
+  <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+)
+
 // ==========================================
 // 2. NAVEGACION
 // ==========================================
@@ -78,6 +85,7 @@ const Sidebar = memo(function Sidebar() {
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const activeCase = useCaseStore((s) => s.activeCase)
+  const lock = useUIStore((s) => s.lock)
   const { theme, setTheme } = useTheme()
 
   return (
@@ -199,6 +207,13 @@ const Sidebar = memo(function Sidebar() {
               {theme === 'dark' && <MoonIcon w={18} h={18} />}
               {theme === 'light' && <SunIcon w={18} h={18} />}
               {theme === 'system' && <SystemIcon w={18} h={18} />}
+            </button>
+            <button
+              onClick={lock}
+              className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors outline-none"
+              title="Cerrar Sesion"
+            >
+              <LockIcon w={18} h={18} />
             </button>
           </div>
         </div>

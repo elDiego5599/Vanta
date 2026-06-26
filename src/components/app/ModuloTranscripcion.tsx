@@ -378,27 +378,26 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
               {/* WAVEFORM + CONTROLES FUSIONADOS */}
               <div className={`relative rounded-xl p-4 border transition-all duration-500 ${isTranscribing || isPlaying ? 'border-[var(--accent)]/40 shadow-[0_0_30px_color-mix(in_srgb,var(--accent)_15%,transparent)] bg-[var(--accent)]/[0.02]' : 'border-[var(--border-subtle)] bg-[var(--glass-bg)]'
                 }`}>
-                <div className="mb-3">
-                  <WaveSurferWaveform
-                    ref={waveformRef}
-                    url={audioUrl}
-                    onReady={handleReady}
-                    onTimeUpdate={handleTimeUpdate}
-                    onPlayStateChange={handlePlayState}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <button
                     onClick={togglePlay}
                     className="w-10 h-10 rounded-full flex items-center justify-center transition-all bg-[var(--text-main)] text-[var(--page-bg)] hover:scale-105 active:scale-95 shadow-md shrink-0 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
                   >
                     {isPlaying ? <PauseIcon w={20} h={20} /> : <PlayIcon w={20} h={20} />}
                   </button>
-
-                  <div className="text-[10px] tabular-nums font-mono text-[var(--text-muted)]">
-                    <span className="text-[var(--text-main)]">{currentTime}</span> / {duration}
+                  <div className="flex-1 min-w-0">
+                    <WaveSurferWaveform
+                      ref={waveformRef}
+                      url={audioUrl}
+                      onReady={handleReady}
+                      onTimeUpdate={handleTimeUpdate}
+                      onPlayStateChange={handlePlayState}
+                    />
                   </div>
+                </div>
+
+                <div className="text-[10px] tabular-nums font-mono text-[var(--text-muted)] mt-2">
+                  <span className="text-[var(--text-main)]">{currentTime}</span> / {duration}
                 </div>
               </div>
 
@@ -542,7 +541,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         <button
                           onClick={(e) => toggleSpeaker(item, e)}
                           className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-left ${(item.speaker || 'Agente') === 'Agente'
-                            ? 'bg-[var(--accent)]/5 text-[var(--accent)]/80 border border-[var(--accent)]/10 hover:bg-[var(--accent)]/10'
+                            ? 'bg-[var(--accent)]/5 text-[var(--accent)] border border-[var(--accent)]/10 hover:bg-[var(--accent)]/10'
                             : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20'
                             }`}
                         >

@@ -7,15 +7,21 @@ interface UIState {
   setActiveTab: (tab: TabId) => void
   sidebarOpen: boolean
   toggleSidebar: () => void
+  _lockFn: (() => void) | null
+  setLockFn: (fn: (() => void) | null) => void
+  lock: () => void
 }
 
 export const useUIStore = create<UIState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       activeTab: 'casos',
       setActiveTab: (tab) => set({ activeTab: tab }),
       sidebarOpen: true,
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+      _lockFn: null,
+      setLockFn: (fn) => set({ _lockFn: fn }),
+      lock: () => { get()._lockFn?.() },
     }),
     { name: 'vanta-ui' },
   ),
