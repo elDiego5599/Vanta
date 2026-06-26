@@ -41,6 +41,23 @@ interface SearchResult {
   etiquetas?: string[];
 }
 
+function HighlightMatch({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <span key={i} className="bg-[var(--accent)]/20 text-[var(--accent)] font-semibold rounded px-0.5">{part}</span>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 // FIX TYPESCRIPT: Tipado estricto para las variantes
 const resultVariants: Variants = {
   hidden: { opacity: 0, y: 15, scale: 0.98 },
@@ -237,7 +254,7 @@ const ModuloBusqueda = memo(function ModuloBusqueda() {
                         </div>
 
                         <div className="text-[14px] leading-relaxed text-[var(--text-muted)] mb-4 group-hover:text-[var(--text-main)] transition-colors">
-                          "{r.fragmento}"
+                          "<HighlightMatch text={r.fragmento} query={query} />"
                         </div>
 
                         {/* Footer del Resultado (Orador y Etiquetas) */}
