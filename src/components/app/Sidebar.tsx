@@ -143,14 +143,14 @@ const Sidebar = memo(function Sidebar() {
       )}
 
       {/* NAVEGACION PRINCIPAL */}
-      <nav className="flex-1 px-2 py-4 overflow-y-auto custom-scrollbar">
+      <nav className="flex-1 px-3 py-6 overflow-y-auto custom-scrollbar">
         <ul className="space-y-1">
           {NAV_ITEMS.map((tab) => {
             const isActive = activeTab === tab.id
             const Icon = tab.icon
 
             return (
-              <li key={tab.id} className="relative h-[42px]">
+              <li key={tab.id} className="relative h-[52px]">
                 {isActive && (
                   <motion.div
                     layoutId="sidebar-active-indicator"
@@ -161,18 +161,18 @@ const Sidebar = memo(function Sidebar() {
                 )}
                 <button
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-10 w-full h-full flex items-center gap-3 transition-colors duration-150 outline-none ${
-                    sidebarOpen ? 'px-3' : 'px-0 justify-center'
+                  className={`relative z-10 w-full h-full flex items-center gap-3 transition-colors duration-150 outline-none rounded-lg ${
+                    sidebarOpen ? 'px-4' : 'px-0 justify-center'
                   } ${
                     isActive
-                      ? 'text-[var(--accent)] bg-[var(--accent)]/[0.06]'
-                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
+                      ? 'text-[var(--accent)] bg-[var(--accent)]/[0.08]'
+                      : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-bg)]'
                   }`}
                   title={tab.label}
                 >
-                  <span className="shrink-0"><Icon w={18} h={18} /></span>
+                  <span className="shrink-0"><Icon w={20} h={20} /></span>
                   {sidebarOpen && (
-                    <span className={`text-[14px] tracking-wide whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}>
+                    <span className={`text-[13px] tracking-wide whitespace-nowrap ${isActive ? 'font-bold' : 'font-medium'}`}>
                       {tab.label}
                     </span>
                   )}
@@ -191,7 +191,9 @@ const Sidebar = memo(function Sidebar() {
             className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-bg)] transition-colors outline-none"
             title={sidebarOpen ? 'Colapsar' : 'Expandir'}
           >
-            <CollapseIcon w={18} h={18} />
+            <span className={`block transition-transform duration-300 ${sidebarOpen ? '' : 'rotate-180'}`}>
+              <CollapseIcon w={18} h={18} />
+            </span>
           </button>
 
           <div className={`flex ${sidebarOpen ? 'gap-1' : 'flex-col gap-1'}`}>
