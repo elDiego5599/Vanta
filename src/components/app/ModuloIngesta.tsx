@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCaseStore } from '../../lib/stores/caseStore';
 import { useEvidenceStore } from '../../lib/stores/evidenceStore';
+import { useUIStore } from '../../lib/stores/uiStore';
 import * as db from '../../lib/db';
 import { TrashIcon, PlusIcon } from '../landing/Icons';
 
@@ -138,6 +139,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
   const activeCase = useCaseStore((s) => s.activeCase);
   const selectFileForTranscription = useEvidenceStore((s) => s.selectFileForTranscription);
   const evidenceQueue = useEvidenceStore((s) => s.evidenceQueue);
+  const setActiveTab = useUIStore((s) => s.setActiveTab);
 
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -488,6 +490,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                               progreso: 0,
                               tamano: formatBytes(item.size),
                             });
+                            setActiveTab('transcripcion');
                           }}
                           className="px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--glass-bg)] hover:bg-[var(--glass-hover)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex items-center gap-2"
                         >
