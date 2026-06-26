@@ -1,17 +1,20 @@
-import { memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useAppContext } from '../../lib/AppContext';
-import { useTheme } from '../../lib/use-theme';
-import { VantaMiniLogo } from '../landing/Icons';
+import { memo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useUIStore } from '../../lib/stores/uiStore'
+import { useCaseStore } from '../../lib/stores/caseStore'
+import { useAuthStore } from '../../lib/stores/authStore'
+import { useTheme } from '../../lib/use-theme'
+import { VantaMiniLogo } from '../landing/Icons'
+import type { TabId } from '../../lib/types'
 
 // ==========================================
-// 1. ÍCONOS LOCALES
+// 1. ICONOS LOCALES
 // ==========================================
 const FolderIcon = ({ w = 20, h = 20 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
   </svg>
-);
+)
 
 const UploadIcon = ({ w = 20, h = 20 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -19,7 +22,7 @@ const UploadIcon = ({ w = 20, h = 20 }) => (
     <polyline points="17 8 12 3 7 8" />
     <line x1="12" y1="3" x2="12" y2="15" />
   </svg>
-);
+)
 
 const TextIcon = ({ w = 20, h = 20 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -29,20 +32,20 @@ const TextIcon = ({ w = 20, h = 20 }) => (
     <line x1="16" y1="17" x2="8" y2="17" />
     <polyline points="10 9 9 9 8 9" />
   </svg>
-);
+)
 
 const SunIcon = ({ w = 18, h = 18 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="5" />
     <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
   </svg>
-);
+)
 
 const MoonIcon = ({ w = 18, h = 18 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
   </svg>
-);
+)
 
 const SystemIcon = ({ w = 18, h = 18 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -50,7 +53,7 @@ const SystemIcon = ({ w = 18, h = 18 }) => (
     <line x1="8" y1="21" x2="16" y2="21" />
     <line x1="12" y1="17" x2="12" y2="21" />
   </svg>
-);
+)
 
 const LogoutIcon = ({ w = 18, h = 18 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -58,37 +61,34 @@ const LogoutIcon = ({ w = 18, h = 18 }) => (
     <polyline points="16 17 21 12 16 7" />
     <line x1="21" y1="12" x2="9" y2="12" />
   </svg>
-);
+)
 
 const CollapseIcon = ({ w = 18, h = 18 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <polyline points="15 18 9 12 15 6" />
   </svg>
-);
+)
 
 // ==========================================
-// 2. NAVEGACIÓN
+// 2. NAVEGACION
 // ==========================================
-type TabId = 'casos' | 'ingesta' | 'transcripcion';
-
-interface NavItem {
-  id: TabId;
-  label: string;
-  icon: React.ElementType;
-}
-
-const NAV_ITEMS: NavItem[] = [
+const NAV_ITEMS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'casos', label: 'Casos', icon: FolderIcon },
   { id: 'ingesta', label: 'Evidencias', icon: UploadIcon },
-  { id: 'transcripcion', label: 'Transcripción', icon: TextIcon },
-];
+  { id: 'transcripcion', label: 'Transcripcion', icon: TextIcon },
+]
 
 // ==========================================
 // 3. SIDEBAR
 // ==========================================
 const Sidebar = memo(function Sidebar() {
-  const { activeTab, setActiveTab, activeCase, sidebarOpen, toggleSidebar, handleLogout } = useAppContext();
-  const { theme, setTheme } = useTheme();
+  const activeTab = useUIStore((s) => s.activeTab)
+  const setActiveTab = useUIStore((s) => s.setActiveTab)
+  const sidebarOpen = useUIStore((s) => s.sidebarOpen)
+  const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  const activeCase = useCaseStore((s) => s.activeCase)
+  const logout = useAuthStore((s) => s.logout)
+  const { theme, setTheme } = useTheme()
 
   return (
     <aside className={`${sidebarOpen ? 'w-[280px]' : 'w-[60px]'} h-full flex flex-col bg-[var(--card-bg)] border-r border-[var(--border-subtle)] relative z-50 shrink-0 transition-all duration-300`}>
@@ -136,7 +136,7 @@ const Sidebar = memo(function Sidebar() {
               >
                 <div className="w-1.5 h-1.5 rounded-full bg-[var(--text-muted)]" />
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[var(--text-muted)]">
-                  Ningún caso abierto
+                  Ningun caso abierto
                 </span>
               </motion.div>
             )}
@@ -144,12 +144,12 @@ const Sidebar = memo(function Sidebar() {
         </div>
       )}
 
-      {/* NAVEGACIÓN PRINCIPAL */}
+      {/* NAVEGACION PRINCIPAL */}
       <nav className="flex-1 px-2 py-4 overflow-y-auto custom-scrollbar">
         <ul className="space-y-1">
           {NAV_ITEMS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const Icon = tab.icon;
+            const isActive = activeTab === tab.id
+            const Icon = tab.icon
 
             return (
               <li key={tab.id} className="relative h-[42px]">
@@ -158,16 +158,18 @@ const Sidebar = memo(function Sidebar() {
                     layoutId="sidebar-active-indicator"
                     className="absolute left-0 top-0 bottom-0 w-[3px] bg-[var(--accent)] rounded-r-full"
                     initial={false}
-                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
                 <button
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative z-10 w-full h-full flex items-center gap-3 transition-colors duration-150 outline-none ${sidebarOpen ? 'px-3' : 'px-0 justify-center'
-                    } ${isActive
+                  className={`relative z-10 w-full h-full flex items-center gap-3 transition-colors duration-150 outline-none ${
+                    sidebarOpen ? 'px-3' : 'px-0 justify-center'
+                  } ${
+                    isActive
                       ? 'text-[var(--accent)] bg-[var(--accent)]/[0.06]'
                       : 'text-[var(--text-muted)] hover:text-[var(--text-main)]'
-                    }`}
+                  }`}
                   title={tab.label}
                 >
                   <span className="shrink-0"><Icon w={18} h={18} /></span>
@@ -178,7 +180,7 @@ const Sidebar = memo(function Sidebar() {
                   )}
                 </button>
               </li>
-            );
+            )
           })}
         </ul>
       </nav>
@@ -206,9 +208,9 @@ const Sidebar = memo(function Sidebar() {
           <div className={`flex ${sidebarOpen ? 'gap-1' : 'flex-col gap-1'}`}>
             <button
               onClick={() => {
-                if (theme === 'dark') setTheme('light');
-                else if (theme === 'light') setTheme('system');
-                else setTheme('dark');
+                if (theme === 'dark') setTheme('light')
+                else if (theme === 'light') setTheme('system')
+                else setTheme('dark')
               }}
               className="p-2 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-bg)] transition-colors outline-none"
               title={`Tema: ${theme}`}
@@ -218,9 +220,9 @@ const Sidebar = memo(function Sidebar() {
               {theme === 'system' && <SystemIcon w={18} h={18} />}
             </button>
             <button
-              onClick={handleLogout}
+              onClick={logout}
               className="p-2 rounded-lg text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors outline-none"
-              title="Cerrar Sesión"
+              title="Cerrar Sesion"
             >
               <LogoutIcon w={18} h={18} />
             </button>
@@ -228,7 +230,7 @@ const Sidebar = memo(function Sidebar() {
         </div>
       </div>
     </aside>
-  );
-});
+  )
+})
 
-export default Sidebar;
+export default Sidebar

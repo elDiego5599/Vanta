@@ -1,105 +1,136 @@
-import { pipeline, env } from '@xenova/transformers';
+import { pipeline, env } from '@xenova/transformers'
 
-(env as Record<string, unknown>).allowLocalModels = false;
+const envAny = env as Record<string, unknown>
+envAny.allowLocalModels = false
 if (env.backends?.onnx?.wasm) {
-  env.backends.onnx.wasm.wasmPaths = '/';
+  env.backends.onnx.wasm.wasmPaths = '/'
 }
 
-async function patchFetchForHuggingFace() {
+type Transcriber = Awaited<ReturnType<typeof pipeline>>
+
+let transcriber: Transcriber | null = null
+let fetchPatched = false
+
+async function ensureTauriFetchPatch() {
+  if (fetchPatched) return
+  fetchPatched = true
+
   try {
-    const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http');
-    const originalFetch = globalThis.fetch.bind(globalThis);
+    const { fetch: tauriFetch } = await import('@tauri-apps/plugin-http')
+    const originalFetch = globalThis.fetch.bind(globalThis)
+
     globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-      const url = (typeof input === 'string' ? input : input instanceof URL ? input.href : input.url) ?? '';
+      const url = (
+        typeof input === 'string' ? input :
+        input instanceof URL ? input.href :
+        input.url ?? ''
+      ) ?? ''
       if (url.includes('huggingface.co') || url.includes('hf.co')) {
         try {
-          const response = await tauriFetch(url, init as Record<string, unknown>);
-          return response as unknown as Response;
-        } catch (e) {
-          console.warn('Tauri HTTP fetch failed, falling back:', e);
+          const response = await tauriFetch(url, init as Record<string, unknown>)
+          return response as unknown as Response
+        } catch (err) {
+          console.warn('Tauri HTTP fetch failed, falling back to native fetch:', err)
         }
       }
-      return originalFetch(input, init);
-    };
-  } catch { void 0 }
+      return originalFetch(input, init)
+    }
+  } catch {
+    console.info('Tauri HTTP plugin not available, using native fetch')
+  }
 }
-
-await patchFetchForHuggingFace();
-
-type Transcriber = Awaited<ReturnType<typeof pipeline>>;
-
-let transcriber: Transcriber | null = null;
 
 interface ProgressData {
-  status: string;
-  file: string;
-  progress: number;
+  status: string
+  file: string
+  progress: number
 }
 
-type ProgressCallback = (data: ProgressData) => void;
+type ProgressCallback = (data: ProgressData) => void
 
 export interface ChunkResult {
-  text: string;
-  timestamp: [number, number];
+  text: string
+  timestamp: [number, number]
+}
+
+interface WhisperChunk {
+  text?: string
+  timestamp?: number[]
+  timestamps?: number[]
+}
+
+interface WhisperOutput {
+  text?: string
+  chunks?: WhisperChunk[]
 }
 
 export async function loadModel(onProgress?: ProgressCallback): Promise<Transcriber> {
-  if (transcriber) return transcriber;
+  if (transcriber) return transcriber
+
+  await ensureTauriFetchPatch()
 
   transcriber = (await pipeline(
     'automatic-speech-recognition',
     'Xenova/whisper-small',
     onProgress ? { progress_callback: onProgress } : undefined,
-  )) as unknown as Transcriber;
+  )) as unknown as Transcriber
 
-  return transcriber;
+  return transcriber
 }
 
 export async function decodeAudioToF32(arrayBuffer: ArrayBuffer, targetRate = 16000): Promise<Float32Array> {
-  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-  const audioCtx = new AudioCtx();
+  const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+  const audioCtx = new AudioCtx()
   try {
-    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-    const rawData = audioBuffer.getChannelData(0);
-    const sampleRate = audioBuffer.sampleRate;
+    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer)
+    const rawData = audioBuffer.getChannelData(0)
+    const sampleRate = audioBuffer.sampleRate
 
-    if (sampleRate === targetRate) return rawData;
+    if (sampleRate === targetRate) return rawData
 
-    const ratio = sampleRate / targetRate;
-    const newLength = Math.round(rawData.length / ratio);
-    const resampled = new Float32Array(newLength);
+    const ratio = sampleRate / targetRate
+    const newLength = Math.round(rawData.length / ratio)
+    const resampled = new Float32Array(newLength)
     for (let i = 0; i < newLength; i++) {
-      const srcIdx = i * ratio;
-      const idx = Math.floor(srcIdx);
-      const frac = srcIdx - idx;
-      resampled[i] = (rawData[idx] ?? 0) * (1 - frac) + (rawData[idx + 1] ?? 0) * frac;
+      const srcIdx = i * ratio
+      const idx = Math.floor(srcIdx)
+      const frac = srcIdx - idx
+      resampled[i] = (rawData[idx] ?? 0) * (1 - frac) + (rawData[idx + 1] ?? 0) * frac
     }
-    return resampled;
+    return resampled
   } finally {
-    if (audioCtx) await audioCtx.close();
+    if (audioCtx) await audioCtx.close()
   }
 }
 
-function extractChunks(raw: Record<string, unknown>, offsetSeconds: number): ChunkResult[] {
-  if (Array.isArray(raw.chunks)) {
-    return raw.chunks.map((c: Record<string, unknown>) => {
-      const ts = (c.timestamp ?? c.timestamps ?? [0, 0]) as number[];
+function extractChunks(raw: unknown, offsetSeconds: number): ChunkResult[] {
+  if (!raw || typeof raw !== 'object') return []
+
+  const output = raw as WhisperOutput
+
+  if (Array.isArray(output.chunks)) {
+    return output.chunks.map((c: WhisperChunk): ChunkResult => {
+      const ts = c.timestamp ?? c.timestamps ?? [0, 0]
       return {
         text: typeof c.text === 'string' ? c.text.trim() : '',
-        timestamp: [offsetSeconds + (ts[0] ?? 0), offsetSeconds + (ts[1] ?? 0)] as [number, number],
-      };
-    });
+        timestamp: [
+          offsetSeconds + (typeof ts[0] === 'number' ? ts[0] : 0),
+          offsetSeconds + (typeof ts[1] === 'number' ? ts[1] : 0),
+        ],
+      }
+    })
   }
-  const text = typeof raw.text === 'string' ? raw.text.trim() : '';
+
+  const text = typeof output.text === 'string' ? output.text.trim() : ''
   if (text) {
-    return [{ text, timestamp: [offsetSeconds, offsetSeconds + 30] }];
+    return [{ text, timestamp: [offsetSeconds, offsetSeconds + 30] }]
   }
-  return [];
+  return []
 }
 
 export interface TranscribeOptions {
-  onChunk?: (chunk: ChunkResult) => void;
-  chunkLengthSec?: number;
+  onChunk?: (chunk: ChunkResult) => void
+  chunkLengthSec?: number
 }
 
 export async function transcribeProgressive(
@@ -107,64 +138,64 @@ export async function transcribeProgressive(
   audio: Float32Array,
   options: TranscribeOptions = {},
 ): Promise<ChunkResult[]> {
-  const { onChunk, chunkLengthSec = 30 } = options;
-  const sampleRate = 16000;
-  const chunkSize = sampleRate * chunkLengthSec;
-  const allChunks: ChunkResult[] = [];
+  const { onChunk, chunkLengthSec = 30 } = options
+  const sampleRate = 16000
+  const chunkSize = sampleRate * chunkLengthSec
+  const allChunks: ChunkResult[] = []
 
   for (let offset = 0; offset < audio.length; offset += chunkSize) {
-    const end = Math.min(offset + chunkSize, audio.length);
-    const segment = audio.slice(offset, end);
-    const offsetSeconds = offset / sampleRate;
+    const end = Math.min(offset + chunkSize, audio.length)
+    const segment = audio.slice(offset, end)
+    const offsetSeconds = offset / sampleRate
 
-    await new Promise((r) => setTimeout(r, 0));
+    await new Promise((r) => setTimeout(r, 0))
 
-    let raw: Record<string, unknown>;
+    let raw: unknown
     try {
-      raw = (await model(segment, {
+      raw = await model(segment, {
         language: 'es',
         task: 'transcribe',
         return_timestamps: true,
-      })) as Record<string, unknown>;
+      })
     } catch (err) {
-      console.error('Error en segmento', offsetSeconds, err);
-      throw err;
+      console.error('Error en segmento', offsetSeconds, err)
+      throw err
     }
 
-    const chunks = extractChunks(raw, offsetSeconds);
+    const chunks = extractChunks(raw, offsetSeconds)
     for (const c of chunks) {
-      allChunks.push(c);
-      onChunk?.(c);
+      allChunks.push(c)
+      onChunk?.(c)
     }
   }
 
-  return allChunks;
+  return allChunks
 }
 
 export async function transcribeAudio(
   arrayBuffer: ArrayBuffer,
   onProgress?: ProgressCallback,
 ): Promise<{ text: string; chunks: ChunkResult[] }> {
-  const model = await loadModel(onProgress);
-  const audio = await decodeAudioToF32(arrayBuffer);
-  const chunks = await transcribeProgressive(model, audio);
-  const text = chunks.map((c) => c.text).join(' ');
-  return { text, chunks };
+  const model = await loadModel(onProgress)
+  const audio = await decodeAudioToF32(arrayBuffer)
+  const chunks = await transcribeProgressive(model, audio)
+  const text = chunks.map((c) => c.text).join(' ')
+  return { text, chunks }
 }
 
 export function formatTimestamp(seconds: number | null | undefined): string {
-  if (seconds == null || isNaN(seconds)) return '00:00:00';
-  const h = Math.floor(seconds / 3600);
-  const m = Math.floor((seconds % 3600) / 60);
-  const s = Math.floor(seconds % 60);
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  if (seconds == null || isNaN(seconds)) return '00:00:00'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
 export async function fileToArrayBuffer(file: File): Promise<ArrayBuffer> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.onerror = reject;
-    reader.readAsArrayBuffer(file);
-  });
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as ArrayBuffer)
+    reader.onerror = reject
+    reader.readAsArrayBuffer(file)
+  })
 }

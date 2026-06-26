@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef, memo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppContext } from '../../lib/AppContext';
+import { useCaseStore } from '../../lib/stores/caseStore';
+import { useEvidenceStore } from '../../lib/stores/evidenceStore';
 import * as db from '../../lib/db';
 import { TrashIcon, PlusIcon } from '../landing/Icons';
 
@@ -134,7 +135,9 @@ function ConfirmDeleteEvidenceModal({ isOpen, onClose, onConfirm, fileName }: { 
 // 3. COMPONENTE PRINCIPAL
 // ==========================================
 const ModuloEvidencias = memo(function ModuloEvidencias() {
-  const { activeCase, selectFileForTranscription, evidenceQueue } = useAppContext();
+  const activeCase = useCaseStore((s) => s.activeCase);
+  const selectFileForTranscription = useEvidenceStore((s) => s.selectFileForTranscription);
+  const evidenceQueue = useEvidenceStore((s) => s.evidenceQueue);
 
   const [stagedFiles, setStagedFiles] = useState<StagedFile[]>([]);
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);

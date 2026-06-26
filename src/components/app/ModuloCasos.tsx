@@ -1,7 +1,9 @@
 import { useState, useCallback, memo, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { useAppContext, CaseData } from '../../lib/AppContext';
+import { useCaseStore } from '../../lib/stores/caseStore';
+import { useUIStore } from '../../lib/stores/uiStore';
+import type { CaseData } from '../../lib/types';
 import { MagneticButton } from '../landing/Primitives';
 import { FolderIcon, TrashIcon, ArrowIcon, PlusIcon } from '../landing/Icons';
 
@@ -231,7 +233,12 @@ const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onD
 // 4. MÓDULO PRINCIPAL DE CASOS
 // ==========================================
 const ModuloCasos = memo(function ModuloCasos() {
-  const { cases, activeCase, setActiveCase, createCase, deleteCase, setActiveTab } = useAppContext();
+  const cases = useCaseStore((s) => s.cases);
+  const activeCase = useCaseStore((s) => s.activeCase);
+  const setActiveCase = useCaseStore((s) => s.setActiveCase);
+  const createCase = useCaseStore((s) => s.createCase);
+  const deleteCase = useCaseStore((s) => s.deleteCase);
+  const setActiveTab = useUIStore((s) => s.setActiveTab);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAppContext } from '../../lib/AppContext';
+import { useEvidenceStore } from '../../lib/stores/evidenceStore';
+import { useUIStore } from '../../lib/stores/uiStore';
 import { loadModel, decodeAudioToF32, transcribeProgressive, formatTimestamp } from '../../lib/whisper';
 import type { ChunkResult } from '../../lib/whisper';
 import * as db from '../../lib/db';
@@ -81,7 +82,9 @@ const lineVariants = {
 // 3. COMPONENTE PRINCIPAL
 // ==========================================
 const ModuloTranscripcion = memo(function ModuloTranscripcion() {
-  const { selectedFile, updateEvidence, setActiveTab } = useAppContext();
+  const selectedFile = useEvidenceStore((s) => s.selectedFile);
+  const updateEvidence = useEvidenceStore((s) => s.updateEvidence);
+  const setActiveTab = useUIStore((s) => s.setActiveTab);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
