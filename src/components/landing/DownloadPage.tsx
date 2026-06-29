@@ -18,13 +18,13 @@ async function detectOS(): Promise<OSType> {
 
   if (isMac) {
     try {
-      const uaData = (navigator as any).userAgentData
+      const uaData = (navigator as Navigator & { userAgentData?: { getHighEntropyValues: (hints: string[]) => Promise<{ architecture?: string }> } }).userAgentData
       if (uaData?.getHighEntropyValues) {
         const values = await uaData.getHighEntropyValues(['architecture'])
         if (values.architecture?.toLowerCase() === 'arm') return 'mac-arm'
         return 'mac-intel'
       }
-    } catch { }
+    } catch { /* API not supported */ }
     return /arm|aarch64/i.test(ua) ? 'mac-arm' : 'mac-intel'
   }
   if (isWin) return 'windows'
