@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { Link } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { VantaLogo } from './Icons';
 import { MagneticButton, ThemeToggle } from './Primitives';
@@ -38,9 +39,9 @@ function HeaderBase({ scrolled }: HeaderProps) {
         <div className="w-[1px] h-4 bg-[var(--border-strong)] ml-2" />
         <ThemeToggle theme={theme} setTheme={setTheme} />
         <MagneticButton>
-          <button className="text-[11px] font-bold tracking-widest uppercase text-[var(--btn-text)] border border-transparent rounded-full px-6 py-2.5 bg-[var(--btn-bg)] transition-colors hover:bg-[var(--btn-hover)] shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-white">
+          <Link to="/download" className="text-[11px] font-bold tracking-widest uppercase text-[var(--btn-text)] border border-transparent rounded-full px-6 py-2.5 bg-[var(--btn-bg)] transition-colors hover:bg-[var(--btn-hover)] shadow-lg outline-none focus-visible:ring-2 focus-visible:ring-white inline-block">
             Descargar
-          </button>
+          </Link>
         </MagneticButton>
       </nav>
     </header>

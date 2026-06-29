@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { Link } from 'react-router-dom';
 import { VantaLogo } from './Icons';
 import { Reveal, MagneticButton, Title25D } from './Primitives';
 
@@ -10,9 +11,9 @@ function HeroBase() {
           <Title25D text1="Inteligencia" text2="Forense" className="text-[clamp(3.5rem,5vw,5rem)] leading-[0.9]" />
           <div className="flex gap-4 mt-8">
             <MagneticButton>
-              <button className="px-6 py-3.5 text-[11px] font-bold tracking-widest uppercase rounded-full text-[var(--btn-text)] bg-[var(--btn-bg)] transition-transform hover:scale-105 outline-none focus-visible:ring-2 focus-visible:ring-white">
+              <Link to="/download" className="px-6 py-3.5 text-[11px] font-bold tracking-widest uppercase rounded-full text-[var(--btn-text)] bg-[var(--btn-bg)] transition-transform hover:scale-105 outline-none focus-visible:ring-2 focus-visible:ring-white inline-block">
                 Descargar
-              </button>
+              </Link>
             </MagneticButton>
             <MagneticButton>
               <button className="px-6 py-3.5 text-[11px] font-bold tracking-widest uppercase rounded-full border border-[var(--border-strong)] text-[var(--text-main)] bg-transparent hover:bg-white/5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-white">
