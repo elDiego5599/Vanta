@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import type { CaseData } from '../types'
 import * as db from '../db'
+import { encrypt, decrypt } from '../crypto'
+import { getEncryptionKey } from '../keyHolder'
 
 interface CaseState {
   cases: CaseData[]
@@ -11,6 +13,23 @@ interface CaseState {
   deleteCase: (id: string) => Promise<void>
   refreshCases: () => Promise<void>
   initialize: () => Promise<void>
+}
+
+async function decryptStr(val: string): Promise<string> {
+  const key = getEncryptionKey()
+  if (!key) return val
+  try { return await decrypt(val, key) } catch { return val }
+}
+
+async function decryptCase(c: CaseData): Promise<CaseData> {
+  const [name, description] = await Promise.all([decryptStr(c.name), decryptStr(c.description)])
+  return { ...c, name, description }
+}
+
+function assertKey(): CryptoKey {
+  const key = getEncryptionKey()
+  if (!key) throw new Error('Encryption key not available')
+  return key
 }
 
 export const useCaseStore = create<CaseState>()((set) => ({
@@ -25,7 +44,9 @@ export const useCaseStore = create<CaseState>()((set) => ({
   },
 
   createCase: async (name, description) => {
-    const id = await db.createCase(name, description)
+    const key = assertKey()
+    const [encName, encDesc] = await Promise.all([encrypt(name, key), encrypt(description, key)])
+    const id = await db.createCase(encName, encDesc)
     const now = Date.now()
     const newCase: CaseData = { id, name, description, createdAt: now, updatedAt: now }
     set((s) => ({ cases: [...s.cases, newCase], activeCase: newCase }))
@@ -46,19 +67,21 @@ export const useCaseStore = create<CaseState>()((set) => ({
 
   refreshCases: async () => {
     const stored = await db.getCases()
+    const decrypted = await Promise.all(stored.map(decryptCase))
     set((s) => {
-      const stillExists = stored.find((c) => c.id === s.activeCase?.id)
+      const stillExists = decrypted.find((c) => c.id === s.activeCase?.id)
       return {
-        cases: stored,
-        activeCase: stillExists ?? stored[0] ?? null,
+        cases: decrypted,
+        activeCase: stillExists ?? decrypted[0] ?? null,
       }
     })
   },
 
   initialize: async () => {
     const stored = await db.getCases()
+    const decrypted = await Promise.all(stored.map(decryptCase))
     const savedId = localStorage.getItem('vanta_active_case_id')
-    const target = stored.find((c) => c.id === savedId) ?? stored[0] ?? null
-    set({ cases: stored, activeCase: target, isLoading: false })
+    const target = decrypted.find((c) => c.id === savedId) ?? decrypted[0] ?? null
+    set({ cases: decrypted, activeCase: target, isLoading: false })
   },
 }))

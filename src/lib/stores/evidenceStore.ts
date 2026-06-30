@@ -1,11 +1,30 @@
 import { create } from 'zustand'
 import type { EvidenceItem } from '../types'
 import * as db from '../db'
+import { encrypt, decrypt } from '../crypto'
+import { getEncryptionKey } from '../keyHolder'
 
 function formatSize(bytes: number): string {
   if (bytes < 1024) return bytes + ' B'
   if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB'
   return (bytes / 1048576).toFixed(1) + ' MB'
+}
+
+function assertKey(): CryptoKey {
+  const key = getEncryptionKey()
+  if (!key) throw new Error('Encryption key not available')
+  return key
+}
+
+async function decryptEv(e: EvidenceItem): Promise<EvidenceItem> {
+  const key = getEncryptionKey()
+  if (!key) return e
+  try {
+    const nombre = await decrypt(e.nombre, key)
+    return { ...e, nombre }
+  } catch {
+    return e
+  }
 }
 
 interface EvidenceState {
@@ -40,10 +59,12 @@ export const useEvidenceStore = create<EvidenceState>()((set) => ({
   },
 
   addEvidence: async (file, caseId) => {
+    const key = assertKey()
     const id = `ev-${Date.now()}`
     const tamano = formatSize(file.size)
+    const encNombre = await encrypt(file.name, key)
     const arrayBuffer = await file.arrayBuffer()
-    await db.saveEvidence(id, caseId, file.name, tamano, arrayBuffer)
+    await db.saveEvidence(id, caseId, encNombre, tamano, arrayBuffer)
     const item: EvidenceItem = { id, caseId, nombre: file.name, estado: 'listo', progreso: 0, tamano }
     set((prev) => ({ evidenceQueue: [item, ...prev.evidenceQueue] }))
   },
@@ -74,17 +95,18 @@ export const useEvidenceStore = create<EvidenceState>()((set) => ({
       tamano: e.tamano,
       isTranscribed: e.isTranscribed,
     }))
+    const decrypted = await Promise.all(mapped.map(decryptEv))
     const savedFileRaw = localStorage.getItem('vanta_selected_file')
     let selected: EvidenceItem | null = null
     if (savedFileRaw) {
       try {
         const parsed = JSON.parse(savedFileRaw) as { id: string }
-        selected = mapped.find((e) => e.id === parsed.id) ?? null
+        selected = decrypted.find((e) => e.id === parsed.id) ?? null
       } catch {
         localStorage.removeItem('vanta_selected_file')
       }
     }
-    set({ evidenceQueue: mapped, selectedFile: selected })
+    set({ evidenceQueue: decrypted, selectedFile: selected })
   },
 
   refreshEvidence: async (caseId) => {
@@ -98,11 +120,12 @@ export const useEvidenceStore = create<EvidenceState>()((set) => ({
       tamano: e.tamano,
       isTranscribed: e.isTranscribed,
     }))
+    const decrypted = await Promise.all(mapped.map(decryptEv))
     set((prev) => {
       const currentSelected = prev.selectedFile
-      const stillExists = mapped.find((e) => e.id === currentSelected?.id)
+      const stillExists = decrypted.find((e) => e.id === currentSelected?.id)
       return {
-        evidenceQueue: mapped,
+        evidenceQueue: decrypted,
         selectedFile: stillExists ?? null,
       }
     })

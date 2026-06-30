@@ -24,7 +24,7 @@ async function detectOS(): Promise<OSType> {
         if (values.architecture?.toLowerCase() === 'arm') return 'mac-arm'
         return 'mac-intel'
       }
-    } catch { /* API not supported */ }
+    } catch { void 0 }
     return /arm|aarch64/i.test(ua) ? 'mac-arm' : 'mac-intel'
   }
   if (isWin) return 'windows'
@@ -157,7 +157,7 @@ const DownloadPageBase = memo(function DownloadPageBase() {
                 <PremiumEdgeWrapper
                   rounded="rounded-2xl"
                   className={cn(
-                    "h-full group cursor-pointer relative rounded-2xl", // ¡ACÁ ESTÁ LA CORRECCIÓN CLAVE!
+                    "h-full group cursor-pointer relative rounded-2xl",
                     isRecomendado && "shadow-[0_0_28px_rgba(59,130,246,0.15)]"
                   )}
                   glowColor={colors.glow}

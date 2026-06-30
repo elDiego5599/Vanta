@@ -1,6 +1,6 @@
-// ==========================================
-// Shared types for Vanta
-// ==========================================
+
+
+
 
 export type TabId = 'casos' | 'ingesta' | 'transcripcion';
 

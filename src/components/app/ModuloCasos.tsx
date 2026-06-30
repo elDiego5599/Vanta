@@ -7,9 +7,9 @@ import type { CaseData } from '../../lib/types';
 import { MagneticButton } from '../landing/Primitives';
 import { FolderIcon, TrashIcon, ArrowIcon, PlusIcon } from '../landing/Icons';
 
-// ==========================================
-// 1. CONSTANTES Y FUNCIONES PURAS
-// ==========================================
+
+
+
 const CASE_COLORS = [
   { bg: 'rgba(59,130,246,0.12)', icon: '#3b82f6' },
   { bg: 'rgba(168,85,247,0.12)', icon: '#a855f7' },
@@ -46,22 +46,22 @@ const cardVariants: Variants = {
   }
 };
 
-// ==========================================
-// 2. MODAL PREMIUM DE CONFIRMACIÓN
-// ==========================================
+
+
+
 function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, caseName: string }) {
   return createPortal(
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Fondo oscuro con Blur */}
+          {}
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={onClose}
             className="absolute inset-0 bg-[var(--page-bg)]/60 backdrop-blur-md cursor-pointer"
           />
 
-          {/* Caja del Modal */}
+          {}
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -69,11 +69,11 @@ function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: 
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
             className="relative w-full max-w-[400px] bg-[var(--card-bg)] border border-[var(--border-subtle)] rounded-3xl p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] overflow-hidden"
           >
-            {/* Glow rojo sutil en el fondo del modal */}
+            {}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[50px] pointer-events-none" />
 
             <div className="relative z-10 flex flex-col items-center text-center">
-              {/* Contenedor del ícono (FIX TS: Color inyectado en el texto de un div padre) */}
+              {}
               <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
                 <TrashIcon w={22} h={22} />
               </div>
@@ -106,9 +106,9 @@ function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: 
   );
 }
 
-// ==========================================
-// 3. COMPONENTE DE TARJETA
-// ==========================================
+
+
+
 interface CaseCardProps {
   c: CaseData;
   isActive: boolean;
@@ -170,7 +170,7 @@ const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onD
           />
 
           <div className="flex-none flex items-start justify-between mb-3 pointer-events-none">
-            {/* FIX TS: El color del icono se inyecta por el estilo del div, no por la prop */}
+            {}
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 duration-300 shadow-sm"
               style={{ backgroundColor: colors.bg, color: colors.icon }}
@@ -207,7 +207,7 @@ const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onD
               : 'text-[var(--text-main)] translate-y-5 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
               }`}>
               {isActive ? 'Explorar caso' : 'Seleccionar'}
-              {/* FIX TS: La animación className se pasa a un envoltorio, no al ícono */}
+              {}
               <span className={`flex items-center transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-3 group-hover:translate-x-0 group-hover:opacity-100'}`}>
                 <ArrowIcon w={13} h={13} />
               </span>
@@ -229,9 +229,9 @@ const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onD
   );
 });
 
-// ==========================================
-// 4. MÓDULO PRINCIPAL DE CASOS
-// ==========================================
+
+
+
 const ModuloCasos = memo(function ModuloCasos() {
   const cases = useCaseStore((s) => s.cases);
   const activeCase = useCaseStore((s) => s.activeCase);
@@ -295,11 +295,7 @@ const ModuloCasos = memo(function ModuloCasos() {
 
   return (
     <div className="absolute inset-0 flex flex-col p-6 lg:p-8 bg-[var(--page-bg)]">
-      {/* 
-        FIX DEL CURSOR Y SCROLLBAR:
-        - input { caret-color } asegura que el cursor parpadeante de texto se vea siempre.
-        - .custom-scrollbar asegura que el scroll sea hermoso en modo claro y oscuro sin depender de utilidades rotas.
-      */}
+      {}
       <style>{`
         @keyframes rotate-gradient {
           from { transform: translate(-50%, -50%) rotate(0deg); }
@@ -313,7 +309,7 @@ const ModuloCasos = memo(function ModuloCasos() {
         }
       `}</style>
 
-      {/* RENDER DEL MODAL */}
+      {}
       <ConfirmDeleteModal
         isOpen={!!caseToDelete}
         caseName={caseToDelete?.name || ''}
@@ -321,7 +317,7 @@ const ModuloCasos = memo(function ModuloCasos() {
         onConfirm={confirmDelete}
       />
 
-      {/* CABECERA */}
+      {}
       <div className="mb-6 flex items-start justify-between shrink-0">
         <div>
           <div className="text-2xl font-extrabold tracking-tight text-[var(--text-main)]">Gestión de Casos</div>
@@ -335,14 +331,14 @@ const ModuloCasos = memo(function ModuloCasos() {
             className="px-4 py-2.5 rounded-xl text-[11px] font-bold tracking-wider uppercase flex items-center gap-2 transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] hover:bg-blue-600 shadow-md"
             style={{ backgroundColor: 'var(--accent)', color: '#ffffff' }}
           >
-            {/* FIX TS: El color no se pasa directamente si no lo soporta */}
+            {}
             <div className="text-white"><PlusIcon w={16} h={16} /></div>
             Nuevo Caso
           </button>
         </MagneticButton>
       </div>
 
-      {/* FORMULARIO DE CREACIÓN */}
+      {}
       <AnimatePresence>
         {showCreate && (
           <motion.div
@@ -399,7 +395,7 @@ const ModuloCasos = memo(function ModuloCasos() {
         )}
       </AnimatePresence>
 
-      {/* ESTADO VACÍO O GRID CON SCROLL */}
+      {}
       {cases.length === 0 && !showCreate ? (
         <div className="flex-1 flex items-center justify-center min-h-0 bg-[var(--glass-bg)] rounded-3xl border border-[var(--border-subtle)]">
           <div className="text-center relative">
@@ -417,7 +413,7 @@ const ModuloCasos = memo(function ModuloCasos() {
         </div>
       ) : (
         <div className="flex-1 min-h-0 relative rounded-3xl border border-[var(--border-subtle)] bg-[var(--glass-bg)] shadow-sm overflow-hidden">
-          {/* Añadimos la clase .custom-scrollbar que definimos arriba */}
+          {}
           <div className="h-full overflow-y-auto p-6 custom-scrollbar">
             <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-max pb-10">
               <AnimatePresence mode="popLayout">

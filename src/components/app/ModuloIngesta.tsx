@@ -7,9 +7,9 @@ import { useUIStore } from '../../lib/stores/uiStore';
 import * as db from '../../lib/db';
 import { TrashIcon, PlusIcon } from '../landing/Icons';
 
-// ==========================================
-// 1. ÍCONOS LOCALES
-// ==========================================
+
+
+
 const UploadCloudIcon = ({ w = 24, h = 24 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -52,9 +52,9 @@ const TextIcon = ({ w = 24, h = 24, color = "currentColor" }) => (
   </svg>
 );
 
-// ==========================================
-// 2. UTILIDADES E INTERFACES
-// ==========================================
+
+
+
 function formatBytes(bytes: number, decimals = 2) {
   if (!+bytes) return '0 Bytes';
   const k = 1024;
@@ -64,25 +64,25 @@ function formatBytes(bytes: number, decimals = 2) {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 }
 
-// Staging: El archivo físico está en la RAM
+
 interface StagedFile {
   id: string;
   file: File;
 }
 
-// Bóveda: Simulamos lo que se guarda en Base de Datos
+
 interface UploadedFile {
   id: string;
   name: string;
   size: number;
   type: string;
   hash: string;
-  isTranscribed: boolean; // Controla el estado del badge
+  isTranscribed: boolean;
 }
 
-// ==========================================
-// 2.5. MODAL DE CONFIRMACIÓN PARA EVIDENCIA
-// ==========================================
+
+
+
 function ConfirmDeleteEvidenceModal({ isOpen, onClose, onConfirm, fileName }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, fileName: string }) {
   return createPortal(
     <AnimatePresence>
@@ -132,9 +132,9 @@ function ConfirmDeleteEvidenceModal({ isOpen, onClose, onConfirm, fileName }: { 
   );
 }
 
-// ==========================================
-// 3. COMPONENTE PRINCIPAL
-// ==========================================
+
+
+
 const ModuloEvidencias = memo(function ModuloEvidencias() {
   const activeCase = useCaseStore((s) => s.activeCase);
   const selectFileForTranscription = useEvidenceStore((s) => s.selectFileForTranscription);
@@ -149,7 +149,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasLoaded = useRef(false);
 
-  // --- PERSISTENCIA LOCAL ---
+
   useEffect(() => {
     if (activeCase?.id && !hasLoaded.current) {
       hasLoaded.current = true;
@@ -157,7 +157,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
       const stored = localStorage.getItem(`vanta_evidencia_${activeCase.id}`);
       if (stored) {
         try {
-          // eslint-disable-next-line react-hooks/set-state-in-effect
+
           setUploadedFiles(JSON.parse(stored));
         } catch {
           console.error("Error parseando evidencia local");
@@ -166,17 +166,17 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
     }
   }, [activeCase?.id]);
 
-  // Guarda los archivos cuando hay cambios
+
   useEffect(() => {
     if (activeCase?.id) {
       localStorage.setItem(`vanta_evidencia_${activeCase.id}`, JSON.stringify(uploadedFiles));
     }
   }, [uploadedFiles, activeCase?.id]);
 
-  // Sincroniza estado de transcripción desde evidenceQueue
+
   useEffect(() => {
     if (evidenceQueue.length === 0 || uploadedFiles.length === 0) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setUploadedFiles(prev => {
       let changed = false;
       const next = prev.map(pf => {
@@ -191,7 +191,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
     });
   }, [evidenceQueue, uploadedFiles.length]);
 
-  // --- MANEJADORES DE DRAG & DROP ---
+
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -228,7 +228,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   }, [processFiles]);
 
-  // --- ACCIONES DE ARCHIVO ---
+
   const removeStagedFile = useCallback((idToRemove: string) => {
     setStagedFiles(prev => prev.filter(f => f.id !== idToRemove));
   }, []);
@@ -290,7 +290,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
   return (
     <div className="absolute inset-0 flex flex-col bg-[var(--page-bg)]">
 
-      {/* CABECERA DEL MÓDULO */}
+      {}
       <div className="flex-none p-6 lg:px-10 lg:pt-10 lg:pb-6 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/50 backdrop-blur-md z-20">
         <div className="flex items-center gap-3 text-[11px] font-mono tracking-widest uppercase text-[var(--accent)] mb-2">
           <div className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] animate-pulse" />
@@ -304,13 +304,11 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
         </div>
       </div>
 
-      {/* CONTENEDOR FLEXIBLE CON SCROLL */}
+      {}
       <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-6 lg:p-10 relative">
         <div className="max-w-4xl mx-auto flex flex-col gap-10 pb-28">
 
-          {/* ==========================================
-              ZONA DE DRAG & DROP
-             ========================================== */}
+          {}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[11px] font-bold font-mono uppercase tracking-[0.15em] text-[var(--text-muted)]">Importación Forense</h3>
@@ -351,9 +349,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
             </div>
           </section>
 
-          {/* ==========================================
-              ÁREA DE STAGING (PREPARACIÓN)
-             ========================================== */}
+          {}
           {stagedFiles.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-4">
@@ -414,9 +410,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
             </section>
           )}
 
-          {/* ==========================================
-              BÓVEDA: ARCHIVOS CARGADOS EXITOSAMENTE
-             ========================================== */}
+          {}
           <section>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-[11px] font-bold font-mono uppercase tracking-[0.15em] text-[var(--text-muted)]">
@@ -442,10 +436,10 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                       animate={{ opacity: 1, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
-                      // Adaptado a modo claro/oscuro manteniendo el aspecto sólido y profundo
+
                       className="group flex flex-col p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--border-strong)] shadow-sm relative"
                     >
-                      {/* Botón flotante para eliminar archivo cargado */}
+                      {}
                       <button
                         onClick={() => setDeleteTarget({ id: item.id, name: item.name })}
                         className="absolute top-4 right-4 z-20 w-8 h-8 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-red-500 hover:bg-red-500/10 opacity-0 group-hover:opacity-100 transition-all outline-none focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-500"
@@ -468,7 +462,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                         </div>
                       </div>
 
-                      {/* Meta Data Forense (Hash y Cifrado) */}
+                      {}
                       <div className="flex items-center gap-3 bg-[var(--glass-bg)] rounded-lg p-2.5 border border-[var(--border-subtle)]">
                         <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 shrink-0">
                           <LockSmallIcon w={10} h={10} color="#a855f7" />
@@ -479,7 +473,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                         </div>
                       </div>
 
-                      {/* LÍNEA DIVISORIA Y BOTÓN DE TRANSCRIPCIÓN */}
+                      {}
                       <div className="flex items-center justify-between mt-3 pt-3 border-t border-[var(--border-subtle)]">
                         <div className="flex items-center">
                           {item.isTranscribed ? (
@@ -520,7 +514,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
         </div>
       </div>
 
-      {/* MODAL DE CONFIRMACIÓN */}
+      {}
       <ConfirmDeleteEvidenceModal
         isOpen={!!deleteTarget}
         fileName={deleteTarget?.name || ''}
@@ -528,9 +522,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
         onConfirm={() => deleteTarget && removeUploadedFile(deleteTarget.id)}
       />
 
-      {/* ==========================================
-          BARRA DE ACCIÓN FLOTANTE (ACTION BAR)
-         ========================================== */}
+      {}
       <AnimatePresence>
         {stagedFiles.length > 0 && (
           <motion.div
@@ -549,7 +541,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                 </span>
               </div>
 
-              {/* Botón Hover Premium FAANG */}
+              {}
               <button
                 onClick={handleUploadToCase}
                 disabled={isUploading}

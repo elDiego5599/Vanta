@@ -9,6 +9,7 @@ import { fadeIn } from './lib/motion'
 import ErrorBoundary from './components/landing/ErrorBoundary'
 import { MagneticButton } from './components/landing/Primitives'
 import { SkeletonSection } from './components/landing/SkeletonSection'
+import { clearEncryptionKey } from './lib/keyHolder'
 
 const GLOW_COLORS: Record<TabId, string> = {
   casos: '#f59e0b',
@@ -31,27 +32,18 @@ const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>>
   transcripcion: ModuloTranscripcion,
 }
 
-function AppShell() {
-  const [unlocked, setUnlocked] = useState(false)
-  const setLockFn = useUIStore((s) => s.setLockFn)
-
+function MainApp() {
   const activeTab = useUIStore((s) => s.activeTab)
   const setActiveTab = useUIStore((s) => s.setActiveTab)
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
 
   const activeCase = useCaseStore((s) => s.activeCase)
-  const isLoading = useCaseStore((s) => s.isLoading)
   const initCases = useCaseStore((s) => s.initialize)
   const initEvidence = useEvidenceStore((s) => s.initialize)
   const clearEvidence = useEvidenceStore((s) => s.clearEvidence)
 
   const [initDone, setInitDone] = useState(false)
-
-  useEffect(() => {
-    setLockFn(() => setUnlocked(false))
-    return () => setLockFn(null)
-  }, [setLockFn])
 
   useEffect(() => {
     initCases().then(() => {
@@ -71,19 +63,15 @@ function AppShell() {
     }
   }, [activeCase, initDone, initEvidence, clearEvidence])
 
-  if (isLoading || !initDone) {
+  const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta
+
+  if (!initDone) {
     return (
       <div className="flex h-screen bg-[var(--page-bg)] items-center justify-center">
         <div className="text-xs text-[var(--text-muted)] animate-pulse">Cargando...</div>
       </div>
     )
   }
-
-  if (!unlocked) {
-    return <PasswordScreen onUnlock={() => setUnlocked(true)} />
-  }
-
-  const ActiveModule = MODULE_MAP[activeTab] ?? ModuloIngesta
 
   return (
     <div className="flex h-screen bg-[var(--page-bg)] items-center justify-center p-4 md:p-6 overflow-hidden relative">
@@ -180,6 +168,25 @@ function AppShell() {
       </div>
     </div>
   )
+}
+
+function AppShell() {
+  const [unlocked, setUnlocked] = useState(false)
+  const setLockFn = useUIStore((s) => s.setLockFn)
+
+  useEffect(() => {
+    setLockFn(() => {
+      setUnlocked(false)
+      clearEncryptionKey()
+    })
+    return () => setLockFn(null)
+  }, [setLockFn])
+
+  if (!unlocked) {
+    return <PasswordScreen onUnlock={() => setUnlocked(true)} />
+  }
+
+  return <MainApp />
 }
 
 export default function App() {

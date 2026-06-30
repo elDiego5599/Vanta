@@ -6,9 +6,9 @@ import { useTheme } from '../../lib/use-theme'
 import { VantaMiniLogo } from '../landing/Icons'
 import type { TabId } from '../../lib/types'
 
-// ==========================================
-// 1. ICONOS LOCALES
-// ==========================================
+
+
+
 const FolderIcon = ({ w = 20, h = 20 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -67,18 +67,18 @@ const LockIcon = ({ w = 18, h = 18 }) => (
   </svg>
 )
 
-// ==========================================
-// 2. NAVEGACION
-// ==========================================
+
+
+
 const NAV_ITEMS: { id: TabId; label: string; icon: React.ElementType }[] = [
   { id: 'casos', label: 'Casos', icon: FolderIcon },
   { id: 'ingesta', label: 'Evidencias', icon: UploadIcon },
   { id: 'transcripcion', label: 'Transcripcion', icon: TextIcon },
 ]
 
-// ==========================================
-// 3. SIDEBAR
-// ==========================================
+
+
+
 const Sidebar = memo(function Sidebar() {
   const activeTab = useUIStore((s) => s.activeTab)
   const setActiveTab = useUIStore((s) => s.setActiveTab)
@@ -91,7 +91,7 @@ const Sidebar = memo(function Sidebar() {
   return (
     <aside className={`${sidebarOpen ? 'w-[280px]' : 'w-[60px]'} h-full flex flex-col bg-[var(--card-bg)] border-r border-[var(--border-subtle)] relative z-50 shrink-0 transition-all duration-300`}>
 
-      {/* CABECERA Y LOGO */}
+      {}
       <div className="flex-none px-5 pt-6 pb-4 flex items-center gap-3 border-b border-[var(--border-subtle)]">
         <VantaMiniLogo className="w-[18px] h-[18px] shrink-0" />
         {sidebarOpen && (
@@ -101,7 +101,7 @@ const Sidebar = memo(function Sidebar() {
         )}
       </div>
 
-      {/* INDICADOR DE CASO ACTIVO */}
+      {}
       {sidebarOpen && (
         <div className="px-5 mt-4 min-h-[56px] flex flex-col justify-center border-b border-[var(--border-subtle)] pb-5 mb-4">
           <AnimatePresence mode="wait">
@@ -142,7 +142,7 @@ const Sidebar = memo(function Sidebar() {
         </div>
       )}
 
-      {/* NAVEGACION PRINCIPAL */}
+      {}
       <nav className="flex-1 px-3 py-6 overflow-y-auto custom-scrollbar">
         <ul className="space-y-1">
           {NAV_ITEMS.map((tab) => {
@@ -183,7 +183,7 @@ const Sidebar = memo(function Sidebar() {
         </ul>
       </nav>
 
-      {/* FOOTER */}
+      {}
       <div className="flex-none border-t border-[var(--border-subtle)] p-4">
         <div className={`flex ${sidebarOpen ? 'items-center justify-between' : 'flex-col items-center gap-1'}`}>
           <button

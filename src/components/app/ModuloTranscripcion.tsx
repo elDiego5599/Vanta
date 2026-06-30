@@ -8,9 +8,9 @@ import * as db from '../../lib/db';
 import WaveSurferWaveform from './WaveSurferWaveform';
 import type { WaveSurferHandle } from './WaveSurferWaveform';
 
-// ==========================================
-// 1. ÍCONOS LOCALES (Garantizando compatibilidad)
-// ==========================================
+
+
+
 const PlayIcon = ({ w = 24, h = 24 }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="currentColor">
     <path d="M6 4l15 8-15 8z" />
@@ -52,15 +52,15 @@ const BrainIcon = ({ w = 24, h = 24 }) => (
   </svg>
 );
 
-// ==========================================
-// 2. INTERFACES Y CONSTANTES
-// ==========================================
+
+
+
 interface TranscriptLine {
   t: string;
   text: string;
   start: number;
   end: number;
-  speaker?: 'Agente' | 'Testigo'; // Fix: Tipado correcto añadido
+  speaker?: 'Agente' | 'Testigo';
 }
 
 const lineVariants = {
@@ -72,9 +72,9 @@ const lineVariants = {
   }),
 };
 
-// ==========================================
-// 3. COMPONENTE PRINCIPAL
-// ==========================================
+
+
+
 const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const selectedFile = useEvidenceStore((s) => s.selectedFile);
   const updateEvidence = useEvidenceStore((s) => s.updateEvidence);
@@ -122,10 +122,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     );
   }, [transcript, searchQuery]);
 
-  // Inicialización del archivo de audio
+
   useEffect(() => {
     if (!selectedFile?.id) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setAudioUrl(null);
       return;
     }
@@ -166,7 +166,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     };
   }, [selectedFile]);
 
-  // Manejadores del Reproductor
+
   const handleReady = useCallback((d: number) => {
     durationRef.current = d;
     setDuration(formatTimestamp(d));
@@ -208,7 +208,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     });
   }, []);
 
-  // Lógica de Transcripción (Whisper)
+
   const startTranscription = useCallback(async () => {
     if (!selectedFile) return;
 
@@ -250,7 +250,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             text: chunk.text,
             start: chunk.timestamp[0],
             end: chunk.timestamp[1],
-            speaker: 'Agente' // Asignación por defecto
+            speaker: 'Agente'
           };
           allLines.push(line);
           lineIdx++;
@@ -281,7 +281,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
     }
   }, [selectedFile, updateEvidence]);
 
-  // ESTADO VACÍO (Sin archivo)
+
   if (!selectedFile) {
     return (
       <div className="absolute inset-0 flex flex-col bg-[var(--page-bg)]">
@@ -310,7 +310,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   return (
     <div className="absolute inset-0 flex flex-col bg-[var(--page-bg)]">
 
-      {/* CABECERA */}
+      {}
       <div className="flex-none flex items-center justify-between p-6 lg:px-10 lg:pt-10 lg:pb-6 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/50 backdrop-blur-md z-20">
         <div>
           <div className="flex items-center gap-2 text-[11px] font-mono tracking-widest uppercase mb-2">
@@ -334,7 +334,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           <div className="text-2xl font-extrabold tracking-tight text-[var(--text-main)]">Análisis Forense</div>
         </div>
 
-        {/* ACCIÓN PRINCIPAL */}
+        {}
         {!isTranscribing && transcript.length === 0 && !error && (
           <button
             onClick={startTranscription}
@@ -354,12 +354,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
         )}
       </div>
 
-      {/* CUERPO PRINCIPAL (2 COLUMNAS EN DESKTOP) */}
+      {}
       <div className="flex-1 min-h-0 flex flex-col lg:flex-row p-6 lg:p-10 gap-8 overflow-y-auto lg:overflow-hidden">
 
-        {/* ==========================================
-            PANEL IZQUIERDO: REPRODUCTOR Y CONTROLES
-           ========================================== */}
+        {}
         <div className="w-full lg:w-5/12 flex flex-col gap-6 shrink-0 h-fit" key={selectedFile.id}>
 
           <div className="relative rounded-3xl p-[1px] bg-gradient-to-b from-[var(--border-strong)] to-[var(--border-subtle)] shadow-sm">
@@ -375,7 +373,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                 </div>
               </div>
 
-              {/* WAVEFORM + CONTROLES FUSIONADOS */}
+              {}
               <div className={`relative rounded-xl p-4 border transition-all duration-500 ${isTranscribing || isPlaying ? 'border-[var(--accent)]/40 shadow-[0_0_30px_color-mix(in_srgb,var(--accent)_15%,transparent)] bg-[var(--accent)]/[0.02]' : 'border-[var(--border-subtle)] bg-[var(--glass-bg)]'
                 }`}>
                 <div className="flex items-center gap-3">
@@ -401,7 +399,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                 </div>
               </div>
 
-              {/* PROGRESO DE TRANSCRIPCIÓN Y ESTADO */}
+              {}
               <div className="mt-6 pt-6 border-t border-[var(--border-subtle)]">
                 {isTranscribing ? (
                   <div>
@@ -435,12 +433,10 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
           </div>
         </div>
 
-        {/* ==========================================
-            PANEL DERECHO: REGISTRO DE TRANSCRIPCIÓN
-           ========================================== */}
+        {}
         <div className="flex-1 w-full lg:w-7/12 flex flex-col min-h-[400px] lg:min-h-0 bg-[var(--card-bg)] rounded-3xl border border-[var(--border-subtle)] shadow-sm overflow-hidden relative">
 
-          {/* Header del panel derecho */}
+          {}
           <div className="flex-none px-5 py-4 border-b border-[var(--border-subtle)] bg-[var(--card-bg)]/80 backdrop-blur-md z-10 rounded-t-3xl">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -502,7 +498,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             </div>
           </div>
 
-          {/* Área scrolleable de líneas */}
+          {}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-[var(--page-bg)]/30">
             {transcript.length === 0 && !isTranscribing ? (
               <div className="h-full flex flex-col items-center justify-center text-center opacity-50">
@@ -537,7 +533,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                           {item.t}
                         </div>
 
-                        {/* Botón de Orador (Diarización) */}
+                        {}
                         <button
                           onClick={(e) => toggleSpeaker(item, e)}
                           className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-center ${(item.speaker || 'Agente') === 'Agente'
@@ -555,7 +551,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                     </motion.div>
                   ))}
 
-                  {/* Loader simulado al final de la lista si está transcribiendo */}
+                  {}
                   {isTranscribing && (
                     <motion.div
                       key="loading"
@@ -582,7 +578,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   );
 });
 
-// Ícono faltante añadido aquí para no romper nada
+
 const TextIcon = ({ w = 24, h = 24, color = "currentColor" }) => (
   <svg width={w} height={h} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
