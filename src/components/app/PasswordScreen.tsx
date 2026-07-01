@@ -456,23 +456,10 @@ function FormCard({
             ref={inputRef as unknown as React.Ref<HTMLTextAreaElement>}
             value={phrase}
             onChange={(e) => onPhraseChange(e.target.value)}
-            placeholder="diagram inmate scout rate engage enhance mail permit addict glare story final"
+            placeholder=""
             rows={3}
             disabled={loading}
             className="w-full px-5 py-3 rounded-xl text-[13px] font-mono text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm resize-none"
-          />
-        </div>
-      )}
-
-      {step === 'confirm' && (
-        <div className="relative">
-          <input
-            type={visible ? 'text' : 'password'}
-            value={password}
-            onChange={(e) => onPasswordChange(e.target.value)}
-            placeholder="Contraseña original"
-            disabled
-            className="w-full h-14 px-5 pr-12 rounded-xl text-[14px] font-medium text-[var(--text-muted)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm cursor-not-allowed"
           />
         </div>
       )}
