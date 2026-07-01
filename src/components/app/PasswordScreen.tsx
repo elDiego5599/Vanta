@@ -190,7 +190,11 @@ export default function PasswordScreen({ onUnlock }: Props) {
         setLoading(false)
       } else {
         setLoading(false)
+        const result = applyFailedAttempt()
+        if (result.locked) setLockRemaining(result.until - Date.now())
         setError('Token inválido')
+        setToken('')
+        inputRef.current?.focus()
       }
       return
     }
@@ -366,9 +370,18 @@ function TokenCard({ token, password, onUnlock }: { token: string; password: str
           )}
         </button>
       </div>
-      {copied && (
-        <div className="text-[11px] font-mono text-green-500 text-center font-semibold">¡Copiado al portapapeles!</div>
-      )}
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 4 }}
+            className="text-[11px] font-mono text-green-500 text-center font-semibold"
+          >
+            Copiado al portapapeles
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="bg-[var(--glass-bg)] rounded-xl p-3 border border-[var(--border-subtle)]">
         <div className="flex items-center gap-2 text-[11px] font-mono text-[var(--text-muted)]">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
