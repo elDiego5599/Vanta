@@ -83,6 +83,55 @@ interface UploadedFile {
 
 
 
+function ConfirmBatchDeleteModal({ isOpen, onClose, onConfirm, count }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, count: number }) {
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-[var(--page-bg)]/60 backdrop-blur-md cursor-pointer"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="relative w-full max-w-[400px] bg-[var(--card-bg)] border border-[var(--border-subtle)] rounded-3xl p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] overflow-hidden"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-red-500/10 blur-[50px] pointer-events-none" />
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-5 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+                <TrashIcon w={22} h={22} />
+              </div>
+              <h3 className="text-xl font-extrabold text-[var(--text-main)] mb-3 tracking-tight">Destruir Evidencias</h3>
+              <p className="text-[13px] font-mono text-[var(--text-muted)] mb-8 leading-relaxed">
+                Se eliminarán permanentemente <span className="text-[var(--text-main)] font-bold">{count} evidencia{count !== 1 ? 's' : ''}</span> y sus transcripciones. Esta acción es <span className="text-red-500 font-bold">irreversible</span>.
+              </p>
+              <div className="flex gap-3 w-full">
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-main)]"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={onConfirm}
+                  className="flex-1 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500 shadow-sm transition-all outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                >
+                  Confirmar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
+
 function ConfirmDeleteEvidenceModal({ isOpen, onClose, onConfirm, fileName }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, fileName: string }) {
   return createPortal(
     <AnimatePresence>
@@ -146,6 +195,8 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [batchDeleteTarget, setBatchDeleteTarget] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasLoaded = useRef(false);
 
@@ -239,6 +290,30 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
     setDeleteTarget(null);
   }, []);
 
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds(prev => {
+      if (prev.size === uploadedFiles.length) return new Set();
+      return new Set(uploadedFiles.map(f => f.id));
+    });
+  }, [uploadedFiles]);
+
+  const confirmBatchDelete = useCallback(async () => {
+    for (const id of selectedIds) {
+      await db.deleteEvidence(id);
+    }
+    setUploadedFiles(prev => prev.filter(f => !selectedIds.has(f.id)));
+    setSelectedIds(new Set());
+    setBatchDeleteTarget(false);
+  }, [selectedIds]);
+
   const handleUploadToCase = useCallback(async () => {
     if (stagedFiles.length === 0) return;
     setIsUploading(true);
@@ -324,7 +399,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
               onChange={handleFileInputChange}
               className="hidden"
               multiple
-              accept=".wav,.mp3,.m4a,.ogg,.flac,.mp4,.mov,.opus"
+              accept=".wav,.mp3,.m4a,.ogg,.flac,.mp4,.mov,.opus,.aac,.wma,.aiff,.aif,.ac3,.3gp,.webm,.amr"
             />
 
             <div
@@ -420,6 +495,17 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
               <h3 className="text-[11px] font-bold font-mono uppercase tracking-[0.15em] text-[var(--text-muted)]">
                 Evidencia Asegurada ({uploadedFiles.length})
               </h3>
+              {uploadedFiles.length > 0 && (
+                <label className="flex items-center gap-2 text-[10px] font-mono text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-main)] transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.size === uploadedFiles.length && uploadedFiles.length > 0}
+                    onChange={toggleSelectAll}
+                    className="w-3.5 h-3.5 rounded border-[var(--border-strong)] bg-[var(--glass-bg)] text-[var(--accent)] accent-[var(--accent)] cursor-pointer"
+                  />
+                  Seleccionar todo
+                </label>
+              )}
             </div>
 
             {uploadedFiles.length === 0 ? (
@@ -441,7 +527,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                       exit={{ opacity: 0, scale: 0.95 }}
                       transition={{ duration: 0.3, ease: "easeOut" }}
 
-                      className="group flex flex-col p-4 rounded-2xl bg-[var(--card-bg)] border border-[var(--border-strong)] shadow-sm relative"
+                      className={`group flex flex-col p-4 rounded-2xl border shadow-sm relative transition-colors ${selectedIds.has(item.id) ? 'bg-[var(--accent)]/[0.04] border-[var(--accent)]/40' : 'bg-[var(--card-bg)] border-[var(--border-strong)]'}`}
                     >
                       {}
                       <button
@@ -452,7 +538,15 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                         <TrashIcon w={15} h={15} />
                       </button>
 
-                      <div className="flex items-center gap-4 overflow-hidden mb-3 pr-10">
+                      <div className="flex items-center gap-3 overflow-hidden mb-3 pr-10">
+                        <label className="flex-none flex items-center justify-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(item.id)}
+                            onChange={() => toggleSelect(item.id)}
+                            className="w-4 h-4 rounded border-[var(--border-strong)] bg-[var(--glass-bg)] text-[var(--accent)] accent-[var(--accent)] cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]"
+                          />
+                        </label>
                         <div className="flex-none w-10 h-10 rounded-lg bg-green-500/10 text-green-500 flex items-center justify-center border border-green-500/20">
                           <CheckCircleIcon w={18} h={18} />
                         </div>
@@ -518,13 +612,48 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
         </div>
       </div>
 
-      {}
+      <ConfirmBatchDeleteModal
+        isOpen={batchDeleteTarget}
+        count={selectedIds.size}
+        onClose={() => setBatchDeleteTarget(false)}
+        onConfirm={confirmBatchDelete}
+      />
       <ConfirmDeleteEvidenceModal
         isOpen={!!deleteTarget}
         fileName={deleteTarget?.name || ''}
         onClose={() => setDeleteTarget(null)}
         onConfirm={() => deleteTarget && removeUploadedFile(deleteTarget.id)}
       />
+
+      <AnimatePresence>
+        {selectedIds.size > 0 && stagedFiles.length === 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
+          >
+            <div className="bg-[var(--card-bg)] border border-[var(--border-strong)] shadow-lg rounded-2xl p-4 flex items-center justify-between backdrop-blur-xl">
+              <div className="flex flex-col px-2">
+                <span className="text-[13px] font-bold text-[var(--text-main)]">{selectedIds.size} seleccionada{selectedIds.size !== 1 ? 's' : ''}</span>
+                <span className="text-[10px] font-mono text-[var(--text-muted)] tracking-wider">
+                  {formatBytes(uploadedFiles.filter(f => selectedIds.has(f.id)).reduce((sum, f) => sum + f.size, 0))} en total
+                </span>
+              </div>
+              <button
+                onClick={() => setBatchDeleteTarget(true)}
+                className="px-8 py-3 rounded-xl text-[11px] font-bold tracking-widest uppercase transition-all duration-300 outline-none focus-visible:ring-2 focus-visible:ring-red-400 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 hover:border-red-500 shadow-sm active:scale-95"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  <TrashIcon w={14} h={14} />
+                  Destruir
+                </span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {}
       <AnimatePresence>
@@ -534,7 +663,7 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-4"
           >
             <div className="bg-[var(--card-bg)] border border-[var(--border-strong)] shadow-lg rounded-2xl p-4 flex items-center justify-between backdrop-blur-xl">
 
