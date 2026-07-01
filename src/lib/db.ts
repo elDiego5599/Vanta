@@ -182,3 +182,17 @@ export async function getTranscriptionsByCase(caseId: string): Promise<DBSchema[
   const db = await getDB();
   return db.getAllFromIndex('transcriptions', 'caseId', caseId);
 }
+
+export async function estimateStorageUsage(): Promise<{ cases: number; evidence: number; transcriptions: number; totalBytes: number }> {
+  const db = await getDB();
+  const allEvidence = await db.getAll('evidence');
+  const allCases = await db.getAll('cases');
+  const allTranscriptions = await db.getAll('transcriptions');
+  const totalBytes = allEvidence.reduce((sum, e) => sum + (e.data?.byteLength || 0), 0);
+  return {
+    cases: allCases.length,
+    evidence: allEvidence.length,
+    transcriptions: allTranscriptions.length,
+    totalBytes,
+  };
+}

@@ -60,7 +60,7 @@ interface TranscriptLine {
   text: string;
   start: number;
   end: number;
-  speaker?: 'Agente' | 'Testigo';
+  speaker?: string;
 }
 
 const lineVariants = {
@@ -93,6 +93,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const defaultSpeaker = localStorage.getItem('vanta-default-speaker') || 'Agente';
 
   const waveformRef = useRef<WaveSurferHandle | null>(null);
   const durationRef = useRef(0);
@@ -202,8 +203,9 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
       if (idx === -1) return prev;
       const newT = [...prev];
       const line = newT[idx]!;
-      const current = line.speaker ?? 'Agente';
-      newT[idx] = { ...line, speaker: current === 'Agente' ? 'Testigo' : 'Agente' };
+      const defaultSpeaker = localStorage.getItem('vanta-default-speaker') || 'Agente';
+      const current = line.speaker ?? defaultSpeaker;
+      newT[idx] = { ...line, speaker: current === defaultSpeaker ? 'Testigo' : defaultSpeaker };
       return newT;
     });
   }, []);
@@ -250,7 +252,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             text: chunk.text,
             start: chunk.timestamp[0],
             end: chunk.timestamp[1],
-            speaker: 'Agente'
+            speaker: localStorage.getItem('vanta-default-speaker') || 'Agente'
           };
           allLines.push(line);
           lineIdx++;
@@ -534,14 +536,14 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         </div>
 
                         {}
-                        <button
+                          <button
                           onClick={(e) => toggleSpeaker(item, e)}
-                          className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-center ${(item.speaker || 'Agente') === 'Agente'
+                          className={`text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-md outline-none transition-colors w-full text-center ${(item.speaker || defaultSpeaker) === defaultSpeaker
                             ? 'bg-[var(--accent)]/5 text-[var(--accent)] border border-[var(--accent)]/10 hover:bg-[var(--accent)]/10'
                             : 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20'
                             }`}
                         >
-                          {item.speaker || 'Agente'}
+                          {item.speaker || defaultSpeaker}
                         </button>
                       </div>
 

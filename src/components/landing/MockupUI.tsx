@@ -111,11 +111,11 @@ interface DetailedMockupUIProps {
   activeIndex?: number;
 }
 
-const SIDEBAR_MAP: Record<number, number> = { 0: 4, 1: 2, 2: 1, 3: 0 };
+const SIDEBAR_MAP: Record<number, number> = { 0: 3, 1: 2, 2: 1, 3: 0 };
 
 export default function DetailedMockupUI({ activeIndex = 0 }: DetailedMockupUIProps) {
   const isCrypto = activeIndex === 3;
-  const sidebarItems = ['Casos Activos', 'Evidencias', 'Transcripciones', 'Informes', 'Ajustes'];
+  const sidebarItems = ['Casos Activos', 'Evidencias', 'Transcripciones', 'Ajustes'];
   const activeSidebarIndex = SIDEBAR_MAP[activeIndex] ?? 0;
 
   return (

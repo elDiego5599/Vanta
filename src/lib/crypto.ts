@@ -119,3 +119,22 @@ export async function reEncryptEntropy(token: string, newPassword: string): Prom
   const newEncEntropy = await encrypt(b64(entropy), newPwdKey)
   return { stored: `${b64(newSalt)}|${verifier}|${newEncEntropy}`, token: entropyToToken(entropy) }
 }
+
+export async function reEncryptWithPassword(currentPassword: string, newPassword: string): Promise<{ stored: string; token: string }> {
+  const stored = localStorage.getItem('vanta_crypto_verifier')
+  if (!stored) throw new Error('No stored verifier found')
+  const parts = stored.split('|')
+  if (parts.length < 3) throw new Error('Invalid stored data')
+  const saltB64 = parts[0]!
+  const verifier = parts[1]!
+  const encEntropy = parts[2]!
+  const pwdKey = await pbkdf2Key(currentPassword, ub64(saltB64))
+  const entropy = ub64(await decrypt(encEntropy, pwdKey))
+  const key = await entropyToKey(entropy)
+  const ok = (await decrypt(verifier, key)) === VERIFIER_PLAINTEXT
+  if (!ok) throw new Error('Contraseña actual incorrecta')
+  const newSalt = crypto.getRandomValues(new Uint8Array(16))
+  const newPwdKey = await pbkdf2Key(newPassword, newSalt)
+  const newEncEntropy = await encrypt(b64(entropy), newPwdKey)
+  return { stored: `${b64(newSalt)}|${verifier}|${newEncEntropy}`, token: entropyToToken(entropy) }
+}

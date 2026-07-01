@@ -9,15 +9,6 @@ import { setEncryptionKey } from '../../lib/keyHolder'
 const STORAGE_KEY = 'vanta_crypto_verifier'
 const LOCKOUT_KEY = 'vanta_lockout'
 const FAIL_KEY = 'vanta_fail_count'
-const DB_NAME = 'vanta'
-
-function resetApp() {
-  const theme = localStorage.getItem('vanta-theme')
-  localStorage.clear()
-  if (theme) localStorage.setItem('vanta-theme', theme)
-  indexedDB.deleteDatabase(DB_NAME)
-  window.location.reload()
-}
 
 function getStoredVerifier() {
   return localStorage.getItem(STORAGE_KEY)
@@ -567,19 +558,6 @@ function FormCard({
           )}
         </AnimatePresence>
 
-        {step === 'unlock' && (
-          <button
-            type="button"
-            onClick={() => {
-              if (window.confirm('Se borrarán todos los datos cifrados de esta aplicación. ¿Está seguro?')) {
-                resetApp()
-              }
-            }}
-            className="text-[10px] font-mono text-red-500/50 hover:text-red-500 transition-colors mt-1"
-          >
-            Restablecer aplicación
-          </button>
-        )}
       </div>
 
     </form>

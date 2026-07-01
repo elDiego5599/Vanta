@@ -64,14 +64,20 @@ interface WhisperOutput {
   chunks?: WhisperChunk[]
 }
 
+export function resetModel() {
+  transcriber = null
+}
+
 export async function loadModel(onProgress?: ProgressCallback): Promise<Transcriber> {
   if (transcriber) return transcriber
 
   await ensureTauriFetchPatch()
 
+  const modelKey = `Xenova/whisper-${localStorage.getItem('vanta-whisper-model') || 'small'}`
+
   transcriber = (await pipeline(
     'automatic-speech-recognition',
-    'Xenova/whisper-small',
+    modelKey,
     onProgress ? { progress_callback: onProgress } : undefined,
   )) as unknown as Transcriber
 
@@ -152,8 +158,9 @@ export async function transcribeProgressive(
 
     let raw: unknown
     try {
+      const lang = localStorage.getItem('vanta-whisper-language') || 'es'
       raw = await model(segment, {
-        language: 'es',
+        language: lang === 'auto' ? undefined : lang,
         task: 'transcribe',
         return_timestamps: true,
       })

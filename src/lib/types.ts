@@ -2,7 +2,7 @@
 
 
 
-export type TabId = 'casos' | 'ingesta' | 'transcripcion';
+export type TabId = 'casos' | 'ingesta' | 'transcripcion' | 'ajustes';
 
 export interface EvidenceItem {
   id: string;
@@ -27,7 +27,7 @@ export interface TranscriptLine {
   text: string;
   start: number;
   end: number;
-  speaker?: 'Agente' | 'Testigo';
+  speaker?: string;
 }
 
 export interface ChunkResult {

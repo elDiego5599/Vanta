@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense, useCallback } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import type { TabId } from './lib/types'
 import { useUIStore } from './lib/stores/uiStore'
@@ -10,11 +10,13 @@ import ErrorBoundary from './components/landing/ErrorBoundary'
 import { MagneticButton } from './components/landing/Primitives'
 import { SkeletonSection } from './components/landing/SkeletonSection'
 import { clearEncryptionKey } from './lib/keyHolder'
+import { useAutoLock } from './lib/useAutoLock'
 
 const GLOW_COLORS: Record<TabId, string> = {
   casos: '#f59e0b',
   ingesta: '#3b82f6',
   transcripcion: '#10b981',
+  ajustes: '#a78bfa',
 }
 
 const CASE_DEPENDENT_TABS: Set<TabId> = new Set(['ingesta', 'transcripcion'])
@@ -24,12 +26,14 @@ import PasswordScreen from './components/app/PasswordScreen'
 const ModuloCasos = lazy(() => import('./components/app/ModuloCasos'))
 const ModuloIngesta = lazy(() => import('./components/app/ModuloIngesta'))
 const ModuloTranscripcion = lazy(() => import('./components/app/ModuloTranscripcion'))
+const ModuloAjustes = lazy(() => import('./components/app/ModuloAjustes'))
 const Sidebar = lazy(() => import('./components/app/Sidebar'))
 
 const MODULE_MAP: Record<string, React.LazyExoticComponent<React.ComponentType>> = {
   casos: ModuloCasos,
   ingesta: ModuloIngesta,
   transcripcion: ModuloTranscripcion,
+  ajustes: ModuloAjustes,
 }
 
 function MainApp() {
@@ -173,14 +177,21 @@ function MainApp() {
 function AppShell() {
   const [unlocked, setUnlocked] = useState(false)
   const setLockFn = useUIStore((s) => s.setLockFn)
+  const setActiveTab = useUIStore((s) => s.setActiveTab)
+
+  useAutoLock(unlocked, useCallback(() => {
+    setUnlocked(false)
+    setActiveTab('casos')
+  }, [setActiveTab]))
 
   useEffect(() => {
     setLockFn(() => {
       setUnlocked(false)
       clearEncryptionKey()
+      setActiveTab('casos')
     })
     return () => setLockFn(null)
-  }, [setLockFn])
+  }, [setLockFn, setActiveTab])
 
   if (!unlocked) {
     return <PasswordScreen onUnlock={() => setUnlocked(true)} />
