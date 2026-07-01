@@ -61,7 +61,7 @@ export async function decrypt(data: string, key: CryptoKey): Promise<string> {
 }
 
 export async function createVerifier(password: string): Promise<{ stored: string; key: CryptoKey; token: string }> {
-  const entropy = crypto.getRandomValues(new Uint8Array(16))
+  const entropy = crypto.getRandomValues(new Uint8Array(24))
   const token = entropyToToken(entropy)
   const key = await entropyToKey(entropy)
   const verifier = await encrypt(VERIFIER_PLAINTEXT, key)

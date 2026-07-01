@@ -527,7 +527,7 @@ function FormCard({
           disabled={loading || ((step === 'create' || step === 'set_new_password')
             ? !allMet
             : step === 'recover'
-              ? !token.trim().startsWith('vnt_')
+              ? !token.trim()
               : currentPwd.length < 4)}
           className="w-full py-3.5 rounded-xl text-[12px] font-bold tracking-widest uppercase transition-all bg-[var(--accent)] text-white disabled:opacity-40 disabled:bg-[var(--border-strong)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm"
         >
