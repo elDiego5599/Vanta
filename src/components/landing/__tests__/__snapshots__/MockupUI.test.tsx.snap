@@ -117,12 +117,6 @@ exports[`MockupUI > renders chain view (activeIndex=2) 1`] = `
       class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
       type="button"
     >
-      Informes
-    </button>
-    <button
-      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
-      type="button"
-    >
       Ajustes
     </button>
   </div>
@@ -506,12 +500,6 @@ exports[`MockupUI > renders crypto view (activeIndex=3) 1`] = `
       class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
       type="button"
     >
-      Informes
-    </button>
-    <button
-      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
-      type="button"
-    >
       Ajustes
     </button>
   </div>
@@ -712,12 +700,6 @@ exports[`MockupUI > renders status view (activeIndex=0) 1`] = `
       type="button"
     >
       Transcripciones
-    </button>
-    <button
-      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
-      type="button"
-    >
-      Informes
     </button>
     <button
       class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-semibold text-white/90 bg-white/[0.06] border-white/75"
@@ -928,12 +910,6 @@ exports[`MockupUI > renders transcription view (activeIndex=1) 1`] = `
       type="button"
     >
       Transcripciones
-    </button>
-    <button
-      class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
-      type="button"
-    >
-      Informes
     </button>
     <button
       class="w-full text-left px-5 py-[8px] text-[11px] md:text-[12px] tracking-[0.04em] border-l-2 outline-none focus-visible:bg-white/[0.05] transition-colors font-normal text-zinc-600 bg-transparent border-transparent hover:bg-white/[0.02]"
