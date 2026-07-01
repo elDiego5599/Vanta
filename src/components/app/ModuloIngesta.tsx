@@ -555,15 +555,13 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                             {item.name}
                           </span>
                           <span className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-wider mt-0.5 flex items-center gap-1.5">
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-purple-500/10 border border-purple-500/20">
+                              <LockSmallIcon w={8} h={8} color="#a855f7" />
+                              <span className="text-[8px] font-bold tracking-widest uppercase text-purple-400">AES-256</span>
+                            </span>
                             {formatBytes(item.size)} • {item.type}
                           </span>
                         </div>
-                      </div>
-
-                      {}
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 w-fit">
-                        <LockSmallIcon w={10} h={10} color="#a855f7" />
-                        <span className="text-[9px] font-bold tracking-widest uppercase text-purple-400">AES-256</span>
                       </div>
 
                       {}
