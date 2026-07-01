@@ -561,14 +561,9 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
                       </div>
 
                       {}
-                      <div className="flex items-center gap-3 bg-[var(--glass-bg)] rounded-lg p-2.5 border border-[var(--border-subtle)]">
-                        <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 shrink-0">
-                          <LockSmallIcon w={10} h={10} color="#a855f7" />
-                          <span className="text-[9px] font-bold tracking-widest uppercase text-purple-400">AES-256</span>
-                        </div>
-                        <div className="text-[10px] font-mono text-[var(--text-muted)] truncate flex-1" title={item.hash}>
-                          SHA-256: {item.hash}
-                        </div>
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-purple-500/10 border border-purple-500/20 w-fit">
+                        <LockSmallIcon w={10} h={10} color="#a855f7" />
+                        <span className="text-[9px] font-bold tracking-widest uppercase text-purple-400">AES-256</span>
                       </div>
 
                       {}
