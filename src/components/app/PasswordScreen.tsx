@@ -340,27 +340,28 @@ function LockoutCard({ remaining }: { remaining: number }) {
 function TokenCard({ token, password, onUnlock }: { token: string; password: string; onUnlock: () => void }) {
   const [copied, setCopied] = useState(false)
   return (
-    <div className="flex flex-col gap-5 relative z-10">
+    <motion.div layout className="flex flex-col gap-5 relative z-10">
       <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
         <div className="text-[11px] font-mono text-amber-500 font-bold mb-1 uppercase tracking-wider">Guarde este token en un lugar seguro</div>
         <p className="text-[11px] font-mono text-[var(--text-muted)] leading-relaxed">
           Sin este token no podrá recuperar el acceso si olvida su contraseña. Se muestra una única vez.
         </p>
       </div>
-      <div className="h-4 flex items-center justify-center">
-        <AnimatePresence>
-          {copied && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="text-[11px] font-mono text-green-500 font-semibold"
-            >
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+            animate={{ opacity: 1, height: 'auto', marginBottom: 0 }}
+            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="text-[11px] font-mono text-green-500 text-center font-semibold pb-1">
               Copiado al portapapeles
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="flex items-center gap-2 bg-[var(--page-bg)]/50 rounded-xl p-4 border border-[var(--border-subtle)]">
         <code className="flex-1 text-[13px] font-mono text-[var(--text-main)] break-all select-all">{token}</code>
         <button
@@ -404,7 +405,7 @@ function TokenCard({ token, password, onUnlock }: { token: string; password: str
       >
         Ya lo guardé, continuar
       </button>
-    </div>
+    </motion.div>
   )
 }
 
