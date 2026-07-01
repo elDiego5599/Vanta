@@ -9,8 +9,9 @@ function MegaCTABase() {
     <section id="privacidad" className="relative z-10 px-6 lg:px-12 pt-[100px] pb-[160px]">
       <div className="max-w-[1200px] xl:max-w-[1300px] mx-auto">
         <Reveal dir="up">
-          <PremiumEdgeWrapper rounded="rounded-[32px]">
-            <div className="max-w-4xl mx-auto p-12 md:p-20 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 bg-[var(--card-bg)] rounded-[31px]">
+          <div className="max-w-[900px] mx-auto">
+            <PremiumEdgeWrapper rounded="rounded-[32px]">
+              <div className="p-12 md:p-20 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 bg-[var(--card-bg)] rounded-[31px]">
               <div>
                 <Title25D as="h2" text1="El análisis" text2="comienza aquí." className="text-[clamp(3rem,5vw,4.5rem)] leading-none" />
                 <p className="text-[var(--text-muted)] text-[15px] font-mono max-w-lg leading-relaxed mt-4">
@@ -31,7 +32,8 @@ function MegaCTABase() {
                 </span>
               </div>
             </div>
-          </PremiumEdgeWrapper>
+            </PremiumEdgeWrapper>
+          </div>
         </Reveal>
       </div>
     </section>

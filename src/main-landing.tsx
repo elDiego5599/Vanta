@@ -5,6 +5,7 @@ import './index.css'
 import LandingLiquidGlass from './components/LandingLiquidGlass'
 import DownloadPage from './components/landing/DownloadPage'
 import ErrorBoundary from './components/landing/ErrorBoundary'
+import ScrollToTop from './components/ScrollToTop'
 import { ThemeProvider } from './lib/theme'
 import { runAxe } from './lib/axe'
 
@@ -17,6 +18,7 @@ if (root) {
       <ThemeProvider>
         <ErrorBoundary>
           <HashRouter>
+            <ScrollToTop />
             <Routes>
               <Route path="/" element={<LandingLiquidGlass />} />
               <Route path="/download" element={<DownloadPage />} />
