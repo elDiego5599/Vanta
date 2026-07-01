@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import basicSsl from '@vitejs/plugin-basic-ssl'
 import tailwindcss from 'tailwindcss'
 import autoprefixer from 'autoprefixer'
 import { fileURLToPath } from 'url'
@@ -15,7 +14,6 @@ const isAnalyze = process.env.ANALYZE === 'true'
 export default defineConfig({
   plugins: [
     react(),
-    basicSsl(),
     isAnalyze && visualizer({
       filename: 'dist/stats.html',
       open: true,
