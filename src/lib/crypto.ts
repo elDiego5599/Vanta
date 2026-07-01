@@ -47,9 +47,10 @@ export function entropyToMnemonic(entropy: Uint8Array): string {
 
 export async function mnemonicToEntropy(phrase: string): Promise<Uint8Array> {
   const parts = phrase.toLowerCase().trim().split(/\s+/)
-  if (parts.length !== 12) throw new Error('La frase debe tener 12 palabras')
+  const cleaned = parts.map(w => w.replace(/^[\d\s.\-)\])]+/, '').trim()).filter(Boolean)
+  if (cleaned.length !== 12) throw new Error('La frase debe tener 12 palabras')
   let value = 0n
-  for (const word of parts) {
+  for (const word of cleaned) {
     const idx = WORD_MAP.get(word)
     if (idx === undefined) throw new Error(`Palabra inválida: "${word}"`)
     value = (value << 11n) | BigInt(idx)
