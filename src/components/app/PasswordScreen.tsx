@@ -89,7 +89,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [visible, setVisible] = useState(false)
-  const [step, setStep] = useState<'create' | 'confirm' | 'show_phrase' | 'unlock' | 'recover' | 'set_new_password' | 'reset_done'>(
+  const [step, setStep] = useState<'create' | 'confirm' | 'show_phrase' | 'unlock' | 'recover' | 'set_new_password'>(
     getStoredVerifier() ? 'unlock' : 'create'
   )
   const [error, setError] = useState('')
@@ -200,14 +200,15 @@ export default function PasswordScreen({ onUnlock }: Props) {
       if (token) {
         setLoading(true)
         try {
-          const newStored = await reEncryptEntropy(token, password)
-          localStorage.setItem(STORAGE_KEY, newStored)
-          const key = await verifyCrypto(password, newStored)
+          const result = await reEncryptEntropy(token, password)
+          localStorage.setItem(STORAGE_KEY, result.stored)
+          const key = await verifyCrypto(password, result.stored)
           if (key) {
             clearLockout()
             setEncryptionKey(key)
-            setStep('reset_done')
-            setTimeout(() => onUnlock(), 1500)
+            setToken(result.token)
+            setLoading(false)
+            setStep('show_phrase')
           }
         } catch {
           setError('Error al cambiar la contraseña')
@@ -233,9 +234,9 @@ export default function PasswordScreen({ onUnlock }: Props) {
         : step === 'show_phrase' ? 'Token de Recuperación'
           : step === 'recover' ? 'Recuperar Acceso'
             : step === 'set_new_password' ? 'Nueva Contraseña'
-              : 'Contraseña Restablecida'
+              : 'Nueva Contraseña'
 
-  const noTitle = step === 'show_phrase' || step === 'reset_done' || isLocked
+  const noTitle = step === 'show_phrase' || isLocked
 
   return (
     <div className="flex h-screen bg-[var(--page-bg)] items-center justify-center p-6 relative overflow-hidden">
@@ -284,8 +285,6 @@ export default function PasswordScreen({ onUnlock }: Props) {
             <LockoutCard remaining={lockRemaining} />
           ) : step === 'show_phrase' ? (
             <TokenCard token={token} password={password} onUnlock={onUnlock} />
-          ) : step === 'reset_done' ? (
-            <ResetDoneCard />
           ) : (
             <FormCard
               step={step}
@@ -408,20 +407,6 @@ function TokenCard({ token, password, onUnlock }: { token: string; password: str
         Ya lo guardé, continuar
       </button>
     </motion.div>
-  )
-}
-
-function ResetDoneCard() {
-  return (
-    <div className="flex flex-col items-center gap-4 relative z-10">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-      </svg>
-      <div className="text-center">
-        <h2 className="text-[18px] font-bold text-[var(--text-main)] tracking-tight mb-1">Contraseña Restablecida</h2>
-        <p className="text-[13px] font-mono text-[var(--text-muted)]">Accediendo a su instancia...</p>
-      </div>
-    </div>
   )
 }
 
