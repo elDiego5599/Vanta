@@ -61,6 +61,7 @@ interface TranscriptLine {
   start: number;
   end: number;
   speaker?: string;
+  confidence: number;
 }
 
 const lineVariants = {
@@ -156,7 +157,7 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
 
     db.getTranscriptionByEvidence(selectedFile.id).then(saved => {
       if (saved && saved.saved) {
-        setTranscript(saved.lines);
+        setTranscript(saved.lines.map(l => ({ ...l, confidence: l.confidence ?? 0.5 })));
         setStatusText('Análisis Recuperado');
       }
     });
@@ -252,7 +253,8 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
             text: chunk.text,
             start: chunk.timestamp[0],
             end: chunk.timestamp[1],
-            speaker: localStorage.getItem('vanta-default-speaker') || 'Agente'
+            speaker: localStorage.getItem('vanta-default-speaker') || 'Agente',
+            confidence: chunk.confidence,
           };
           allLines.push(line);
           lineIdx++;
@@ -530,9 +532,22 @@ const ModuloTranscripcion = memo(function ModuloTranscripcion() {
                         }`}
                       onClick={() => handleTranscriptClick(item.start)}
                     >
-                      <div className="flex flex-col items-stretch gap-2 w-20 flex-shrink-0 pt-1">
+                      <div className="flex flex-col items-stretch gap-1.5 w-20 flex-shrink-0 pt-1">
                         <div className="text-[10px] font-mono text-center text-[var(--text-muted)] bg-[var(--glass-bg)] px-2 py-0.5 rounded border border-[var(--border-subtle)]">
                           {item.t}
+                        </div>
+
+                        <div className="flex items-center gap-1 px-1">
+                          <div
+                            className="h-1 rounded-full flex-1"
+                            style={{
+                              backgroundColor: item.confidence >= 0.8 ? 'rgb(34,197,94)' : item.confidence >= 0.5 ? 'rgb(234,179,8)' : 'rgb(239,68,68)',
+                              opacity: 0.6,
+                            }}
+                          />
+                          <span className="text-[8px] font-mono text-[var(--text-muted)] tabular-nums">
+                            {Math.round(item.confidence * 100)}
+                          </span>
                         </div>
 
                         {}

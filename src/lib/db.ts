@@ -31,7 +31,7 @@ interface DBSchema {
       id: string;
       evidenceId: string;
       caseId: string;
-      lines: { t: string; text: string; start: number; end: number }[];
+      lines: { t: string; text: string; start: number; end: number; speaker?: string; confidence?: number }[];
       createdAt: number;
       saved: boolean;
     };
@@ -78,6 +78,13 @@ export async function getCases(): Promise<DBSchema['cases']['value'][]> {
 export async function getCase(id: string): Promise<DBSchema['cases']['value'] | undefined> {
   const db = await getDB();
   return db.get('cases', id);
+}
+
+export async function updateCase(id: string, name: string, description: string): Promise<void> {
+  const db = await getDB();
+  const item = await db.get('cases', id);
+  if (!item) throw new Error(`Case ${id} not found`);
+  await db.put('cases', { ...item, name, description, updatedAt: Date.now() });
 }
 
 export async function deleteCase(id: string): Promise<void> {
@@ -162,7 +169,7 @@ export async function deleteEvidence(id: string): Promise<void> {
 export async function saveTranscription(
   evidenceId: string,
   caseId: string,
-  lines: { t: string; text: string; start: number; end: number }[],
+  lines: { t: string; text: string; start: number; end: number; speaker?: string; confidence?: number }[],
 ): Promise<string> {
   const db = await getDB();
   const id = `tx-${Date.now()}`;

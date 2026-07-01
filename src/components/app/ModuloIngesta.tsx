@@ -252,12 +252,16 @@ const ModuloEvidencias = memo(function ModuloEvidencias() {
         const tamano = formatBytes(sf.file.size);
         await db.saveEvidence(id, activeCase?.id ?? '', sf.file.name, tamano, arrayBuffer);
 
+        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+
         newlyUploaded.push({
           id,
           name: sf.file.name,
           size: sf.file.size,
           type: sf.file.type || 'AUDIO/UNKNOWN',
-          hash: Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(''),
+          hash: hashHex,
           isTranscribed: false,
         });
       }

@@ -51,12 +51,14 @@ type ProgressCallback = (data: ProgressData) => void
 export interface ChunkResult {
   text: string
   timestamp: [number, number]
+  confidence: number
 }
 
 interface WhisperChunk {
   text?: string
   timestamp?: number[]
   timestamps?: number[]
+  avg_logprob?: number
 }
 
 interface WhisperOutput {
@@ -109,6 +111,11 @@ export async function decodeAudioToF32(arrayBuffer: ArrayBuffer, targetRate = 16
   }
 }
 
+function logprobToConfidence(avgLogprob: number | undefined): number {
+  if (avgLogprob == null) return 0.5
+  return Math.max(0, Math.min(1, 1 + avgLogprob / 5))
+}
+
 function extractChunks(raw: unknown, offsetSeconds: number): ChunkResult[] {
   if (!raw || typeof raw !== 'object') return []
 
@@ -123,13 +130,14 @@ function extractChunks(raw: unknown, offsetSeconds: number): ChunkResult[] {
           offsetSeconds + (typeof ts[0] === 'number' ? ts[0] : 0),
           offsetSeconds + (typeof ts[1] === 'number' ? ts[1] : 0),
         ],
+        confidence: logprobToConfidence(c.avg_logprob),
       }
     })
   }
 
   const text = typeof output.text === 'string' ? output.text.trim() : ''
   if (text) {
-    return [{ text, timestamp: [offsetSeconds, offsetSeconds + 30] }]
+    return [{ text, timestamp: [offsetSeconds, offsetSeconds + 30], confidence: 0.5 }]
   }
   return []
 }

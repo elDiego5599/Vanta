@@ -1,4 +1,4 @@
-import { useState, useCallback, memo, useMemo } from 'react';
+import { useState, useCallback, memo, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { useCaseStore } from '../../lib/stores/caseStore';
@@ -48,6 +48,75 @@ const cardVariants: Variants = {
 
 
 
+
+function EditCaseModal({ isOpen, onClose, onSave, caseName, caseDesc }: { isOpen: boolean, onClose: () => void, onSave: (name: string, desc: string) => void, caseName: string, caseDesc: string }) {
+  const [name, setName] = useState(caseName);
+  const [desc, setDesc] = useState(caseDesc);
+
+  useEffect(() => { setName(caseName); setDesc(caseDesc); }, [caseName, caseDesc]);
+
+  return createPortal(
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-[var(--page-bg)]/60 backdrop-blur-md cursor-pointer"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+            className="relative w-full max-w-[420px] bg-[var(--card-bg)] border border-[var(--border-subtle)] rounded-3xl p-8 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.5)] overflow-hidden"
+          >
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-blue-500/10 blur-[50px] pointer-events-none" />
+            <div className="relative z-10 flex flex-col">
+              <div className="w-14 h-14 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-5 text-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.15)]">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-extrabold text-[var(--text-main)] mb-5 tracking-tight">Editar Expediente</h3>
+              <input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Nombre del caso"
+                className="w-full bg-transparent text-[14px] font-semibold outline-none mb-1 placeholder:text-[var(--text-muted)] text-[var(--text-main)] border-b-2 border-[var(--border-subtle)] focus:border-blue-500 pb-2.5 transition-colors"
+                autoFocus
+              />
+              <div className="mb-4" />
+              <input
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Descripción o metadatos (opcional)"
+                className="w-full bg-transparent text-[12px] font-mono outline-none mb-6 placeholder:text-[var(--text-muted)] text-[var(--text-muted)] border-b border-[var(--border-subtle)] focus:border-[var(--text-main)] pb-2.5 transition-colors"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { if (name.trim()) onSave(name.trim(), desc.trim()); }}
+                  disabled={!name.trim()}
+                  className="flex-1 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest outline-none focus-visible:ring-2 focus-visible:ring-blue-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed bg-blue-500 text-white hover:bg-blue-600 shadow-sm"
+                >
+                  Guardar
+                </button>
+                <button
+                  onClick={onClose}
+                  className="flex-1 py-3 rounded-xl text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] hover:text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] hover:border-[var(--border-strong)] transition-all outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-main)]"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>,
+    document.body
+  );
+}
 
 function ConfirmDeleteModal({ isOpen, onClose, onConfirm, caseName }: { isOpen: boolean, onClose: () => void, onConfirm: () => void, caseName: string }) {
   return createPortal(
@@ -115,10 +184,11 @@ interface CaseCardProps {
   onSelect: (c: CaseData) => void;
   onNavigate: (e: React.MouseEvent, c: CaseData) => void;
   onDeleteRequest: (c: CaseData, e: React.MouseEvent) => void;
+  onEditRequest: (c: CaseData, e: React.MouseEvent) => void;
   index: number;
 }
 
-const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onDeleteRequest, index }: CaseCardProps) {
+const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onDeleteRequest, onEditRequest, index }: CaseCardProps) {
   const colors = getCaseColor(c.id);
 
   return (
@@ -213,14 +283,27 @@ const CaseCard = memo(function CaseCard({ c, isActive, onSelect, onNavigate, onD
               </span>
             </span>
 
-            <button
-              onClick={(e) => onDeleteRequest(c, e)}
-              className="pointer-events-auto relative z-30 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md outline-none hover:text-red-500 hover:bg-red-500/10 text-[var(--text-muted)] focus-visible:opacity-100"
-              title="Eliminar caso"
-              aria-label={`Eliminar caso ${c.name}`}
-            >
-              <TrashIcon w={15} h={15} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={(e) => onEditRequest(c, e)}
+                className="pointer-events-auto relative z-30 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md outline-none hover:text-blue-500 hover:bg-blue-500/10 text-[var(--text-muted)] focus-visible:opacity-100"
+                title="Editar caso"
+                aria-label={`Editar caso ${c.name}`}
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => onDeleteRequest(c, e)}
+                className="pointer-events-auto relative z-30 opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-md outline-none hover:text-red-500 hover:bg-red-500/10 text-[var(--text-muted)] focus-visible:opacity-100"
+                title="Eliminar caso"
+                aria-label={`Eliminar caso ${c.name}`}
+              >
+                <TrashIcon w={15} h={15} />
+              </button>
+            </div>
           </div>
 
         </div>
@@ -239,12 +322,23 @@ const ModuloCasos = memo(function ModuloCasos() {
   const createCase = useCaseStore((s) => s.createCase);
   const deleteCase = useCaseStore((s) => s.deleteCase);
   const setActiveTab = useUIStore((s) => s.setActiveTab);
+  const updateCase = useCaseStore((s) => s.updateCase);
 
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [caseToDelete, setCaseToDelete] = useState<CaseData | null>(null);
+  const [caseToEdit, setCaseToEdit] = useState<CaseData | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredCases = useMemo(() => {
+    if (!searchQuery.trim()) return cases;
+    const q = searchQuery.toLowerCase();
+    return cases.filter(c =>
+      c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+    );
+  }, [cases, searchQuery]);
 
   const isDuplicateName = useMemo(() => {
     const trimmed = newName.trim().toLowerCase();
@@ -281,6 +375,22 @@ const ModuloCasos = memo(function ModuloCasos() {
     setCaseToDelete(c);
   }, []);
 
+  const handleEditRequest = useCallback((c: CaseData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCaseToEdit(c);
+  }, []);
+
+  const confirmEdit = useCallback(async (name: string, desc: string) => {
+    if (!caseToEdit) return;
+    try {
+      await updateCase(caseToEdit.id, name, desc);
+    } catch (error) {
+      console.error("Error al editar el caso:", error);
+    } finally {
+      setCaseToEdit(null);
+    }
+  }, [caseToEdit, updateCase]);
+
   const confirmDelete = useCallback(async () => {
     if (!caseToDelete) return;
     if (activeCase?.id === caseToDelete.id) setActiveCase(null);
@@ -309,7 +419,13 @@ const ModuloCasos = memo(function ModuloCasos() {
         }
       `}</style>
 
-      {}
+      <EditCaseModal
+        isOpen={!!caseToEdit}
+        caseName={caseToEdit?.name || ''}
+        caseDesc={caseToEdit?.description || ''}
+        onClose={() => setCaseToEdit(null)}
+        onSave={confirmEdit}
+      />
       <ConfirmDeleteModal
         isOpen={!!caseToDelete}
         caseName={caseToDelete?.name || ''}
@@ -318,13 +434,39 @@ const ModuloCasos = memo(function ModuloCasos() {
       />
 
       {}
-      <div className="mb-6 flex items-start justify-between shrink-0">
-        <div>
+      <div className="mb-6 flex items-start justify-between gap-4 shrink-0 flex-wrap">
+        <div className="min-w-0">
           <div className="text-2xl font-extrabold tracking-tight text-[var(--text-main)]">Gestión de Casos</div>
           <div className="text-[11px] mt-1 font-mono tracking-widest uppercase text-[var(--text-muted)]">
-            {cases.length} expediente{cases.length !== 1 ? 's' : ''} registrado{cases.length !== 1 ? 's' : ''}
+            {filteredCases.length === cases.length
+              ? `${cases.length} expediente${cases.length !== 1 ? 's' : ''} registrado${cases.length !== 1 ? 's' : ''}`
+              : `${filteredCases.length} de ${cases.length} expediente${cases.length !== 1 ? 's' : ''}`}
           </div>
         </div>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar casos..."
+              className="w-[200px] bg-[var(--glass-bg)] border border-[var(--border-subtle)] rounded-xl px-3 py-2.5 pl-9 text-[12px] text-[var(--text-main)] placeholder-[var(--text-muted)] outline-none focus:border-[var(--accent)] transition-colors"
+            />
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            {searchQuery.trim() && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--glass-hover)] transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
         <MagneticButton>
           <button
             onClick={() => setShowCreate(!showCreate)}
@@ -336,6 +478,7 @@ const ModuloCasos = memo(function ModuloCasos() {
             Nuevo Caso
           </button>
         </MagneticButton>
+        </div>
       </div>
 
       {}
@@ -411,13 +554,20 @@ const ModuloCasos = memo(function ModuloCasos() {
             <div className="text-[11px] font-mono text-[var(--text-muted)] tracking-widest uppercase relative z-10">Crea un caso para comenzar</div>
           </div>
         </div>
+      ) : filteredCases.length === 0 && searchQuery.trim() ? (
+        <div className="flex-1 flex items-center justify-center min-h-0 bg-[var(--glass-bg)] rounded-3xl border border-[var(--border-subtle)]">
+          <div className="text-center relative">
+            <div className="text-lg font-extrabold mb-1 text-[var(--text-main)] tracking-tight relative z-10">Sin Resultados</div>
+            <div className="text-[11px] font-mono text-[var(--text-muted)] tracking-widest uppercase relative z-10">No hay casos que coincidan con "{searchQuery}"</div>
+          </div>
+        </div>
       ) : (
         <div className="flex-1 min-h-0 relative rounded-3xl border border-[var(--border-subtle)] bg-[var(--glass-bg)] shadow-sm overflow-hidden">
           {}
           <div className="h-full overflow-y-auto p-6 custom-scrollbar">
             <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-max pb-10">
               <AnimatePresence mode="popLayout">
-                {cases.map((c, i) => (
+                {filteredCases.map((c, i) => (
                   <CaseCard
                     key={c.id}
                     c={c}
@@ -425,6 +575,7 @@ const ModuloCasos = memo(function ModuloCasos() {
                     onSelect={handleCardClick}
                     onNavigate={handleNavigate}
                     onDeleteRequest={handleDeleteRequest}
+                    onEditRequest={handleEditRequest}
                     index={i}
                   />
                 ))}

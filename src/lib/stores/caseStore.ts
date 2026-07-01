@@ -10,6 +10,7 @@ interface CaseState {
   isLoading: boolean
   setActiveCase: (c: CaseData | null) => void
   createCase: (name: string, description: string) => Promise<string>
+  updateCase: (id: string, name: string, description: string) => Promise<void>
   deleteCase: (id: string) => Promise<void>
   refreshCases: () => Promise<void>
   initialize: () => Promise<void>
@@ -63,6 +64,16 @@ export const useCaseStore = create<CaseState>()((set) => ({
         activeCase: wasActive ? (filtered[0] ?? null) : s.activeCase,
       }
     })
+  },
+
+  updateCase: async (id, name, description) => {
+    const key = assertKey()
+    const [encName, encDesc] = await Promise.all([encrypt(name, key), encrypt(description, key)])
+    await db.updateCase(id, encName, encDesc)
+    set((s) => ({
+      cases: s.cases.map((c) => c.id === id ? { ...c, name, description, updatedAt: Date.now() } : c),
+      activeCase: s.activeCase?.id === id ? { ...s.activeCase, name, description, updatedAt: Date.now() } : s.activeCase,
+    }))
   },
 
   refreshCases: async () => {
