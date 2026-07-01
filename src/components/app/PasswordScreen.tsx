@@ -12,7 +12,9 @@ const FAIL_KEY = 'vanta_fail_count'
 const DB_NAME = 'vanta'
 
 function resetApp() {
+  const theme = localStorage.getItem('vanta-theme')
   localStorage.clear()
+  if (theme) localStorage.setItem('vanta-theme', theme)
   indexedDB.deleteDatabase(DB_NAME)
   window.location.reload()
 }
