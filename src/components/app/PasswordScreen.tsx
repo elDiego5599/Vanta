@@ -270,7 +270,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
             <div className="text-center mb-8 relative z-10">
               <h2 className="text-[18px] font-bold text-[var(--text-main)] tracking-tight">{title}</h2>
               <p className="text-[13px] font-mono text-[var(--text-muted)] mt-1.5">
-                {step === 'recover' ? 'Ingrese las 12 palabras separadas por espacios (puede incluir o no los números)' : 'Ingrese su contraseña para continuar'}
+                {step === 'recover' ? 'Ingrese su frase de recuperación' : 'Ingrese su contraseña para continuar'}
               </p>
             </div>
           )}
@@ -340,9 +340,9 @@ function PhraseCard({ phrase, password, onUnlock }: { phrase: string; password: 
           Sin esta frase no podrá recuperar el acceso si olvida su contraseña. Se muestra una única vez.
         </p>
       </div>
-      <div className="grid grid-cols-2 gap-2 bg-[var(--page-bg)]/50 rounded-xl p-4 border border-[var(--border-subtle)]">
+      <div className="grid grid-cols-3 gap-1.5 bg-[var(--page-bg)]/50 rounded-xl p-4 border border-[var(--border-subtle)]">
         {phrase.split(' ').map((word, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[12px] font-mono">
+          <div key={i} className="flex items-center gap-1 text-[11px] font-mono">
             <span className="text-[var(--text-muted)] w-4 text-right shrink-0">{i + 1}.</span>
             <span className="text-[var(--text-main)] font-semibold">{word}</span>
           </div>
@@ -516,7 +516,11 @@ function FormCard({
       <div className="flex flex-col gap-3">
         <button
           type="submit"
-          disabled={loading || ((step === 'create' || step === 'set_new_password') ? !allMet : step === 'recover' ? phrase.trim().split(/\s+/).length !== 12 : currentPwd.length < 4)}
+          disabled={loading || ((step === 'create' || step === 'set_new_password')
+            ? !allMet
+            : step === 'recover'
+              ? ![12, 24].includes(phrase.trim().split(/\s+/).length)
+              : currentPwd.length < 4)}
           className="w-full py-3.5 rounded-xl text-[12px] font-bold tracking-widest uppercase transition-all bg-[var(--accent)] text-white disabled:opacity-40 disabled:bg-[var(--border-strong)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed hover:brightness-110 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm"
         >
           {loading ? (
