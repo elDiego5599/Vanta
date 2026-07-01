@@ -1,5 +1,3 @@
-import { WORDLIST, WORD_MAP } from './wordlist'
-
 const VERIFIER_PLAINTEXT = 'vanta_unlock'
 const KEY_SALT = 'vanta-key-derivation'
 
@@ -21,82 +19,27 @@ function b64(bytes: Uint8Array): string {
   return btoa(String.fromCharCode(...bytes))
 }
 
+function b64url(bytes: Uint8Array): string {
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
 function ub64(s: string): Uint8Array {
-  return Uint8Array.from(atob(s), (c) => c.charCodeAt(0))
+  const padded = s + '='.repeat((4 - s.length % 4) % 4)
+  return Uint8Array.from(atob(padded), (c) => c.charCodeAt(0))
 }
 
 async function entropyToKey(entropy: Uint8Array): Promise<CryptoKey> {
   return pbkdf2Key(b64(entropy), new TextEncoder().encode(KEY_SALT))
 }
 
-async function sha256(data: Uint8Array): Promise<Uint8Array> {
-  return new Uint8Array(await crypto.subtle.digest('SHA-256', data.buffer as ArrayBuffer))
+export function entropyToToken(entropy: Uint8Array): string {
+  return 'vnt_' + b64url(entropy)
 }
 
-export async function entropyToMnemonic(entropy: Uint8Array): Promise<string> {
-  const entropyBits = entropy.length * 8
-  const checksumBits = entropy.length / 4
-  const totalBits = entropyBits + checksumBits
-  const wordCount = totalBits / 11
-
-  let value = 0n
-  for (const b of entropy) value = (value << 8n) | BigInt(b)
-
-  const hash = await sha256(entropy)
-  let checksum = 0
-  for (let i = 0; i < checksumBits; i++) {
-    const byteIdx = Math.floor(i / 8)
-    const bitIdx = 7 - (i % 8)
-    checksum = (checksum << 1) | ((hash[byteIdx]! >> bitIdx) & 1)
-  }
-  value = (value << BigInt(checksumBits)) | BigInt(checksum)
-
-  const words: string[] = []
-  for (let i = 0; i < wordCount; i++) {
-    const shift = BigInt(totalBits - 11 * (i + 1))
-    words.push(WORDLIST[Number((value >> shift) & 0x7FFn)]!)
-  }
-  return words.join(' ')
-}
-
-export async function mnemonicToEntropy(phrase: string): Promise<Uint8Array> {
-  const parts = phrase.toLowerCase().trim().split(/\s+/)
-  const cleaned = parts.map(w => w.replace(/^[\d\s.\-)\])]+/, '').trim()).filter(Boolean)
-
-  const wordCount = cleaned.length
-  if (wordCount !== 12 && wordCount !== 24) throw new Error('La frase debe tener 12 o 24 palabras')
-
-  const entropyBytes = wordCount * 4 / 3
-  const entropyBits = entropyBytes * 8
-  const checksumBits = entropyBytes / 4
-  const totalBits = entropyBits + checksumBits
-
-  let value = 0n
-  for (const word of cleaned) {
-    const idx = WORD_MAP.get(word)
-    if (idx === undefined) throw new Error(`Palabra inválida: "${word}"`)
-    value = (value << 11n) | BigInt(idx)
-  }
-
-  const entropy = new Uint8Array(entropyBytes)
-  for (let i = 0; i < entropyBytes; i++) {
-    const shift = BigInt(totalBits - 8 - i * 8)
-    entropy[i] = Number((value >> shift) & 0xFFn)
-  }
-
-  const checksumFromWords = Number(value & BigInt((1 << checksumBits) - 1))
-  const hash = await sha256(entropy)
-  let expectedChecksum = 0
-  for (let i = 0; i < checksumBits; i++) {
-    const byteIdx = Math.floor(i / 8)
-    const bitIdx = 7 - (i % 8)
-    expectedChecksum = (expectedChecksum << 1) | ((hash[byteIdx]! >> bitIdx) & 1)
-  }
-
-  if (checksumFromWords !== expectedChecksum) {
-    throw new Error('Frase de recuperación inválida')
-  }
-  return entropy
+export function tokenToEntropy(token: string): Uint8Array {
+  const clean = token.trim()
+  if (!clean.startsWith('vnt_')) throw new Error('Token inválido')
+  return ub64(clean.slice(4).replace(/-/g, '+').replace(/_/g, '/'))
 }
 
 export async function encrypt(plaintext: string, key: CryptoKey): Promise<string> {
@@ -117,9 +60,9 @@ export async function decrypt(data: string, key: CryptoKey): Promise<string> {
   return new TextDecoder().decode(plaintext)
 }
 
-export async function createVerifier(password: string): Promise<{ stored: string; key: CryptoKey; phrase: string }> {
-  const entropy = crypto.getRandomValues(new Uint8Array(32))
-  const phrase = await entropyToMnemonic(entropy)
+export async function createVerifier(password: string): Promise<{ stored: string; key: CryptoKey; token: string }> {
+  const entropy = crypto.getRandomValues(new Uint8Array(16))
+  const token = entropyToToken(entropy)
   const key = await entropyToKey(entropy)
   const verifier = await encrypt(VERIFIER_PLAINTEXT, key)
   const salt = crypto.getRandomValues(new Uint8Array(16))
@@ -128,7 +71,7 @@ export async function createVerifier(password: string): Promise<{ stored: string
   return {
     stored: `${b64(salt)}|${verifier}|${encEntropy}`,
     key,
-    phrase,
+    token,
   }
 }
 
@@ -148,12 +91,12 @@ export async function verifyPassword(password: string, stored: string): Promise<
   }
 }
 
-export async function verifyPhrase(phrase: string, stored: string): Promise<CryptoKey | null> {
+export async function verifyToken(token: string, stored: string): Promise<CryptoKey | null> {
   const parts = stored.split('|')
   if (parts.length < 3) return null
   const verifier = parts[1]!
   try {
-    const entropy = await mnemonicToEntropy(phrase)
+    const entropy = tokenToEntropy(token)
     const key = await entropyToKey(entropy)
     return (await decrypt(verifier, key)) === VERIFIER_PLAINTEXT ? key : null
   } catch {
@@ -161,16 +104,16 @@ export async function verifyPhrase(phrase: string, stored: string): Promise<Cryp
   }
 }
 
-export async function reEncryptEntropy(phrase: string, newPassword: string): Promise<string> {
+export async function reEncryptEntropy(token: string, newPassword: string): Promise<string> {
   const stored = localStorage.getItem('vanta_crypto_verifier')
   if (!stored) throw new Error('No stored verifier found')
   const parts = stored.split('|')
   if (parts.length < 3) throw new Error('Invalid stored data')
   const verifier = parts[1]!
-  const entropy = await mnemonicToEntropy(phrase)
+  const entropy = tokenToEntropy(token)
   const key = await entropyToKey(entropy)
   const ok = (await decrypt(verifier, key)) === VERIFIER_PLAINTEXT
-  if (!ok) throw new Error('Frase de recuperación inválida')
+  if (!ok) throw new Error('Token inválido')
   const newSalt = crypto.getRandomValues(new Uint8Array(16))
   const newPwdKey = await pbkdf2Key(newPassword, newSalt)
   const newEncEntropy = await encrypt(b64(entropy), newPwdKey)
