@@ -141,22 +141,6 @@ export default function PasswordScreen({ onUnlock }: Props) {
       return
     }
 
-    if (step === 'confirm') {
-      if (password !== confirm) {
-        setError('Las contraseñas no coinciden')
-        setConfirm('')
-        inputRef.current?.focus()
-        return
-      }
-      setLoading(true)
-      const result = await createVerifier(password)
-      localStorage.setItem(STORAGE_KEY, result.stored)
-      setToken(result.token)
-      setLoading(false)
-      setStep('show_phrase')
-      return
-    }
-
     if (step === 'unlock') {
       const stored = getStoredVerifier()
       if (!stored) { setStep('create'); setPassword(''); return }
@@ -201,26 +185,41 @@ export default function PasswordScreen({ onUnlock }: Props) {
 
     if (step === 'set_new_password') {
       if (!allMet) { setError('Cumpla todos los requisitos de seguridad'); return }
+      setStep('confirm')
+      inputRef.current?.focus()
+      return
+    }
+
+    if (step === 'confirm') {
       if (password !== confirm) {
         setError('Las contraseñas no coinciden')
         setConfirm('')
         inputRef.current?.focus()
         return
       }
-      setLoading(true)
-      try {
-        const newStored = await reEncryptEntropy(token, password)
-        localStorage.setItem(STORAGE_KEY, newStored)
-        const key = await verifyCrypto(password, newStored)
-        if (key) {
-          clearLockout()
-          setEncryptionKey(key)
-          setStep('reset_done')
-          setTimeout(() => onUnlock(), 1500)
+      if (token) {
+        setLoading(true)
+        try {
+          const newStored = await reEncryptEntropy(token, password)
+          localStorage.setItem(STORAGE_KEY, newStored)
+          const key = await verifyCrypto(password, newStored)
+          if (key) {
+            clearLockout()
+            setEncryptionKey(key)
+            setStep('reset_done')
+            setTimeout(() => onUnlock(), 1500)
+          }
+        } catch {
+          setError('Error al cambiar la contraseña')
+          setLoading(false)
         }
-      } catch {
-        setError('Error al cambiar la contraseña')
+      } else {
+        setLoading(true)
+        const result = await createVerifier(password)
+        localStorage.setItem(STORAGE_KEY, result.stored)
+        setToken(result.token)
         setLoading(false)
+        setStep('show_phrase')
       }
       return
     }
@@ -305,7 +304,10 @@ export default function PasswordScreen({ onUnlock }: Props) {
               onVisibilityToggle={() => setVisible(v => !v)}
               onSubmit={handleSubmit}
               onBack={() => {
-                if (step === 'confirm') { setStep('create'); setConfirm(''); setError('') }
+                if (step === 'confirm') {
+                  if (token) { setStep('set_new_password'); setConfirm(''); setError('') }
+                  else { setStep('create'); setConfirm(''); setError('') }
+                }
                 else if (step === 'create') { setStep('unlock'); setPassword(''); setError('') }
                 else if (step === 'recover') { setStep('unlock'); setToken(''); setError('') }
                 else if (step === 'set_new_password') { setStep('recover'); setPassword(''); setConfirm(''); setToken(''); setError('') }
@@ -494,7 +496,7 @@ function FormCard({
             value={token}
             onChange={(e) => onTokenChange(e.target.value)}
             placeholder=""
-            rows={3}
+            rows={1}
             disabled={loading}
             className="w-full px-5 py-3 rounded-xl text-[13px] font-mono text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm resize-none"
           />
@@ -577,9 +579,6 @@ function FormCard({
           )}
           {step === 'recover' && (
             <BackButton key="br" label="← Volver a inicio de sesión" onClick={onBack} />
-          )}
-          {step === 'set_new_password' && (
-            <BackButton key="bn" label="← Usar otro token" onClick={onBack} />
           )}
         </AnimatePresence>
 
