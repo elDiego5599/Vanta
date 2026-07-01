@@ -9,6 +9,13 @@ import { setEncryptionKey } from '../../lib/keyHolder'
 const STORAGE_KEY = 'vanta_crypto_verifier'
 const LOCKOUT_KEY = 'vanta_lockout'
 const FAIL_KEY = 'vanta_fail_count'
+const DB_NAME = 'vanta'
+
+function resetApp() {
+  localStorage.clear()
+  indexedDB.deleteDatabase(DB_NAME)
+  window.location.reload()
+}
 
 function getStoredVerifier() {
   return localStorage.getItem(STORAGE_KEY)
@@ -99,10 +106,10 @@ export default function PasswordScreen({ onUnlock }: Props) {
   const isSet = !!getStoredVerifier()
 
   const requirements = [
-    { label: 'Minimo 8 caracteres', met: password.length >= 8 },
-    { label: 'Una mayuscula', met: hasUpper(password) },
-    { label: 'Un numero', met: hasDigit(password) },
-    { label: 'Un caracter especial', met: hasSpecial(password) },
+    { label: 'Mínimo 8 caracteres', met: password.length >= 8 },
+    { label: 'Una mayúscula', met: hasUpper(password) },
+    { label: 'Un número', met: hasDigit(password) },
+    { label: 'Un carácter especial', met: hasSpecial(password) },
   ]
   const allMet = requirements.every(r => r.met)
   const isLocked = lockRemaining > 0
@@ -134,7 +141,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
 
     if (step === 'confirm') {
       if (password !== confirm) {
-        setError('Las contrasenas no coinciden')
+        setError('Las contraseñas no coinciden')
         setConfirm('')
         inputRef.current?.focus()
         return
@@ -162,7 +169,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
         setLoading(false)
         const result = applyFailedAttempt()
         if (result.locked) setLockRemaining(result.until - Date.now())
-        setError('Contrasena incorrecta')
+        setError('Contraseña incorrecta')
         setPassword('')
         inputRef.current?.focus()
       }
@@ -181,7 +188,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
         setLoading(false)
       } else {
         setLoading(false)
-        setError('Frase de recuperacion invalida')
+        setError('Frase de recuperación inválida')
       }
       return
     }
@@ -189,7 +196,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
     if (step === 'set_new_password') {
       if (!allMet) { setError('Cumpla todos los requisitos de seguridad'); return }
       if (password !== confirm) {
-        setError('Las contrasenas no coinciden')
+        setError('Las contraseñas no coinciden')
         setConfirm('')
         inputRef.current?.focus()
         return
@@ -206,7 +213,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
           setTimeout(() => onUnlock(), 1500)
         }
       } catch {
-        setError('Error al cambiar la contrasena')
+        setError('Error al cambiar la contraseña')
         setLoading(false)
       }
       return
@@ -215,13 +222,13 @@ export default function PasswordScreen({ onUnlock }: Props) {
 
   const currentPwd = step === 'create' ? password : step === 'confirm' || step === 'set_new_password' ? confirm : password
 
-  const title = step === 'unlock' ? 'Iniciar Sesion'
-    : step === 'create' ? 'Crear Contrasena'
-      : step === 'confirm' ? 'Confirmar Contrasena'
-        : step === 'show_phrase' ? 'Frase de Recuperacion'
+  const title = step === 'unlock' ? 'Iniciar Sesión'
+    : step === 'create' ? 'Crear Contraseña'
+      : step === 'confirm' ? 'Confirmar Contraseña'
+        : step === 'show_phrase' ? 'Frase de Recuperación'
           : step === 'recover' ? 'Recuperar Acceso'
-            : step === 'set_new_password' ? 'Nueva Contrasena'
-              : 'Contrasena Restablecida'
+            : step === 'set_new_password' ? 'Nueva Contraseña'
+              : 'Contraseña Restablecida'
 
   const noTitle = step === 'show_phrase' || step === 'reset_done' || isLocked
 
@@ -263,7 +270,7 @@ export default function PasswordScreen({ onUnlock }: Props) {
             <div className="text-center mb-8 relative z-10">
               <h2 className="text-[18px] font-bold text-[var(--text-main)] tracking-tight">{title}</h2>
               <p className="text-[13px] font-mono text-[var(--text-muted)] mt-1.5">
-                {step === 'recover' ? 'Ingrese su frase de 12 palabras para recuperar el acceso' : 'Ingrese su contrasena para continuar'}
+                {step === 'recover' ? 'Ingrese su frase de 12 palabras para recuperar el acceso' : 'Ingrese su contraseña para continuar'}
               </p>
             </div>
           )}
@@ -315,7 +322,7 @@ function LockoutCard({ remaining }: { remaining: number }) {
       </svg>
       <div className="text-center">
         <h2 className="text-[18px] font-bold text-[var(--text-main)] tracking-tight mb-1">Acceso Bloqueado</h2>
-        <p className="text-[13px] font-mono text-[var(--text-muted)] leading-relaxed">Demasiados intentos fallidos.<br />Espere antes de intentar de nuevo.</p>
+        <p className="text-[13px] font-mono text-[var(--text-muted)] leading-relaxed">Demasiados intentos fallidos.<br />Espere antes de intentarlo de nuevo.</p>
       </div>
       <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-8 py-4 text-center">
         <div className="text-[32px] font-bold text-red-500 tabular-nums tracking-tight leading-none">{formatLockoutTime(remaining)}</div>
@@ -330,7 +337,7 @@ function PhraseCard({ phrase, password, onUnlock }: { phrase: string; password: 
       <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-center">
         <div className="text-[11px] font-mono text-amber-500 font-bold mb-1 uppercase tracking-wider">Guarde esta frase en un lugar seguro</div>
         <p className="text-[11px] font-mono text-[var(--text-muted)] leading-relaxed">
-          Sin esta frase no podra recuperar el acceso si olvida su contrasena. Se muestra una unica vez.
+          Sin esta frase no podrá recuperar el acceso si olvida su contraseña. Se muestra una única vez.
         </p>
       </div>
       <div className="grid grid-cols-2 gap-2 bg-[var(--page-bg)]/50 rounded-xl p-4 border border-[var(--border-subtle)]">
@@ -346,7 +353,7 @@ function PhraseCard({ phrase, password, onUnlock }: { phrase: string; password: 
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
           </svg>
-          Si pierde esta frase, perdera el acceso a todos sus datos permanentemente.
+          Si pierde esta frase, perderá el acceso a todos sus datos permanentemente.
         </div>
       </div>
       <button
@@ -359,7 +366,7 @@ function PhraseCard({ phrase, password, onUnlock }: { phrase: string; password: 
         }}
         className="w-full py-3.5 rounded-xl text-[12px] font-bold tracking-widest uppercase transition-all bg-[var(--accent)] text-white hover:brightness-110 active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] shadow-sm"
       >
-        Ya lo guarde, continuar
+        Ya lo guardé, continuar
       </button>
     </div>
   )
@@ -372,7 +379,7 @@ function ResetDoneCard() {
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
       </svg>
       <div className="text-center">
-        <h2 className="text-[18px] font-bold text-[var(--text-main)] tracking-tight mb-1">Contrasena Restablecida</h2>
+        <h2 className="text-[18px] font-bold text-[var(--text-main)] tracking-tight mb-1">Contraseña Restablecida</h2>
         <p className="text-[13px] font-mono text-[var(--text-muted)]">Accediendo a su instancia...</p>
       </div>
     </div>
@@ -406,7 +413,7 @@ function FormCard({
   onSubmit, onBack, onForgot, inputRef,
 }: FormCardProps) {
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-5 relative z-10">
+    <form onSubmit={onSubmit} className="flex flex-col gap-3 relative z-10">
 
       {(step === 'create' || step === 'set_new_password') && (
         <div className="relative">
@@ -415,7 +422,7 @@ function FormCard({
             type={visible ? 'text' : 'password'}
             value={password}
             onChange={(e) => { onPasswordChange(e.target.value) }}
-            placeholder="Nueva contrasena"
+            placeholder="Nueva contraseña"
             autoFocus
             disabled={loading}
             className="w-full h-14 px-5 pr-12 rounded-xl text-[14px] font-medium text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm"
@@ -434,7 +441,7 @@ function FormCard({
               if (step === 'confirm') onConfirmChange(e.target.value)
               else onPasswordChange(e.target.value)
             }}
-            placeholder={step === 'confirm' ? 'Repita la contrasena' : 'Contrasena'}
+            placeholder={step === 'confirm' ? 'Repita la contraseña' : 'Contraseña'}
             autoFocus
             disabled={loading}
             className="w-full h-14 px-5 pr-12 rounded-xl text-[14px] font-medium text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm"
@@ -449,7 +456,7 @@ function FormCard({
             ref={inputRef as unknown as React.Ref<HTMLTextAreaElement>}
             value={phrase}
             onChange={(e) => onPhraseChange(e.target.value)}
-            placeholder="Ingrese su frase de recuperacion (12 palabras)"
+            placeholder="Ingrese su frase de recuperación (12 palabras)"
             rows={3}
             disabled={loading}
             className="w-full px-5 py-3 rounded-xl text-[13px] font-mono text-[var(--text-main)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] focus:border-[var(--accent)] focus:outline-none focus:ring-4 focus:ring-[var(--accent)]/10 placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm resize-none"
@@ -463,7 +470,7 @@ function FormCard({
             type={visible ? 'text' : 'password'}
             value={password}
             onChange={(e) => onPasswordChange(e.target.value)}
-            placeholder="Contrasena original"
+            placeholder="Contraseña original"
             disabled
             className="w-full h-14 px-5 pr-12 rounded-xl text-[14px] font-medium text-[var(--text-muted)] bg-[var(--glass-bg)] border border-[var(--border-subtle)] placeholder:text-[var(--text-muted)]/50 transition-all shadow-sm cursor-not-allowed"
           />
@@ -490,7 +497,7 @@ function FormCard({
         </AnimatePresence>
       )}
 
-      <div className="h-5 flex items-center justify-center">
+      <div className="h-4 flex items-center justify-center">
         <AnimatePresence mode="wait">
           {error && (
             <motion.div
@@ -522,10 +529,10 @@ function FormCard({
             </span>
           ) : (
             step === 'create' ? 'Continuar'
-              : step === 'confirm' ? 'Establecer Contrasena'
-                : step === 'unlock' ? 'Iniciar Sesion'
+              : step === 'confirm' ? 'Establecer Contraseña'
+                : step === 'unlock' ? 'Iniciar Sesión'
                   : step === 'recover' ? 'Verificar Frase'
-                    : step === 'set_new_password' ? 'Restablecer Contrasena'
+                    : step === 'set_new_password' ? 'Restablecer Contraseña'
                       : null
           )}
         </button>
@@ -535,18 +542,32 @@ function FormCard({
             <BackButton key="bc" label="← Volver a escribir" onClick={onBack} />
           )}
           {step === 'create' && isSet && (
-            <BackButton key="bs" label="Ya tengo una contrasena" onClick={onBack} />
+            <BackButton key="bs" label="Ya tengo una contraseña" onClick={onBack} />
           )}
           {step === 'unlock' && (
-            <BackButton key="bf" label="¿Olvido su contrasena?" onClick={onForgot} />
+            <BackButton key="bf" label="¿Olvidó su contraseña?" onClick={onForgot} />
           )}
           {step === 'recover' && (
-            <BackButton key="br" label="← Volver a inicio de sesion" onClick={onBack} />
+            <BackButton key="br" label="← Volver a inicio de sesión" onClick={onBack} />
           )}
           {step === 'set_new_password' && (
             <BackButton key="bn" label="← Usar otra frase" onClick={onBack} />
           )}
         </AnimatePresence>
+
+        {step === 'unlock' && (
+          <button
+            type="button"
+            onClick={() => {
+              if (window.confirm('Se borrarán todos los datos cifrados de esta aplicación. ¿Está seguro?')) {
+                resetApp()
+              }
+            }}
+            className="text-[10px] font-mono text-red-500/50 hover:text-red-500 transition-colors mt-1"
+          >
+            Restablecer aplicación
+          </button>
+        )}
       </div>
 
     </form>

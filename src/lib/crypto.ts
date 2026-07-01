@@ -51,7 +51,7 @@ export async function mnemonicToEntropy(phrase: string): Promise<Uint8Array> {
   let value = 0n
   for (const word of parts) {
     const idx = WORD_MAP.get(word)
-    if (idx === undefined) throw new Error(`Palabra invalida: "${word}"`)
+    if (idx === undefined) throw new Error(`Palabra inválida: "${word}"`)
     value = (value << 11n) | BigInt(idx)
   }
   const entropy = new Uint8Array(16)
@@ -62,7 +62,7 @@ export async function mnemonicToEntropy(phrase: string): Promise<Uint8Array> {
   const checksumFromWords = Number(value & 0xFn)
   const hash = await sha256(entropy)
   if (checksumFromWords !== hash[0]! >> 4) {
-    throw new Error('Frase de recuperacion invalida')
+    throw new Error('Frase de recuperación inválida')
   }
   return entropy
 }
